@@ -10,11 +10,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- html2canvas (Para captura de pantalla limpia del mapa) -->
+    <!-- html2canvas (Captura de pantalla del mapa) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Librería Gratuita para Generar PDF -->
+    <!-- html2pdf (Generación de PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Leaflet MAPS (Gratuito) -->
+    <!-- Leaflet MAPS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -37,7 +37,7 @@
         .signature-canvas { touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
         /* Estilos del mapa Leaflet (Satelital) */
-        #croquis-map { height: 380px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+        #croquis-map { height: 340px; width: 100%; border-radius: 0.75rem; z-index: 10; }
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
@@ -398,7 +398,7 @@
                                 <i class="fa-solid fa-earth-americas text-brand-400"></i>
                                 Croquis Satelital de Tendido FTTH
                             </h3>
-                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º Clic CTO (🔌), clics siguientes Postes (🪵) y el último clic siempre será la Casa (🏠).</p>
+                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y el último la Casa (🏠).</p>
                         </div>
                         <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-medium transition shrink-0">
                             <i class="fa-solid fa-trash-can"></i> Borrar Mapa
@@ -418,33 +418,35 @@
                         </button>
                     </div>
 
-                    <!-- ÁREA DEL MAPA Y CAPTURA DE PANTALLA -->
-                    <div id="croquis-capture-area" class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3">
+                    <!-- ÁREA ÚNICA DEL MAPA (ÚNICA COSA QUE SE CAPTURA) -->
+                    <div id="croquis-capture-area" class="bg-slate-950 border border-slate-800 rounded-xl p-2 shadow-inner">
                         <div id="croquis-map"></div>
-
-                        <!-- RESUMEN DE DISTANCIAS Y PUNTOS REGISTRADOS -->
-                        <div id="croquis-summary-box" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs space-y-2">
-                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                <div><strong class="text-purple-300">Distancia Total Tendido:</strong> <span id="summary-distance" class="text-emerald-400 font-bold text-sm">0 metros</span></div>
-                                <div><strong class="text-purple-300">Postes Intermedios:</strong> <span id="summary-poles-count" class="text-white font-bold">0</span></div>
-                            </div>
-                            <div id="summary-points-list" class="space-y-1 text-[11px] text-slate-300 max-h-28 overflow-y-auto pr-1">
-                                <em class="text-slate-500">Haga clic en el mapa satelital para situar la CTO, los postes y la vivienda.</em>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- BOTÓN ÚNICO DE CAPTURA -->
-                    <div class="pt-1">
-                        <button type="button" onclick="captureAndAttachCroquis()" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-brand-600 hover:from-purple-500 hover:to-brand-500 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-camera text-base"></i> 📸 Capturar y Adjuntar Croquis al Formulario
+                    <!-- BOTÓN ÚNICO DE CAPTURA Y ADJUNTO -->
+                    <div>
+                        <button type="button" onclick="captureAndAttachCroquis()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-brand-600 hover:from-purple-500 hover:to-brand-500 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-camera text-base"></i> 📸 Capturar Foto del Mapa y Adjuntar
                         </button>
                     </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label for="cantidadPostes" class="block text-xs font-medium text-slate-300">Cantidad de Postes en la Intervención</label>
-                    <input type="number" id="cantidadPostes" name="cantidadPostes" min="1" placeholder="ej. 3" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                <!-- DESGLOSE DETALLADO DE UBICACIONES Y CANTIDAD DE POSTES -->
+                <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-4 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-400"></i>
+                            Registro Estructurado de Ubicaciones y Coordenadas
+                        </h3>
+                        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1">
+                            <span class="text-xs text-slate-300 font-semibold">Total Postes:</span>
+                            <input type="number" id="cantidadPostes" name="cantidadPostes" readonly min="0" placeholder="0" class="w-12 bg-transparent text-emerald-400 font-bold text-center text-sm outline-none">
+                        </div>
+                    </div>
+
+                    <div id="croquis-points-breakdown" class="space-y-2 text-xs">
+                        <em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo secuencialmente la CTO, los postes intermedios y la vivienda del cliente.</em>
+                    </div>
                 </div>
 
                 <!-- CARDS TARJETAS DROPZONE DE FOTOS -->
@@ -760,11 +762,10 @@
 
             croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 15);
 
-            // CAPA SATELITAL CON HABILITACIÓN DE CORS
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri World Imagery',
                 maxZoom: 19,
-                crossOrigin: true
+                crossOrigin: 'anonymous'
             }).addTo(croquisMap);
 
             croquisMap.on('click', async (e) => {
@@ -791,13 +792,13 @@
 
                 if (idx === 0) {
                     type = 'cto';
-                    iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">🔌</div>`;
+                    iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🔌</div>`;
                 } else if (idx === total - 1) {
                     type = 'casa';
-                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">🏠</div>`;
+                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
                 } else {
                     type = 'poste';
-                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">P${idx}</div>`;
+                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`;
                 }
 
                 p.type = type;
@@ -805,8 +806,8 @@
                 const customIcon = L.divIcon({
                     html: iconHtml,
                     className: '',
-                    iconSize: [34, 34],
-                    iconAnchor: [17, 17]
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
                 });
 
                 const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
@@ -831,27 +832,48 @@
             }
 
             const poleCount = Math.max(0, croquisPoints.length - 2);
-            document.getElementById('summary-distance').innerText = `${Math.round(totalMeters)} metros`;
-            document.getElementById('summary-poles-count').innerText = poleCount;
-            document.getElementById('cantidadPostes').value = poleCount > 0 ? poleCount : '';
+            document.getElementById('cantidadPostes').value = poleCount;
 
-            const listContainer = document.getElementById('summary-points-list');
+            const listContainer = document.getElementById('croquis-points-breakdown');
             if (croquisPoints.length === 0) {
-                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para situar la CTO, los postes y la vivienda.</em>`;
+                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo secuencialmente la CTO, los postes intermedios y la vivienda del cliente.</em>`;
                 return;
             }
 
-            listContainer.innerHTML = croquisPoints.map((p, idx) => {
-                let badge = '';
-                if (p.type === 'cto') badge = '<span class="bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-bold">🔌 CTO</span>';
-                else if (p.type === 'poste') badge = `<span class="bg-brand-900 text-brand-200 px-1.5 py-0.5 rounded font-bold">🪵 Poste P${idx}</span>`;
-                else badge = '<span class="bg-emerald-900 text-emerald-200 px-1.5 py-0.5 rounded font-bold">🏠 Casa</span>';
+            listContainer.innerHTML = `
+                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2">
+                    ${croquisPoints.map((p, idx) => {
+                        let title = '';
+                        let colorClass = '';
+                        if (p.type === 'cto') {
+                            title = '🔌 CTO Principal';
+                            colorClass = 'text-purple-300 bg-purple-950/60 border-purple-800/50';
+                        } else if (p.type === 'poste') {
+                            title = `🪵 Poste P${idx}`;
+                            colorClass = 'text-brand-300 bg-brand-950/60 border-brand-800/50';
+                        } else {
+                            title = '🏠 Casa del Cliente';
+                            colorClass = 'text-emerald-300 bg-emerald-950/60 border-emerald-800/50';
+                        }
 
-                return `<div class="flex items-center justify-between py-0.5 border-b border-slate-800/50">
-                    <div>${badge} ${p.address}</div>
-                    <div class="text-[10px] text-slate-400">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
-                </div>`;
-            }).join('');
+                        return `
+                        <div class="border rounded-xl p-2.5 ${colorClass} flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                            <div>
+                                <strong class="text-xs uppercase font-bold">${title}:</strong>
+                                <span class="text-slate-200 ml-1">${p.address}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-mono shrink-0">
+                                <i class="fa-solid fa-location-dot"></i> ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}
+                            </div>
+                        </div>`;
+                    }).join('')}
+
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs text-slate-300 font-medium">
+                        <span><strong>Distancia Total Tendido:</strong> <span class="text-emerald-400 font-bold">${Math.round(totalMeters)} metros</span></span>
+                        <span><strong>Total Postes:</strong> <span class="text-emerald-400 font-bold">${poleCount}</span></span>
+                    </div>
+                </div>
+            `;
         }
 
         function clearCroquisMap() {
@@ -904,29 +926,29 @@
             );
         }
 
-        // CAPTURAR ÁREA DEL MAPA Y ADJUNTAR DIRECTO A LA TARJETA 1
+        // CAPTURAR SOLAMENTE EL MAPA SATELITAL (SIN RECORTES)
         async function captureAndAttachCroquis() {
             if (croquisPoints.length < 2) {
                 alert('⚠️ Debe marcar al menos la CTO y la Casa para generar el croquis.');
                 return;
             }
 
-            const captureBox = document.getElementById('croquis-capture-area');
-            try {
-                if (typeof html2canvas === 'undefined') {
-                    alert('Cargando librería de captura, reintente en un momento...');
-                    return;
-                }
+            const mapBox = document.getElementById('croquis-map');
+            const controls = mapBox.querySelectorAll('.leaflet-control-container');
 
-                const canvas = await html2canvas(captureBox, {
+            try {
+                controls.forEach(c => c.style.display = 'none');
+
+                const canvas = await html2canvas(mapBox, {
                     useCORS: true,
                     allowTaint: false,
-                    scale: 2,
+                    scale: 1.5,
                     logging: false
                 });
 
-                const imgData = canvas.toDataURL('image/png');
+                controls.forEach(c => c.style.display = '');
 
+                const imgData = canvas.toDataURL('image/jpeg', 0.85);
                 uploadedFiles['file-croquis'] = imgData;
 
                 const previewContainer = document.getElementById('preview-croquis');
@@ -934,17 +956,18 @@
                     <div class="relative group">
                         <img src="${imgData}" class="h-32 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
                         <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-check-circle"></i> Captura de Croquis Adjuntada
+                            <i class="fa-solid fa-check-circle"></i> Imagen del Mapa Adjuntada
                         </div>
                     </div>`;
 
                 const dropzoneBox = document.getElementById('file-croquis').closest('.file-dropzone');
                 if (dropzoneBox) dropzoneBox.classList.add('border-emerald-500/50');
 
-                alert('✅ Croquis satelital capturado y adjuntado con éxito en la Tarjeta 1.');
+                alert('✅ Foto del mapa satelital capturada y adjuntada con éxito.');
                 autoSaveDraft();
             } catch (e) {
-                console.error('Error al capturar el croquis:', e);
+                controls.forEach(c => c.style.display = '');
+                console.error('Error al capturar el mapa:', e);
                 alert('Error al realizar la captura del mapa.');
             }
         }
@@ -1258,6 +1281,17 @@
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
 
+            let pointsPrintHTML = '';
+            if (croquisPoints.length > 0) {
+                pointsPrintHTML = `<div style="margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 9px;">
+                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO:</strong><br>`;
+                croquisPoints.forEach((p, idx) => {
+                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
+                });
+                pointsPrintHTML += `</div>`;
+            }
+
             printArea.innerHTML = `
                 <div style="font-family: Arial, sans-serif; padding: 15px; color: #0f172a;">
                     <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between;">
@@ -1298,18 +1332,19 @@
                             <div><strong>Material:</strong> ${formData.get('tipoPoste') || '-'}</div>
                             <div><strong>Estado Global:</strong> ${document.getElementById('estadoPoste').value}</div>
                             <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value}</div>
-                            <div><strong>Apto Escalera:</strong> ${formData.get('sePuede') || '-'}</div>
+                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'}</div>
                         </div>
                     </div>
 
                     <div class="print-section">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">4. EVIDENCIAS FOTOGRÁFICAS</h3>
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">4. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
-                            ${uploadedFiles['file-croquis'] ? `<div style="text-align: center; font-size: 9px;"><strong>Croquis FTTH</strong><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-croquis'] ? `<div style="text-align: center; font-size: 9px;"><strong>Mapa Croquis FTTH</strong><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
                             ${uploadedFiles['file-escalera'] ? `<div style="text-align: center; font-size: 9px;"><strong>Escalera en Poste</strong><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
                             ${uploadedFiles['file-foto1'] ? `<div style="text-align: center; font-size: 9px;"><strong>Entorno</strong><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
                             ${uploadedFiles['file-foto2'] ? `<div style="text-align: center; font-size: 9px;"><strong>Detalle</strong><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
                         </div>
+                        ${pointsPrintHTML}
                     </div>
 
                     <div class="print-section" style="margin-top: 10px;">
