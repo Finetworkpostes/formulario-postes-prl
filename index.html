@@ -109,10 +109,14 @@
 
         <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
+            <!-- CAMPOS OCULTOS PARA DIRECCIÓN Y CP (SE RELLENAN AUTOMÁTICAMENTE DESDE EL MAPA) -->
+            <input type="hidden" id="direccion" name="direccion">
+            <input type="hidden" id="codigoPostal" name="codigoPostal">
+
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <input type="text" id="nOt" name="nOt" required placeholder="ej. OT-1234-123456788" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
@@ -126,6 +130,10 @@
                             <option value="OBREMO">OBREMO</option>
                             <option value="ZENER">ZENER</option>
                         </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="fechaHora" class="block text-xs font-medium text-slate-300">Fecha y Hora <span class="text-rose-500">*</span></label>
+                        <input type="datetime-local" id="fechaHora" name="fechaHora" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm text-white outline-none">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-medium text-slate-300">Tipo de Actuación <span class="text-rose-500">*</span></label>
@@ -153,21 +161,6 @@
                             </label>
                         </div>
                     </div>
-                    <div class="space-y-1.5">
-                        <label for="fechaHora" class="block text-xs font-medium text-slate-300">Fecha y Hora <span class="text-rose-500">*</span></label>
-                        <input type="datetime-local" id="fechaHora" name="fechaHora" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm text-white outline-none">
-                    </div>
-                    <div class="space-y-1.5 md:col-span-2">
-                        <label for="direccion" class="block text-xs font-medium text-slate-300 flex items-center justify-between">
-                            <span>Dirección del Cliente / Emplazamiento <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-purple-400 font-normal"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-completado al marcar Casa en mapa</span>
-                        </label>
-                        <input type="text" id="direccion" name="direccion" required placeholder="Calle, número y localidad" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="codigoPostal" class="block text-xs font-medium text-slate-300">Código Postal / Población <span class="text-rose-500">*</span></label>
-                        <input type="text" id="codigoPostal" name="codigoPostal" required placeholder="ej. 28001 Madrid" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                    </div>
                 </div>
                 <div class="flex justify-end pt-3 border-t border-slate-800">
                     <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
@@ -189,7 +182,7 @@
                         <div class="space-y-1.5">
                             <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias / Usuario KAIROS TEC1 <span class="text-rose-500">*</span></label>
                             <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione Contrata primero...</option>
+                                <option value="">Seleccione Usuario...</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
@@ -204,7 +197,7 @@
                         <div class="space-y-1.5">
                             <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias / Usuario Recurso Preventivo <span class="text-rose-500">*</span></label>
                             <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione Contrata primero...</option>
+                                <option value="">Seleccione Usuario...</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
@@ -459,20 +452,19 @@
                 <!-- CARDS TARJETAS DROPZONE DE FOTOS -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
-                    <!-- DROPZONE 1: Croquis Alta FTTH -->
+                    <!-- DROPZONE 1: Croquis Alta FTTH (SOLO DESDE CAPTURA DEL MAPA) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-map text-brand-400"></i>
-                            1. Subir Croquis Alta FTTH <span class="text-rose-500">*</span>
+                            1. Croquis Alta FTTH <span class="text-rose-500">*</span>
                         </label>
-                        <p class="text-[11px] text-slate-400">Captura de pantalla o PDF del mapa con CTO y trazado de postes.</p>
+                        <p class="text-[11px] text-slate-400">Se genera automáticamente capturando el mapa interactivo superior.</p>
                         
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-croquis')">
-                            <input type="file" id="file-croquis" required accept="image/*,.pdf" class="hidden" onchange="handleFileSelect(this, 'preview-croquis')">
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center transition bg-slate-900/50">
                             <div id="preview-croquis" class="space-y-2">
-                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Haga clic o arrastre el archivo aquí</div>
-                                <div class="text-[10px] text-slate-500">PNG, JPG o PDF (Máx 10MB)</div>
+                                <i class="fa-solid fa-lock text-3xl text-purple-400/60"></i>
+                                <div class="text-xs text-slate-400 font-medium">Capture el mapa usando el botón morado de arriba</div>
+                                <div class="text-[10px] text-slate-500">No se permiten archivos externos ni fotos directas</div>
                             </div>
                         </div>
                     </div>
@@ -686,7 +678,6 @@
             handleContractorChange();
         }
 
-        // MOSTRAR SOLO EL ALIAS / USUARIO EN EL DESPLEGABLE
         function handleContractorChange() {
             const selectContrata = document.getElementById('contrataPrincipal');
             if (!selectContrata) return;
@@ -709,12 +700,12 @@
                 USUARIOS_DB[contrata].forEach(u => {
                     const opt1 = document.createElement('option');
                     opt1.value = u.Alias;
-                    opt1.textContent = u.Alias; // SOLO EL ALIAS/USUARIO
+                    opt1.textContent = u.Alias;
                     selectTec1.appendChild(opt1);
 
                     const opt2 = document.createElement('option');
                     opt2.value = u.Alias;
-                    opt2.textContent = u.Alias; // SOLO EL ALIAS/USUARIO
+                    opt2.textContent = u.Alias;
                     selectRecurso.appendChild(opt2);
                 });
 
@@ -824,12 +815,12 @@
                     type = 'casa';
                     iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
                     
-                    // AUTO-COMPLETAR DIRECCIÓN Y CP SI ES LA CASA
+                    // AUTO-COMPLETAR CAMPOS OCULTOS DE DIRECCIÓN Y CP CON LA UBICACIÓN DE LA CASA
                     if (p.address) {
                         const dirInput = document.getElementById('direccion');
                         const cpInput = document.getElementById('codigoPostal');
                         if (dirInput) dirInput.value = p.address;
-                        if (cpInput && p.postcode) cpInput.value = p.postcode;
+                        if (cpInput) cpInput.value = p.postcode || '';
                     }
                 } else {
                     type = 'poste';
@@ -917,10 +908,11 @@
             mapMarkers = [];
             croquisPoints = [];
             croquisPolyline = null;
+            document.getElementById('direccion').value = '';
+            document.getElementById('codigoPostal').value = '';
             updateCroquisSummary();
         }
 
-        // GEOLOCALIZACIÓN INVERSA MEJORADA CON EXTRACCIÓN DE CÓDIGO POSTAL
         async function reverseGeocode(lat, lng) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -1008,7 +1000,7 @@
                         </div>
                     </div>`;
 
-                const dropzoneBox = document.getElementById('file-croquis').closest('.file-dropzone');
+                const dropzoneBox = document.getElementById('preview-croquis').closest('.file-dropzone');
                 if (dropzoneBox) dropzoneBox.classList.add('border-emerald-500/50');
 
                 alert('✅ Foto del mapa satelital capturada y adjuntada con éxito.');
@@ -1075,6 +1067,13 @@
                 }
             }
 
+            if (step === 5) {
+                if (!uploadedFiles['file-croquis']) {
+                    alert('⚠️ Es obligatorio pulsar el botón "📸 Capturar Foto del Mapa y Adjuntar" antes de continuar.');
+                    return false;
+                }
+            }
+
             if (!valid) {
                 alert('⚠️ No se puede avanzar: Faltan campos obligatorios (*) por rellenar o evidencias por adjuntar.');
                 if (firstInvalidInput) firstInvalidInput.focus();
@@ -1083,7 +1082,6 @@
             return valid;
         }
 
-        // RENDERIZAR DESGLOSE DE REVISIÓN COMPLETA EN LA SECCIÓN 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
@@ -1095,8 +1093,8 @@
             const tipo = formData.get('tipo') || '-';
             const estadoInfra = formData.get('estado') || '-';
             const fechaHora = document.getElementById('fechaHora').value || '-';
-            const direccion = document.getElementById('direccion').value || '-';
-            const cp = document.getElementById('codigoPostal').value || '-';
+            const direccion = document.getElementById('direccion').value || 'Generada en mapa';
+            const cp = document.getElementById('codigoPostal').value || 'Generado en mapa';
 
             const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
             const nomTec1 = document.getElementById('nombreTec1').value || '-';
@@ -1130,7 +1128,7 @@
                         <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-semibold">${nOt}</span></div>
                         <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${contrata}</span> | <strong>Tipo:</strong> <span class="text-slate-200">${tipo}</span></div>
                         <div><strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
-                        <div><strong class="text-slate-400">Dirección:</strong> <span class="text-slate-200">${direccion} (${cp})</span></div>
+                        <div><strong class="text-slate-400">Dirección Cliente:</strong> <span class="text-emerald-300 font-medium">${direccion} ${cp ? '(' + cp + ')' : ''}</span></div>
                         <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${fechaHora}</span></div>
                     </div>
 
@@ -1553,6 +1551,7 @@
             }
         }
 
+        // ENVÍO DE CORREO ADAPTADO CON CORRECCIÓN DE ACTIVACIÓN FORMSUBMIT Y HEADERS JSON
         async function sendPayloadToFormSubmit(item) {
             const sendData = new FormData();
             sendData.append('_subject', item._subject);
@@ -1567,10 +1566,24 @@
 
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                },
                 body: sendData
             });
 
-            if (!res.ok) throw new Error("Fallo en la comunicación con servidor.");
+            if (!res.ok) {
+                const errTxt = await res.text();
+                console.error("Respuesta servidor:", errTxt);
+                throw new Error("Fallo en la comunicación con FormSubmit.");
+            }
+
+            const resJson = await res.json();
+            if (resJson.success === "false" || resJson.message?.includes("activation")) {
+                alert(`⚠️ ACTIVACIÓN REQUERIDA:\nFormSubmit ha enviado un correo a ${DESTINATION_EMAIL}.\nPor favor, entra al correo y haz clic en "Activate Form" para permitir los envíos.`);
+                throw new Error("Activación pendiente en FormSubmit.");
+            }
+
             return true;
         }
 
