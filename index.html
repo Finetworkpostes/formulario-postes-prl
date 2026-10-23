@@ -396,35 +396,82 @@
                     </a>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5 md:col-span-2">
-                        <label for="cantidadPostes" class="block text-xs font-medium text-slate-300">Cantidad de Postes en la Intervención</label>
-                        <input type="number" id="cantidadPostes" name="cantidadPostes" min="1" placeholder="ej. 3" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                <div class="space-y-1.5">
+                    <label for="cantidadPostes" class="block text-xs font-medium text-slate-300">Cantidad de Postes en la Intervención</label>
+                    <input type="number" id="cantidadPostes" name="cantidadPostes" min="1" placeholder="ej. 3" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                </div>
+
+                <!-- CARDS TARJETAS DROPZONE DE FOTOS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- DROPZONE 1: Croquis Alta FTTH -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-map text-brand-400"></i>
+                            1. Subir Croquis Alta FTTH <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Captura de pantalla o PDF del mapa con CTO y trazado de postes.</p>
+                        
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-croquis')">
+                            <input type="file" id="file-croquis" required accept="image/*,.pdf" class="hidden" onchange="handleFileSelect(this, 'preview-croquis')">
+                            <div id="preview-croquis" class="space-y-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
+                                <div class="text-xs text-slate-300 font-medium">Haga clic o arrastre el archivo aquí</div>
+                                <div class="text-[10px] text-slate-500">PNG, JPG o PDF (Máx 10MB)</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- FOTOS / ADJUNTOS -->
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">1. Subir Croquis Alta FTTH <span class="text-rose-500">*</span></label>
-                        <input type="file" id="file-croquis" required accept="image/*,.pdf" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-croquis')">
-                        <div id="preview-croquis" class="text-xs text-slate-500 mt-1"></div>
+                    <!-- DROPZONE 2: Foto Escalera en Poste -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-camera text-brand-400"></i>
+                            2. Foto Escalera en Poste <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Debe verse: Escalera, Línea de vida, Patas extensibles, Casco, Chaleco, Arnés y Señalización.</p>
+                        
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
+                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
+                            <div id="preview-escalera" class="space-y-2">
+                                <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
+                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
+                                <div class="text-[10px] text-slate-500">Evidencia de seguridad completa</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste <span class="text-rose-500">*</span></label>
-                        <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-escalera')">
-                        <div id="preview-escalera" class="text-xs text-slate-500 mt-1"></div>
+                    <!-- DROPZONE 3: Foto 1 (Estado/Entorno) -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-brand-400"></i>
+                            3. Tomar Foto 1 (Estado/Entorno) <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Perspectiva general del poste y pie de vía pública.</p>
+                        
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto1')">
+                            <input type="file" id="file-foto1" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
+                            <div id="preview-foto1" class="space-y-2">
+                                <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
+                                <div class="text-xs text-slate-300 font-medium">Tomar o subir Foto 1</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">3. Foto 1 (Entorno / Pie de poste) <span class="text-rose-500">*</span></label>
-                        <input type="file" id="file-foto1" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto1')">
-                        <div id="preview-foto1" class="text-xs text-slate-500 mt-1"></div>
-                    </div>
-
-                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">4. Foto 2 (Detalle / Herrajes) <span class="text-rose-500">*</span></label>
-                        <input type="file" id="file-foto2" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto2')">
-                        <div id="preview-foto2" class="text-xs text-slate-500 mt-1"></div>
+                    <!-- DROPZONE 4: Foto 2 (Detalle / Incidencia) -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-brand-400"></i>
+                            4. Tomar Foto 2 (Detalle / Incidencia) <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Detalle de herrajes, caja CTO o zona defectuosa si procede.</p>
+                        
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto2')">
+                            <input type="file" id="file-foto2" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
+                            <div id="preview-foto2" class="space-y-2">
+                                <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
+                                <div class="text-xs text-slate-300 font-medium">Tomar o subir Foto 2</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="space-y-1.5 md:col-span-2">
@@ -573,6 +620,47 @@
             }
         }
 
+        // TRIGGER PARA SELECCIONAR ARCHIVO AL HACER CLIC EN DROPZONE
+        function triggerFileInput(id) {
+            document.getElementById(id).click();
+        }
+
+        function handleFileSelect(input, previewId) {
+            const file = input.files[0];
+            const previewContainer = document.getElementById(previewId);
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedFiles[input.id] = e.target.result;
+
+                if (file.type.startsWith('image/')) {
+                    previewContainer.innerHTML = `
+                        <div class="relative group">
+                            <img src="${e.target.result}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
+                            <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-check-circle"></i> ${file.name}
+                            </div>
+                        </div>`;
+                } else {
+                    previewContainer.innerHTML = `
+                        <div class="p-3 bg-slate-800 rounded-lg text-xs text-purple-300 font-medium flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-file-pdf text-2xl text-rose-400"></i>
+                            <span>${file.name}</span>
+                            <span class="text-[10px] text-emerald-400 font-semibold">✓ Documento cargado</span>
+                        </div>`;
+                }
+
+                const dropzoneBox = input.closest('.file-dropzone');
+                if (dropzoneBox) {
+                    dropzoneBox.classList.remove('border-rose-500');
+                    dropzoneBox.classList.add('border-emerald-500/50');
+                }
+                autoSaveDraft();
+            };
+            reader.readAsDataURL(file);
+        }
+
         // FUNCIÓN DE VALIDACIÓN DEL PASO ACTUAL
         function validateCurrentStep(step) {
             const stepContainer = document.getElementById(`step-${step}`);
@@ -581,7 +669,6 @@
             let valid = true;
             let firstInvalidInput = null;
 
-            // Inputs marcados con 'required'
             const requiredInputs = stepContainer.querySelectorAll('[required]');
             const processedRadioNames = new Set();
 
@@ -600,12 +687,13 @@
                         }
                     }
                 } else if (input.type === 'file') {
+                    const dropzoneBox = input.closest('.file-dropzone');
                     if (!uploadedFiles[input.id] && input.files.length === 0) {
                         valid = false;
-                        input.classList.add('border', 'border-rose-500', 'p-1', 'rounded-lg');
+                        if (dropzoneBox) dropzoneBox.classList.add('border-rose-500');
                         if (!firstInvalidInput) firstInvalidInput = input;
                     } else {
-                        input.classList.remove('border', 'border-rose-500', 'p-1', 'rounded-lg');
+                        if (dropzoneBox) dropzoneBox.classList.remove('border-rose-500');
                     }
                 } else {
                     if (!input.value || !input.value.trim()) {
@@ -631,7 +719,7 @@
             }
 
             if (!valid) {
-                alert('⚠️ No se puede avanzar: Faltan campos obligatorios (*) por rellenar en esta sección.');
+                alert('⚠️ No se puede avanzar: Faltan campos obligatorios (*) por rellenar o evidencias por adjuntar.');
                 if (firstInvalidInput) firstInvalidInput.focus();
             }
 
@@ -692,19 +780,6 @@
         function toggleAllCheckboxes(cls, state) {
             document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
             autoSaveDraft();
-        }
-
-        function handleFileSelect(input, previewId) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                uploadedFiles[input.id] = e.target.result;
-                document.getElementById(previewId).innerText = `Archivo cargado: ${file.name}`;
-                input.classList.remove('border-rose-500', 'border');
-                autoSaveDraft();
-            };
-            reader.readAsDataURL(file);
         }
 
         // Canvas Firma
