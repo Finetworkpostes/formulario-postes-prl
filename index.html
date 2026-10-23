@@ -614,7 +614,8 @@
 
     <!-- LOGICA JAVASCRIPT -->
     <script>
-        const DESTINATION_EMAIL = 'prevencion.im@finetwork.com';
+        // TOKEN DE ACTIVACIÓN ÚNICO FORMSUBMIT
+        const DESTINATION_EMAIL = '3c3ed56317dff2dfe09029463b2b7c01';
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -815,7 +816,6 @@
                     type = 'casa';
                     iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
                     
-                    // AUTO-COMPLETAR CAMPOS OCULTOS DE DIRECCIÓN Y CP CON LA UBICACIÓN DE LA CASA
                     if (p.address) {
                         const dirInput = document.getElementById('direccion');
                         const cpInput = document.getElementById('codigoPostal');
@@ -1551,7 +1551,6 @@
             }
         }
 
-        // ENVÍO DE CORREO ADAPTADO CON CORRECCIÓN DE ACTIVACIÓN FORMSUBMIT Y HEADERS JSON
         async function sendPayloadToFormSubmit(item) {
             const sendData = new FormData();
             sendData.append('_subject', item._subject);
@@ -1579,9 +1578,8 @@
             }
 
             const resJson = await res.json();
-            if (resJson.success === "false" || resJson.message?.includes("activation")) {
-                alert(`⚠️ ACTIVACIÓN REQUERIDA:\nFormSubmit ha enviado un correo a ${DESTINATION_EMAIL}.\nPor favor, entra al correo y haz clic en "Activate Form" para permitir los envíos.`);
-                throw new Error("Activación pendiente en FormSubmit.");
+            if (resJson.success === "false") {
+                throw new Error("Error en el envío.");
             }
 
             return true;
