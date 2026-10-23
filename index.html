@@ -46,9 +46,9 @@
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            .print-section { page-break-inside: avoid; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.75rem; }
-            .print-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-            .print-img { max-height: 160px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 0.25rem; }
+            .print-section { page-break-inside: avoid; margin-bottom: 0.8rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.6rem; }
+            .print-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }
+            .print-img { max-height: 150px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 0.25rem; }
         }
     </style>
 </head>
@@ -111,7 +111,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT / Código IUA <span class="text-rose-500">*</span></label>
-                        <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4529828-1764678900983" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                        <input type="text" id="nOt" name="nOt" required placeholder="ej. OT-1234-123456788" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -418,7 +418,7 @@
                         </button>
                     </div>
 
-                    <!-- ÁREA ÚNICA DEL MAPA (ÚNICA COSA QUE SE CAPTURA) -->
+                    <!-- ÁREA ÚNICA DEL MAPA -->
                     <div id="croquis-capture-area" class="bg-slate-950 border border-slate-800 rounded-xl p-2 shadow-inner">
                         <div id="croquis-map"></div>
                     </div>
@@ -604,7 +604,6 @@
         let isSigning = false;
         const uploadedFiles = {};
 
-        // LISTA DE RESPALDO SI FALLA EL JSON LOCAL
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López" },
             { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz" },
@@ -616,7 +615,6 @@
             { "Contrata": "ZENER", "Alias": "Z003", "NombreCompleto": "Sergio Blanco Castro" }
         ];
 
-        // VARIABLES DEL MAPA SATELITAL DE CROQUIS
         let croquisMap = null;
         let croquisPoints = [];
         let mapMarkers = [];
@@ -633,7 +631,6 @@
             document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
         });
 
-        // Cargar lista JSON de usuarios
         async function cargarListaUsuarios() {
             let rawData = null;
             try {
@@ -753,7 +750,6 @@
             reader.readAsDataURL(file);
         }
 
-        // MAPA INTERACTIVO 100% SATELITAL
         function initCroquisMap() {
             if (croquisMap) {
                 setTimeout(() => croquisMap.invalidateSize(), 200);
@@ -926,7 +922,6 @@
             );
         }
 
-        // CAPTURAR SOLAMENTE EL MAPA SATELITAL (SIN RECORTES)
         async function captureAndAttachCroquis() {
             if (croquisPoints.length < 2) {
                 alert('⚠️ Debe marcar al menos la CTO y la Casa para generar el croquis.');
@@ -972,7 +967,6 @@
             }
         }
 
-        // VALIDACIÓN DE PASOS
         function validateCurrentStep(step) {
             const stepContainer = document.getElementById(`step-${step}`);
             if (!stepContainer) return true;
@@ -1093,7 +1087,6 @@
             autoSaveDraft();
         }
 
-        // Canvas Firma
         function initSignatureCanvas() {
             signatureCanvas = document.getElementById('signature-canvas');
             signatureCtx = signatureCanvas.getContext('2d');
@@ -1200,7 +1193,155 @@
             }
         }
 
-        // GENERACIÓN DE PDF Y ENVÍO
+        // CONSTRUIIR HTML COMPLETO DE IMPRESIÓN / PDF
+        function buildPrintHTML() {
+            const printArea = document.getElementById('print-area');
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+
+            // 1. Puntos del Mapa
+            let pointsPrintHTML = '';
+            let puntosTextoBreve = [];
+            if (croquisPoints.length > 0) {
+                pointsPrintHTML = `<div style="margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 9px; background:#f8fafc;">
+                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO:</strong><br>`;
+                croquisPoints.forEach((p, idx) => {
+                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
+                    puntosTextoBreve.push(`${label}: ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`);
+                });
+                pointsPrintHTML += `</div>`;
+            }
+
+            // 2. Medidas Madera
+            const medidasMadera = formData.getAll('medidasMadera');
+            let medidasMaderaHTML = '';
+            if (medidasMadera.length > 0) {
+                medidasMaderaHTML = `<div style="grid-column: span 2; margin-top: 4px; background: #fffbe0; padding: 4px; border-radius: 4px; border: 1px solid #fef08a;">
+                    <strong>Medidas Preventivas Madera:</strong> ${medidasMadera.join(' | ')}
+                </div>`;
+            }
+
+            // 3. Checklists Escalera y EPIs
+            const ladderChecks = formData.getAll('ladderCheck');
+            const epis = formData.getAll('epis');
+
+            printArea.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 15px; color: #0f172a; background: white;">
+                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1 style="font-size: 15px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                            <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Prevención de Riesgos Laborales</p>
+                        </div>
+                        <div style="text-align: right; font-size: 10px;">
+                            <strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}<br>
+                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value || '-'}
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">1. DATOS DE LA ACTUACIÓN</h3>
+                        <div class="print-grid" style="font-size: 9.5px;">
+                            <div><strong>Nº OT / IUA:</strong> ${document.getElementById('nOt').value || '-'}</div>
+                            <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
+                            <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
+                            <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
+                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">2. IDENTIFICACIÓN DEL PERSONAL</h3>
+                        <div class="print-grid" style="font-size: 9.5px;">
+                            <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'}</div>
+                            <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value || '-'}</div>
+                            <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'}</div>
+                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}</div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">3. EVALUACIÓN TÉCNICA DEL POSTE</h3>
+                        <div class="print-grid" style="font-size: 9.5px;">
+                            <div><strong>Material del Poste:</strong> ${formData.get('tipoPoste') || '-'}</div>
+                            <div><strong>Estado Global del Poste:</strong> ${document.getElementById('estadoPoste').value || '-'}</div>
+                            <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value || '-'}</div>
+                            <div><strong>Apto Escalera con Seguridad:</strong> ${formData.get('sePuede') || '-'}</div>
+                            <div><strong>Total Postes Intervención:</strong> ${document.getElementById('cantidadPostes').value || '0'}</div>
+                            ${medidasMaderaHTML}
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">4. CHECKLISTS DE SEGURIDAD Y EPIS</h3>
+                        <div style="font-size: 9px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                            <div>
+                                <strong>Verificaciones Escalera Marcadas (${ladderChecks.length}):</strong>
+                                <ul style="margin: 2px 0 0 12px; padding: 0;">
+                                    ${ladderChecks.map(c => `<li>${c}</li>`).join('') || '<em>Ninguna marcada</em>'}
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>EPIs Utilizados (${epis.length}):</strong>
+                                <ul style="margin: 2px 0 0 12px; padding: 0;">
+                                    ${epis.map(e => `<li>${e}</li>`).join('') || '<em>Ninguno marcado</em>'}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
+                            ${uploadedFiles['file-croquis'] ? `<div style="text-align: center; font-size: 8.5px;"><strong>Mapa Croquis FTTH</strong><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div style="text-align: center; font-size: 8.5px;"><strong>Foto Escalera en Poste</strong><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto1'] ? `<div style="text-align: center; font-size: 8.5px;"><strong>Foto 1 (Entorno)</strong><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto2'] ? `<div style="text-align: center; font-size: 8.5px;"><strong>Foto 2 (Detalle/Incidencia)</strong><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
+                        </div>
+                        ${pointsPrintHTML}
+                        ${document.getElementById('observaciones').value ? `<div style="margin-top:6px; font-size:9px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
+                    </div>
+
+                    <div class="print-section" style="margin-top: 8px;">
+                        <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">6. FIRMA Y DECLARACIÓN RESPONSABLE</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 9.5px;">
+                            <div>
+                                <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}<br>
+                                <strong>DNI / NIE:</strong> ${document.getElementById('dniRecurso').value || '-'}
+                            </div>
+                            <div style="text-align: center;">
+                                ${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 45px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return {
+                puntosTextoBreve: puntosTextoBreve.join(' || ')
+            };
+        }
+
+        // VISTA PREVIA
+        function generatePrintPreview() {
+            buildPrintHTML();
+            const printArea = document.getElementById('print-area');
+            printArea.classList.remove('hidden');
+            window.print();
+            printArea.classList.add('hidden');
+        }
+
+        // FORMATEAR FECHA YYYY-MM-DDTHH:MM -> DD-MM-YYYY
+        function formatFechaSubject(rawDatetime) {
+            if (!rawDatetime) return 'SIN-FECHA';
+            const parts = rawDatetime.split('T')[0].split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return rawDatetime;
+        }
+
+        // GENERACIÓN DE PDF Y ENVÍO POR CORREO CON ASUNTO Y CUERPO ADAPTADOS A POWER AUTOMATE
         async function handleFormSubmit(e) {
             e.preventDefault();
 
@@ -1219,31 +1360,57 @@
             submitText.innerText = 'Generando PDF y Enviando...';
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
 
+            const printArea = document.getElementById('print-area');
+
             try {
-                buildPrintHTML();
-                const printArea = document.getElementById('print-area');
+                const buildData = buildPrintHTML();
+                printArea.classList.remove('hidden'); // Desocultar temporalmente para que html2pdf capture los elementos
+
                 const nOt = document.getElementById('nOt').value || 'Sin_OT';
+                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
+                const aliasTec1 = document.getElementById('aliasKairosTec1').value || 'Sin_Alias';
+                const rawFecha = document.getElementById('fechaHora').value || '';
+                const fechaFormatted = formatFechaSubject(rawFecha);
+
+                // ASUNTO SOLICITADO: POSTE, OT-1234-123456788, INSTELCA, IN021, 23-10-2026
+                const emailSubject = `POSTE, ${nOt}, ${contrata}, ${aliasTec1}, ${fechaFormatted}`;
 
                 const opt = {
-                    margin: 0.4,
+                    margin: 0.3,
                     filename: `Informe_PRL_Poste_${nOt}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
+                    html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
 
                 const pdfBlob = await html2pdf().set(opt).from(printArea).output('blob');
+                printArea.classList.add('hidden'); // Volver a ocultar
 
+                // ESTRUCTURAR EL ENVÍO FORM-SUBMIT PARA EXTRAER DATOS DIRECTOS DESDE EL CUERPO Y ASUNTO EN POWER AUTOMATE
                 const sendData = new FormData();
-                sendData.append('_subject', `NUEVA_OT_POSTES: ${nOt} - ${document.getElementById('contrataPrincipal').value}`);
+                sendData.append('_subject', emailSubject);
                 sendData.append('_captcha', 'false');
-                sendData.append('nOt', nOt);
-                sendData.append('contrataPrincipal', document.getElementById('contrataPrincipal').value);
-                sendData.append('fechaHora', document.getElementById('fechaHora').value);
-                sendData.append('nombreTec1', document.getElementById('nombreTec1').value);
-                sendData.append('nombreRecursoPreventivo', document.getElementById('nombreRecursoPreventivo').value);
-                sendData.append('estadoPoste', document.getElementById('estadoPoste').value);
-                sendData.append('observaciones', document.getElementById('observaciones').value);
+
+                // CAMPOS DE TEXTO ESTRUCTURADOS EN EL CUERPO DEL CORREO
+                sendData.append('ASUNTO_OT', nOt);
+                sendData.append('CONTRATA', contrata);
+                sendData.append('ALIAS_TECNICO', aliasTec1);
+                sendData.append('FECHA', fechaFormatted);
+                sendData.append('TIPO_ACTUACION', document.querySelector('input[name="tipo"]:checked')?.value || '');
+                sendData.append('ESTADO_INFRAESTRUCTURA', document.querySelector('input[name="estado"]:checked')?.value || '');
+                sendData.append('DIRECCION_CLIENTE', document.getElementById('direccion').value || '');
+                sendData.append('CODIGO_POSTAL', document.getElementById('codigoPostal').value || '');
+                sendData.append('NOMBRE_TECNICO', document.getElementById('nombreTec1').value || '');
+                sendData.append('ALIAS_RECURSO', document.getElementById('aliasRecursoPreventivo').value || '');
+                sendData.append('NOMBRE_RECURSO', document.getElementById('nombreRecursoPreventivo').value || '');
+                sendData.append('DNI_RECURSO', document.getElementById('dniRecurso').value || '');
+                sendData.append('MATERIAL_POSTE', document.querySelector('input[name="tipoPoste"]:checked')?.value || '');
+                sendData.append('ESTADO_POSTE', document.getElementById('estadoPoste').value || '');
+                sendData.append('METODO_ASCENSO', document.getElementById('paraSubir').value || '');
+                sendData.append('CANTIDAD_POSTES', document.getElementById('cantidadPostes').value || '0');
+                sendData.append('PUNTOS_UBICACIONES', buildData.puntosTextoBreve || 'Sin desglosar');
+                sendData.append('OBSERVACIONES', document.getElementById('observaciones').value || '');
+
                 sendData.append('attachment', pdfBlob, `Informe_PRL_Poste_${nOt}.pdf`);
 
                 const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
@@ -1256,9 +1423,10 @@
                     document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                     localStorage.removeItem('pole_form_draft');
                     document.getElementById('success-modal').classList.remove('hidden');
-                } else throw new Error('Error al enviar');
+                } else throw new Error('Error en el servicio de correo.');
 
             } catch (err) {
+                printArea.classList.add('hidden');
                 console.error(err);
                 alert('Error al generar o enviar el PDF.');
             } finally {
@@ -1274,98 +1442,6 @@
             clearCroquisMap();
             clearSignatureCanvas();
             goToStep(1);
-        }
-
-        function buildPrintHTML() {
-            const printArea = document.getElementById('print-area');
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-
-            let pointsPrintHTML = '';
-            if (croquisPoints.length > 0) {
-                pointsPrintHTML = `<div style="margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 9px;">
-                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO:</strong><br>`;
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
-                });
-                pointsPrintHTML += `</div>`;
-            }
-
-            printArea.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 15px; color: #0f172a;">
-                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between;">
-                        <div>
-                            <h1 style="font-size: 16px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
-                            <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Prevención de Riesgos Laborales</p>
-                        </div>
-                        <div style="text-align: right; font-size: 10px;">
-                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value}<br>
-                            <strong>Nº OT:</strong> ${document.getElementById('nOt').value}
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">1. DATOS DE LA ACTUACIÓN</h3>
-                        <div class="print-grid" style="font-size: 10px;">
-                            <div><strong>Nº OT / IUA:</strong> ${document.getElementById('nOt').value}</div>
-                            <div><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</div>
-                            <div><strong>Tipo:</strong> ${formData.get('tipo') || '-'}</div>
-                            <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
-                            <div style="grid-column: span 2;"><strong>Ubicación:</strong> ${document.getElementById('direccion').value} (${document.getElementById('codigoPostal').value})</div>
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">2. PERSONAL</h3>
-                        <div class="print-grid" style="font-size: 10px;">
-                            <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value}</div>
-                            <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value}</div>
-                            <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value}</div>
-                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</div>
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">3. ESTADO DEL POSTE</h3>
-                        <div class="print-grid" style="font-size: 10px;">
-                            <div><strong>Material:</strong> ${formData.get('tipoPoste') || '-'}</div>
-                            <div><strong>Estado Global:</strong> ${document.getElementById('estadoPoste').value}</div>
-                            <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value}</div>
-                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'}</div>
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">4. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS</h3>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
-                            ${uploadedFiles['file-croquis'] ? `<div style="text-align: center; font-size: 9px;"><strong>Mapa Croquis FTTH</strong><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div style="text-align: center; font-size: 9px;"><strong>Escalera en Poste</strong><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-foto1'] ? `<div style="text-align: center; font-size: 9px;"><strong>Entorno</strong><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-foto2'] ? `<div style="text-align: center; font-size: 9px;"><strong>Detalle</strong><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
-                        </div>
-                        ${pointsPrintHTML}
-                    </div>
-
-                    <div class="print-section" style="margin-top: 10px;">
-                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">5. FIRMA DEL RECURSO PREVENTIVO</h3>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 10px;">
-                            <div>
-                                <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}<br>
-                                <strong>DNI / NIE:</strong> ${document.getElementById('dniRecurso').value}
-                            </div>
-                            <div style="text-align: center;">
-                                ${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 50px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generatePrintPreview() {
-            buildPrintHTML();
-            window.print();
         }
     </script>
 </body>
