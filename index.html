@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Actuación en Poste - Prevención FTTH</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Librería Gratuita para Generar PDF en el Navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95', 950: '#1e1b4b' },
+                        safety: { 500: '#10b981', 600: '#059669' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-active { border-color: #8b5cf6; color: #8b5cf6; background-color: rgba(139, 92, 246, 0.1); }
+        .signature-canvas { touch-action: none; background-color: #ffffff; cursor: crosshair; }
+
+        @media print {
+            header, footer, nav, .no-print, main, #success-modal { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-only { display: block !important; }
+            #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print-section { page-break-inside: avoid; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.75rem; }
+            .print-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+            .print-img { max-height: 160px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 0.25rem; }
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
+
+    <!-- Header -->
+    <header class="bg-brand-950 border-b border-purple-900/40 sticky top-0 z-30 shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-gradient-to-tr from-brand-700 to-purple-500 rounded-xl text-white">
+                    <i class="fa-solid fa-tower-cell text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                        Actuación en Poste <span class="text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30">PRL FTTH</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="manualSaveDraft()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk text-purple-400"></i> Guardar Borrador
+                </button>
+                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 pb-2">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span id="progress-text">Progreso: 0%</span>
+                <span id="progress-step-name">Sección 1 de 6</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-slate-700">
+                <div id="progress-bar" class="bg-gradient-to-r from-purple-600 to-safety-500 h-1.5 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 no-print">
+
+        <!-- Navigation Tabs -->
+        <div class="mb-6 overflow-x-auto pb-2 border-b border-slate-800">
+            <nav class="flex space-x-2 min-w-max">
+                <button type="button" onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">1. Datos OT</button>
+                <button type="button" onclick="goToStep(2)" id="tab-btn-2" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">2. Personal</button>
+                <button type="button" onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">3. Poste</button>
+                <button type="button" onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">4. Checklists & EPIs</button>
+                <button type="button" onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">5. Croquis & Fotos</button>
+                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Firma & Cierre</button>
+            </nav>
+        </div>
+
+        <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+
+            <!-- SECCIÓN 1: DATOS OT -->
+            <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1.5 md:col-span-2">
+                        <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT / Código IUA <span class="text-rose-500">*</span></label>
+                        <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4529828-1764678900983" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
+                        <select id="contrataPrincipal" name="contrataPrincipal" required onchange="handleContractorChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            <option value="">Seleccione Contrata...</option>
+                            <option value="CIRCET">CIRCET</option>
+                            <option value="INSTELCA">INSTELCA</option>
+                            <option value="OBREMO">OBREMO</option>
+                            <option value="ZENER">ZENER</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-medium text-slate-300">Tipo de Actuación <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipo" value="INSTALACIÓN" required class="accent-purple-600">
+                                <span class="text-xs text-slate-200">INSTALACIÓN</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipo" value="AVERÍA" required class="accent-purple-600">
+                                <span class="text-xs text-slate-200">AVERÍA</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-medium text-slate-300">Estado Infraestructura <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="estado" value="REUTILIZADA" required class="accent-purple-600">
+                                <span class="text-xs text-slate-200">REUTILIZADA</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="estado" value="NUEVA" required class="accent-purple-600">
+                                <span class="text-xs text-slate-200">NUEVA</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="fechaHora" class="block text-xs font-medium text-slate-300">Fecha y Hora <span class="text-rose-500">*</span></label>
+                        <input type="datetime-local" id="fechaHora" name="fechaHora" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm text-white outline-none">
+                    </div>
+                    <div class="space-y-1.5 md:col-span-2">
+                        <label for="direccion" class="block text-xs font-medium text-slate-300">Dirección del Cliente / Emplazamiento <span class="text-rose-500">*</span></label>
+                        <input type="text" id="direccion" name="direccion" required placeholder="Calle, número y localidad" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="codigoPostal" class="block text-xs font-medium text-slate-300">Código Postal / Población <span class="text-rose-500">*</span></label>
+                        <input type="text" id="codigoPostal" name="codigoPostal" required placeholder="ej. 28001 Madrid" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end pt-3 border-t border-slate-800">
+                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: PERSONAL -->
+            <div id="step-2" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal (Auto-completado)</h2>
+                
+                <div id="contractor-warning" class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal en la Sección 1 para desplegar la lista de técnicos actualizada.
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- TEC1 -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300">Técnico Principal (TEC1)</h3>
+                        <div class="space-y-1.5">
+                            <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias KAIROS TEC1 <span class="text-rose-500">*</span></label>
+                            <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                                <option value="">Seleccione Contrata primero...</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="nombreTec1" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (TEC1) <span class="text-rose-500">*</span></label>
+                            <input type="text" id="nombreTec1" name="nombreTec1" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- RECURSO PREVENTIVO -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Recurso Preventivo Habilitado</h3>
+                        <div class="space-y-1.5">
+                            <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias Recurso Preventivo <span class="text-rose-500">*</span></label>
+                            <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                                <option value="">Seleccione Contrata primero...</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="nombreRecursoPreventivo" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (Recurso Preventivo) <span class="text-rose-500">*</span></label>
+                            <input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: POSTE & SEGURIDAD -->
+            <div id="step-3" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 3: Evaluación Técnica del Poste</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1.5 md:col-span-3">
+                        <label class="block text-xs font-medium text-slate-300">Material del Poste <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="tipoPoste" value="POSTE DE MADERA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
+                                <span class="text-xs font-semibold text-slate-200">POSTE DE MADERA</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="tipoPoste" value="POSTE DE HORMIGÓN" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
+                                <span class="text-xs font-semibold text-slate-200">POSTE DE HORMIGÓN</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="tipoPoste" value="POSTE DE FIBRA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
+                                <span class="text-xs font-semibold text-slate-200">POSTE DE FIBRA</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="wood-pole-block" class="hidden md:col-span-3 bg-amber-950/30 border border-amber-600/40 rounded-2xl p-4 space-y-3">
+                        <div class="text-amber-400 font-semibold text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Medidas Preventivas Obligatorias antes del Ascenso a POSTE DE MADERA:
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">1. Verificar cable, tirante, soportes, herrajes y tubos de protección.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">2. Revisar longitud enterrada conforme al botón/placa identificativa.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">3. Escarbar base (~3cm) y realizar inspección visual.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">4. Empujar fuerte y repetidamente perpendicular a la línea.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Inspección por percusión martillo" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">5. Percusión con martillo desde el suelo hasta 2m de altura.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Prueba con herramienta punzante" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">6. Punzar oblicuamente (3-4 veces) la base del poste.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global del Poste <span class="text-rose-500">*</span></label>
+                        <select id="estadoPoste" name="estadoPoste" required onchange="handlePoleStatusChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            <option value="">Seleccione Estado...</option>
+                            <option value="BUENO/ADECUADO">BUENO / ADECUADO</option>
+                            <option value="MALO/DEFECTUOSO">MALO / DEFECTUOSO</option>
+                            <option value="NO SUBIR">NO SUBIR (Peligro Crítico)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="paraSubir" class="block text-xs font-medium text-slate-300">Método para Subir al Poste <span class="text-rose-500">*</span></label>
+                        <select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            <option value="">Seleccione Método...</option>
+                            <option value="PLATAFORMA ELEVADORA">PLATAFORMA ELEVADORA</option>
+                            <option value="ESCALERA (con patas extensibles)">ESCALERA (con patas extensibles)</option>
+                            <option value="NO PROCEDE">NO PROCEDE</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-medium text-slate-300">¿Apto para Escalera con Seguridad? <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="SI" required class="accent-emerald-500">
+                                <span class="text-xs font-semibold text-emerald-400">SÍ</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="NO" required class="accent-rose-500">
+                                <span class="text-xs font-semibold text-rose-400">NO</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="no-climb-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-2xl p-4 text-center space-y-1">
+                    <i class="fa-solid fa-octagon-exclamation text-rose-400 text-2xl"></i>
+                    <h4 class="text-sm font-bold text-rose-200">¡ALERTA DE SEGURIDAD CRÍTICA!</h4>
+                    <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
+                </div>
+
+                <div class="flex justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 4: CHECKLISTS & EPIs -->
+            <div id="step-4" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists de Seguridad y EPIs</h2>
+                
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
+                        <h3 class="text-xs font-bold uppercase text-purple-300">Check Verificación de Escalera</h3>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 text-xs">
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Suelo despejado y apoyo firme" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">4. Suelo despejado que permite un apoyo firme.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Inclinación correcta (~75º)" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">5. Inclinación correcta (~75º respecto al suelo).</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Longitud adecuada" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">6. Longitud de la escalera adecuada para la altura.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Zona de trabajo señalizada" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">7. Zona de trabajo señalizada previamente.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
+                        <h3 class="text-xs font-bold uppercase text-emerald-300">EPIs Utilizados</h3>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('epi-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CASCO CON BARBUQUEJO" class="epi-check accent-emerald-500"><span class="text-slate-200">CASCO CON BARBUQUEJO</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="ARNÉS ANTICAÍDAS" class="epi-check accent-emerald-500"><span class="text-slate-200">ARNÉS ANTICAÍDAS</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="GAFAS DE SEGURIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">GAFAS DE SEGURIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="BOTAS DE SEGURIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">BOTAS DE SEGURIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CHALECO ALTA VISIBILIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">ALTA VISIBILIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="GUANTES MECÁNICOS" class="epi-check accent-emerald-500"><span class="text-slate-200">GUANTES MECÁNICOS</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="AMARRE POSICIONAMIENTO" class="epi-check accent-emerald-500"><span class="text-slate-200">AMARRE POSICIONAMIENTO</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="LÍNEA DE VIDA" class="epi-check accent-emerald-500"><span class="text-slate-200">LÍNEA DE VIDA</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="DOBLE CABO ANCLAJE" class="epi-check accent-emerald-500"><span class="text-slate-200">DOBLE CABO ANCLAJE</span></label>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 5: CROQUIS & FOTOS -->
+            <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis y Evidencias Fotográficas</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5 md:col-span-2">
+                        <label for="cantidadPostes" class="block text-xs font-medium text-slate-300">Cantidad de Postes en la Intervención</label>
+                        <input type="number" id="cantidadPostes" name="cantidadPostes" min="1" placeholder="ej. 3" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                    </div>
+
+                    <!-- FOTOS / ADJUNTOS -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
+                        <label class="block text-xs font-semibold text-slate-200">1. Subir Croquis Alta FTTH *</label>
+                        <input type="file" id="file-croquis" accept="image/*,.pdf" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-croquis')">
+                        <div id="preview-croquis" class="text-xs text-slate-500 mt-1"></div>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
+                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste *</label>
+                        <input type="file" id="file-escalera" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-escalera')">
+                        <div id="preview-escalera" class="text-xs text-slate-500 mt-1"></div>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
+                        <label class="block text-xs font-semibold text-slate-200">3. Foto 1 (Entorno / Pie de poste) *</label>
+                        <input type="file" id="file-foto1" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto1')">
+                        <div id="preview-foto1" class="text-xs text-slate-500 mt-1"></div>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
+                        <label class="block text-xs font-semibold text-slate-200">4. Foto 2 (Detalle / Herrajes) *</label>
+                        <input type="file" id="file-foto2" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto2')">
+                        <div id="preview-foto2" class="text-xs text-slate-500 mt-1"></div>
+                    </div>
+
+                    <div class="space-y-1.5 md:col-span-2">
+                        <label for="observaciones" class="block text-xs font-medium text-slate-300">Observaciones e Incidencias Técnicas</label>
+                        <textarea id="observaciones" name="observaciones" rows="3" placeholder="Notas adicionales sobre la actuación..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl p-3 text-sm text-white outline-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Firma & Cierre <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 6: FIRMA Y CIERRE -->
+            <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 6: DNI y Firma Digital del Recurso Preventivo</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="space-y-1.5">
+                            <label for="dniRecurso" class="block text-xs font-medium text-slate-300">DNI / NIE Recurso Preventivo <span class="text-rose-500">*</span></label>
+                            <input type="text" id="dniRecurso" name="dniRecurso" required placeholder="12345678X" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none uppercase">
+                        </div>
+                        <div class="bg-purple-950/30 border border-purple-800/40 rounded-xl p-3 text-xs text-purple-100">
+                            <strong>Declaración Responsable:</strong> Certifico que las verificaciones registradas corresponden con la realidad de los trabajos en altura.
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-xs font-medium text-slate-300">Firma Táctil <span class="text-rose-500">*</span></label>
+                            <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-rose-400">Limpiar Firma</button>
+                        </div>
+                        <div class="border-2 border-slate-700 rounded-xl overflow-hidden bg-white relative">
+                            <canvas id="signature-canvas" class="signature-canvas w-full h-40"></canvas>
+                            <div id="signature-placeholder" class="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-400 text-xs">Firme aquí con el dedo</div>
+                        </div>
+                        <input type="hidden" id="firmaData" name="firmaData" required>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-4 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm"><i class="fa-solid fa-print"></i> Vista Previa</button>
+                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- Modal Éxito -->
+    <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4">
+            <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
+            <p class="text-xs text-slate-400">El informe PDF se ha generado y enviado correctamente a Prevención.</p>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
+                <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
+                <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
+            </div>
+            <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-brand-600 text-white font-medium rounded-xl text-sm">Realizar Nueva Actuación</button>
+        </div>
+    </div>
+
+    <!-- ÁREA OCULTA PARA IMPRESIÓN Y GENERACIÓN DE PDF -->
+    <div id="print-area" class="hidden print-only"></div>
+
+    <!-- LOGICA JAVASCRIPT -->
+    <script>
+        const DESTINATION_EMAIL = 'prevencion.im@finetwork.com';
+        let USUARIOS_DB = {};
+        let currentStep = 1;
+        let signatureCanvas, signatureCtx;
+        let isSigning = false;
+        const uploadedFiles = {};
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            initSignatureCanvas();
+            setNowDateTime();
+            await cargarListaUsuarios();
+            loadDraft();
+            updateProgressBar();
+
+            document.getElementById('pole-form').addEventListener('input', autoSaveDraft);
+            document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
+        });
+
+        // Cargar lista JSON de usuarios
+        async function cargarListaUsuarios() {
+            try {
+                const res = await fetch('usuarios.json?v=' + new Date().getTime());
+                if (res.ok) {
+                    const rawData = await res.json();
+                    USUARIOS_DB = rawData.reduce((acc, item) => {
+                        if (!acc[item.Contrata]) acc[item.Contrata] = [];
+                        acc[item.Contrata].push(item);
+                        return acc;
+                    }, {});
+                }
+            } catch (err) {
+                console.error("Error cargando usuarios.json", err);
+            }
+        }
+
+        function handleContractorChange() {
+            const contrata = document.getElementById('contrataPrincipal').value;
+            const selectTec1 = document.getElementById('aliasKairosTec1');
+            const selectRecurso = document.getElementById('aliasRecursoPreventivo');
+            const warning = document.getElementById('contractor-warning');
+
+            selectTec1.innerHTML = '<option value="">Seleccione Alias...</option>';
+            selectRecurso.innerHTML = '<option value="">Seleccione Alias...</option>';
+
+            if (contrata && USUARIOS_DB[contrata]) {
+                warning.classList.add('hidden');
+                USUARIOS_DB[contrata].forEach(u => {
+                    selectTec1.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
+                    selectRecurso.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
+                });
+            } else {
+                warning.classList.remove('hidden');
+            }
+        }
+
+        function handleAliasTec1Change(alias) {
+            const contrata = document.getElementById('contrataPrincipal').value;
+            if (USUARIOS_DB[contrata]) {
+                const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
+                document.getElementById('nombreTec1').value = user ? user.NombreCompleto : '';
+            }
+        }
+
+        function handleAliasRecursoChange(alias) {
+            const contrata = document.getElementById('contrataPrincipal').value;
+            if (USUARIOS_DB[contrata]) {
+                const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
+                document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
+            }
+        }
+
+        function goToStep(step) {
+            if (step < 1 || step > 6) return;
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${i}`);
+                if (btn) btn.classList.remove('tab-active');
+            }
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${step}`).classList.add('tab-active');
+            currentStep = step;
+            updateProgressBar();
+            if (step === 6) setTimeout(resizeCanvas, 100);
+        }
+
+        function nextStep(s) { goToStep(s); }
+        function prevStep(s) { goToStep(s); }
+
+        function updateProgressBar() {
+            const percent = Math.round((currentStep / 6) * 100);
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
+            document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
+        }
+
+        function setNowDateTime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('fechaHora').value = now.toISOString().slice(0, 16);
+        }
+
+        function toggleWoodPoleMeasures() {
+            const selected = document.querySelector('input[name="tipoPoste"]:checked');
+            const block = document.getElementById('wood-pole-block');
+            if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
+            else block.classList.add('hidden');
+        }
+
+        function handlePoleStatusChange() {
+            const val = document.getElementById('estadoPoste').value;
+            const alertBox = document.getElementById('no-climb-alert');
+            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
+            else alertBox.classList.add('hidden');
+        }
+
+        function toggleAllCheckboxes(cls, state) {
+            document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
+            autoSaveDraft();
+        }
+
+        function handleFileSelect(input, previewId) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedFiles[input.id] = e.target.result;
+                document.getElementById(previewId).innerText = `Archivo cargado: ${file.name}`;
+                autoSaveDraft();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Canvas Firma
+        function initSignatureCanvas() {
+            signatureCanvas = document.getElementById('signature-canvas');
+            signatureCtx = signatureCanvas.getContext('2d');
+            resizeCanvas();
+
+            signatureCanvas.addEventListener('mousedown', startSigning);
+            signatureCanvas.addEventListener('mousemove', drawSigning);
+            signatureCanvas.addEventListener('mouseup', stopSigning);
+
+            signatureCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                startSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
+            signatureCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                drawSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
+            signatureCanvas.addEventListener('touchend', stopSigning);
+        }
+
+        function resizeCanvas() {
+            if (!signatureCanvas) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCanvas.width = rect.width;
+            signatureCanvas.height = rect.height;
+            signatureCtx.lineWidth = 2;
+            signatureCtx.strokeStyle = '#0f172a';
+        }
+
+        function startSigning(e) {
+            isSigning = true;
+            document.getElementById('signature-placeholder').classList.add('hidden');
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function drawSigning(e) {
+            if (!isSigning) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureCtx.stroke();
+        }
+
+        function stopSigning() {
+            if (isSigning) {
+                isSigning = false;
+                document.getElementById('firmaData').value = signatureCanvas.toDataURL();
+                autoSaveDraft();
+            }
+        }
+
+        function clearSignatureCanvas() {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            document.getElementById('signature-placeholder').classList.remove('hidden');
+            document.getElementById('firmaData').value = '';
+            autoSaveDraft();
+        }
+
+        function autoSaveDraft() {
+            const formData = new FormData(document.getElementById('pole-form'));
+            const data = {};
+            formData.forEach((value, key) => {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) data[key] = [data[key]];
+                    data[key].push(value);
+                } else data[key] = value;
+            });
+            data['firmaData'] = document.getElementById('firmaData').value;
+            localStorage.setItem('pole_form_draft', JSON.stringify(data));
+        }
+
+        function manualSaveDraft() {
+            autoSaveDraft();
+            alert('Borrador guardado localmente.');
+        }
+
+        function loadDraft() {
+            const saved = localStorage.getItem('pole_form_draft');
+            if (!saved) return;
+            try {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(k => {
+                    const el = document.getElementById(k);
+                    if (el && typeof data[k] === 'string') el.value = data[k];
+                });
+                if (data.contrataPrincipal) {
+                    handleContractorChange();
+                    if (data.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = data.aliasKairosTec1;
+                    if (data.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = data.aliasRecursoPreventivo;
+                }
+            } catch (e) {}
+        }
+
+        function confirmResetForm() {
+            if (confirm('¿Limpiar todo el formulario?')) {
+                localStorage.removeItem('pole_form_draft');
+                document.getElementById('pole-form').reset();
+                clearSignatureCanvas();
+                goToStep(1);
+            }
+        }
+
+        // GENERACIÓN DE PDF Y ENVÍO VÍA FORMSUBMIT
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const firma = document.getElementById('firmaData').value;
+            if (!firma) {
+                alert('Firma requerida en la Sección 6.');
+                goToStep(6);
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitIcon = document.getElementById('submit-icon');
+            submitBtn.disabled = true;
+            submitText.innerText = 'Generando PDF y Enviando...';
+            submitIcon.className = 'fa-solid fa-spinner fa-spin';
+
+            try {
+                buildPrintHTML();
+                const printArea = document.getElementById('print-area');
+                const nOt = document.getElementById('nOt').value || 'Sin_OT';
+
+                const opt = {
+                    margin: 0.4,
+                    filename: `Informe_PRL_Poste_${nOt}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                const pdfBlob = await html2pdf().set(opt).from(printArea).output('blob');
+
+                const sendData = new FormData();
+                sendData.append('_subject', `NUEVA_OT_POSTES: ${nOt} - ${document.getElementById('contrataPrincipal').value}`);
+                sendData.append('_captcha', 'false');
+                sendData.append('nOt', nOt);
+                sendData.append('contrataPrincipal', document.getElementById('contrataPrincipal').value);
+                sendData.append('fechaHora', document.getElementById('fechaHora').value);
+                sendData.append('nombreTec1', document.getElementById('nombreTec1').value);
+                sendData.append('nombreRecursoPreventivo', document.getElementById('nombreRecursoPreventivo').value);
+                sendData.append('estadoPoste', document.getElementById('estadoPoste').value);
+                sendData.append('observaciones', document.getElementById('observaciones').value);
+                sendData.append('attachment', pdfBlob, `Informe_PRL_Poste_${nOt}.pdf`);
+
+                const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
+                    method: 'POST',
+                    body: sendData
+                });
+
+                if (res.ok) {
+                    document.getElementById('modal-ot').innerText = nOt;
+                    document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+                    localStorage.removeItem('pole_form_draft');
+                    document.getElementById('success-modal').classList.remove('hidden');
+                } else throw new Error('Error al enviar');
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al generar o enviar el PDF.');
+            } finally {
+                submitBtn.disabled = false;
+                submitText.innerText = 'Finalizar y Enviar';
+                submitIcon.className = 'fa-solid fa-paper-plane';
+            }
+        }
+
+        function resetFormAndCloseModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('pole-form').reset();
+            clearSignatureCanvas();
+            goToStep(1);
+        }
+
+        function buildPrintHTML() {
+            const printArea = document.getElementById('print-area');
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+
+            printArea.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 15px; color: #0f172a;">
+                    <div style="border-bottom: 2px solid #6d28d9; pb-2; margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <div>
+                            <h1 style="font-size: 16px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                            <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Prevención de Riesgos Laborales</p>
+                        </div>
+                        <div style="text-align: right; font-size: 10px;">
+                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value}<br>
+                            <strong>Nº OT:</strong> ${document.getElementById('nOt').value}
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">1. DATOS DE LA ACTUACIÓN</h3>
+                        <div class="print-grid" style="font-size: 10px;">
+                            <div><strong>Nº OT / IUA:</strong> ${document.getElementById('nOt').value}</div>
+                            <div><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</div>
+                            <div><strong>Tipo:</strong> ${formData.get('tipo') || '-'}</div>
+                            <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
+                            <div style="grid-column: span 2;"><strong>Ubicación:</strong> ${document.getElementById('direccion').value} (${document.getElementById('codigoPostal').value})</div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">2. PERSONAL</h3>
+                        <div class="print-grid" style="font-size: 10px;">
+                            <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value}</div>
+                            <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value}</div>
+                            <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value}</div>
+                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">3. ESTADO DEL POSTE</h3>
+                        <div class="print-grid" style="font-size: 10px;">
+                            <div><strong>Material:</strong> ${formData.get('tipoPoste') || '-'}</div>
+                            <div><strong>Estado Global:</strong> ${document.getElementById('estadoPoste').value}</div>
+                            <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value}</div>
+                            <div><strong>Apto Escalera:</strong> ${formData.get('sePuede') || '-'}</div>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">4. EVIDENCIAS FOTOGRÁFICAS</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 5px;">
+                            ${uploadedFiles['file-croquis'] ? `<div style="text-align: center; font-size: 9px;"><strong>Croquis FTTH</strong><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div style="text-align: center; font-size: 9px;"><strong>Escalera en Poste</strong><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto1'] ? `<div style="text-align: center; font-size: 9px;"><strong>Entorno</strong><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto2'] ? `<div style="text-align: center; font-size: 9px;"><strong>Detalle</strong><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="print-section" style="margin-top: 10px;">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px;">5. FIRMA DEL RECURSO PREVENTIVO</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 10px;">
+                            <div>
+                                <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}<br>
+                                <strong>DNI / NIE:</strong> ${document.getElementById('dniRecurso').value}
+                            </div>
+                            <div style="text-align: center;">
+                                ${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 50px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generatePrintPreview() {
+            buildPrintHTML();
+            window.print();
+        }
+    </script>
+</body>
+</html>
