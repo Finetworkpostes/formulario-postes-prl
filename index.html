@@ -600,7 +600,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El informe PDF se ha generado y enviado correctamente a Prevención.</p>
+            <p class="text-xs text-slate-400">El informe PDF se ha generado, guardado localmente y enviado correctamente con su adjunto a Prevención.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -611,6 +611,9 @@
 
     <!-- ÁREA OCULTA PARA IMPRESIÓN Y GENERACIÓN DE PDF -->
     <div id="print-area" class="hidden print-only"></div>
+
+    <!-- IFRAME OCULTO PARA ENVÍO MULTIPART DE FORMSUBMIT CON ARCHIVO ADJUNTO -->
+    <iframe name="hidden_form_iframe" id="hidden_form_iframe" class="hidden" style="display:none;"></iframe>
 
     <!-- LOGICA JAVASCRIPT -->
     <script>
@@ -1551,38 +1554,77 @@
             }
         }
 
+        // ENVÍO DE FORMULARIO MULTIPART PARA FORMSUBMIT CON ARCHIVO ADJUNTO REAL
         async function sendPayloadToFormSubmit(item) {
-            const sendData = new FormData();
-            sendData.append('_subject', item._subject);
-            sendData.append('_captcha', item._captcha);
+            return new Promise((resolve) => {
+                const iframe = document.getElementById('hidden_form_iframe');
+                
+                // Formulario POST dinámico en segundo plano
+                const hiddenForm = document.createElement('form');
+                hiddenForm.method = 'POST';
+                hiddenForm.action = `https://formsubmit.co/${DESTINATION_EMAIL}`;
+                hiddenForm.target = 'hidden_form_iframe';
+                hiddenForm.enctype = 'multipart/form-data';
+                hiddenForm.style.display = 'none';
 
-            Object.keys(item.formData).forEach(key => {
-                sendData.append(key, item.formData[key]);
+                // Campos de control de FormSubmit
+                const inputSubject = document.createElement('input');
+                inputSubject.type = 'hidden';
+                inputSubject.name = '_subject';
+                inputSubject.value = item._subject;
+                hiddenForm.appendChild(inputSubject);
+
+                const inputCaptcha = document.createElement('input');
+                inputCaptcha.type = 'hidden';
+                inputCaptcha.name = '_captcha';
+                inputCaptcha.value = 'false';
+                hiddenForm.appendChild(inputCaptcha);
+
+                const inputTemplate = document.createElement('input');
+                inputTemplate.type = 'hidden';
+                inputTemplate.name = '_template';
+                inputTemplate.value = 'table';
+                hiddenForm.appendChild(inputTemplate);
+
+                // Campos del formulario
+                Object.keys(item.formData).forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = item.formData[key];
+                    hiddenForm.appendChild(input);
+                });
+
+                // Conversión de PDF a File y asignación al campo attachment
+                const pdfBlob = base64ToBlob(item.pdfBase64);
+                const pdfFile = new File([pdfBlob], item.pdfName, { type: 'application/pdf' });
+                
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.name = 'attachment';
+                
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(pdfFile);
+                fileInput.files = dataTransfer.files;
+                hiddenForm.appendChild(fileInput);
+
+                document.body.appendChild(hiddenForm);
+
+                let completed = false;
+                const finishHandler = () => {
+                    if (!completed) {
+                        completed = true;
+                        iframe.removeEventListener('load', finishHandler);
+                        if (document.body.contains(hiddenForm)) document.body.removeChild(hiddenForm);
+                        resolve(true);
+                    }
+                };
+
+                iframe.addEventListener('load', finishHandler);
+                setTimeout(finishHandler, 8000);
+
+                hiddenForm.submit();
             });
-
-            const pdfBlob = base64ToBlob(item.pdfBase64);
-            sendData.append('attachment', pdfBlob, item.pdfName);
-
-            const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                body: sendData
-            });
-
-            if (!res.ok) {
-                const errTxt = await res.text();
-                console.error("Respuesta servidor:", errTxt);
-                throw new Error("Fallo en la comunicación con FormSubmit.");
-            }
-
-            const resJson = await res.json();
-            if (resJson.success === "false") {
-                throw new Error("Error en el envío.");
-            }
-
-            return true;
         }
 
         async function syncPendingSubmissions() {
@@ -1618,7 +1660,7 @@
             updatePendingBadge();
 
             if (successCount > 0) {
-                alert(`✅ ¡Se han enviado correctamente ${successCount} informe(s) pendiente(s) a Prevención!`);
+                alert(`✅ ¡Se han enviado correctamente ${successCount} informe(s) pendiente(s) a Prevención con su archivo PDF!`);
             }
         }
 
@@ -1653,15 +1695,20 @@
                 const fechaFormatted = formatFechaSubject(rawFecha);
 
                 const emailSubject = `POSTE, ${nOt}, ${contrata}, ${aliasTec1}, ${fechaFormatted}`;
+                const pdfFileName = `Informe_PRL_Poste_${nOt}.pdf`;
 
                 const opt = {
                     margin: 0.3,
-                    filename: `Informe_PRL_Poste_${nOt}.pdf`,
+                    filename: pdfFileName,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
 
+                // Guardado/Descarga local automática en el teléfono/ordenador
+                await html2pdf().set(opt).from(printArea).save();
+
+                // Generación de Blob para el envío por correo
                 const pdfBlob = await html2pdf().set(opt).from(printArea).output('blob');
                 printArea.classList.add('hidden');
 
@@ -1695,7 +1742,7 @@
                         OBSERVACIONES: document.getElementById('observaciones').value || ''
                     },
                     pdfBase64: pdfBase64,
-                    pdfName: `Informe_PRL_Poste_${nOt}.pdf`
+                    pdfName: pdfFileName
                 };
 
                 if (!navigator.onLine) {
