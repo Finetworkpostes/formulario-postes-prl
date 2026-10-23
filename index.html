@@ -103,7 +103,7 @@
                 <button type="button" onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">3. Poste</button>
                 <button type="button" onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">4. Checklists & EPIs</button>
                 <button type="button" onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">5. Croquis & Fotos</button>
-                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Firma & Cierre</button>
+                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Confirmación & Firma</button>
             </nav>
         </div>
 
@@ -114,7 +114,7 @@
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
-                        <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT / Código IUA <span class="text-rose-500">*</span></label>
+                        <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <input type="text" id="nOt" name="nOt" required placeholder="ej. OT-1234-123456788" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                     </div>
                     <div class="space-y-1.5">
@@ -158,7 +158,10 @@
                         <input type="datetime-local" id="fechaHora" name="fechaHora" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm text-white outline-none">
                     </div>
                     <div class="space-y-1.5 md:col-span-2">
-                        <label for="direccion" class="block text-xs font-medium text-slate-300">Dirección del Cliente / Emplazamiento <span class="text-rose-500">*</span></label>
+                        <label for="direccion" class="block text-xs font-medium text-slate-300 flex items-center justify-between">
+                            <span>Dirección del Cliente / Emplazamiento <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-purple-400 font-normal"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-completado al marcar Casa en mapa</span>
+                        </label>
                         <input type="text" id="direccion" name="direccion" required placeholder="Calle, número y localidad" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                     </div>
                     <div class="space-y-1.5">
@@ -184,7 +187,7 @@
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300">Técnico Principal (TEC1)</h3>
                         <div class="space-y-1.5">
-                            <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias KAIROS TEC1 <span class="text-rose-500">*</span></label>
+                            <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias / Usuario KAIROS TEC1 <span class="text-rose-500">*</span></label>
                             <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                                 <option value="">Seleccione Contrata primero...</option>
                             </select>
@@ -199,7 +202,7 @@
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Recurso Preventivo Habilitado</h3>
                         <div class="space-y-1.5">
-                            <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias Recurso Preventivo <span class="text-rose-500">*</span></label>
+                            <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias / Usuario Recurso Preventivo <span class="text-rose-500">*</span></label>
                             <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                                 <option value="">Seleccione Contrata primero...</option>
                             </select>
@@ -453,7 +456,7 @@
                     </div>
                 </div>
 
-                <!-- CARDS TARJETAS DROPZONE DE FOTOS (HABILITADO TOMAR O ADJUNTAR) -->
+                <!-- CARDS TARJETAS DROPZONE DE FOTOS -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
                     <!-- DROPZONE 1: Croquis Alta FTTH -->
@@ -483,7 +486,6 @@
                         <p class="text-[11px] text-slate-400">Debe verse: Escalera, Línea de vida, Patas extensibles, Casco, Chaleco, Arnés y Señalización.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
-                            <!-- SE QUITA CAPTURE PARA PERMITIR TANTO CÁMARA COMO ADJUNTAR DESDE GALERÍA -->
                             <input type="file" id="file-escalera" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
@@ -502,7 +504,6 @@
                         <p class="text-[11px] text-slate-400">Perspectiva general del poste y pie de vía pública.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto1')">
-                            <!-- SE QUITA CAPTURE PARA PERMITIR TANTO CÁMARA COMO ADJUNTAR DESDE GALERÍA -->
                             <input type="file" id="file-foto1" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
                             <div id="preview-foto1" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
@@ -520,7 +521,6 @@
                         <p class="text-[11px] text-slate-400">Detalle de herrajes, caja CTO o zona defectuosa si procede.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto2')">
-                            <!-- SE QUITA CAPTURE PARA PERMITIR TANTO CÁMARA COMO ADJUNTAR DESDE GALERÍA -->
                             <input type="file" id="file-foto2" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
                             <div id="preview-foto2" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
@@ -537,15 +537,33 @@
 
                 <div class="flex justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Firma & Cierre <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 6: FIRMA Y CIERRE -->
-            <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 6: DNI y Firma Digital del Recurso Preventivo</h2>
+            <!-- SECCIÓN 6: CONFIRMACIÓN Y FIRMA -->
+            <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+                    <span>Sección 6: Resumen, DNI y Firma Digital</span>
+                    <span class="text-xs font-normal text-slate-400">Verifique los datos antes de enviar</span>
+                </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- DESGLOSE TOTAL DE TODA LA INFORMACIÓN -->
+                <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-brand-400"></i>
+                            Desglose Completo de la Actuación
+                        </h3>
+                        <span class="text-[11px] text-slate-400">Pulse en "Editar" para modificar datos</span>
+                    </div>
+                    
+                    <div id="summary-breakdown-container" class="space-y-4 text-xs">
+                        <!-- Se renderiza dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     <div class="space-y-4">
                         <div class="space-y-1.5">
                             <label for="dniRecurso" class="block text-xs font-medium text-slate-300">DNI / NIE Recurso Preventivo <span class="text-rose-500">*</span></label>
@@ -638,7 +656,6 @@
             document.getElementById('pole-form').addEventListener('input', autoSaveDraft);
             document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
 
-            // AUTO-SINCRONIZAR AL RECUPERAR LA COBERTURA INTERNET
             window.addEventListener('online', () => {
                 syncPendingSubmissions();
             });
@@ -669,6 +686,7 @@
             handleContractorChange();
         }
 
+        // MOSTRAR SOLO EL ALIAS / USUARIO EN EL DESPLEGABLE
         function handleContractorChange() {
             const selectContrata = document.getElementById('contrataPrincipal');
             if (!selectContrata) return;
@@ -683,20 +701,20 @@
             const prevTec1Val = selectTec1.value;
             const prevRecursoVal = selectRecurso.value;
 
-            selectTec1.innerHTML = '<option value="">Seleccione Alias...</option>';
-            selectRecurso.innerHTML = '<option value="">Seleccione Alias...</option>';
+            selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
+            selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
             if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
                 if (warning) warning.classList.add('hidden');
                 USUARIOS_DB[contrata].forEach(u => {
                     const opt1 = document.createElement('option');
                     opt1.value = u.Alias;
-                    opt1.textContent = `${u.Alias} - ${u.NombreCompleto}`;
+                    opt1.textContent = u.Alias; // SOLO EL ALIAS/USUARIO
                     selectTec1.appendChild(opt1);
 
                     const opt2 = document.createElement('option');
                     opt2.value = u.Alias;
-                    opt2.textContent = `${u.Alias} - ${u.NombreCompleto}`;
+                    opt2.textContent = u.Alias; // SOLO EL ALIAS/USUARIO
                     selectRecurso.appendChild(opt2);
                 });
 
@@ -783,8 +801,8 @@
         }
 
         async function addCroquisPoint(lat, lng) {
-            const address = await reverseGeocode(lat, lng);
-            croquisPoints.push({ lat, lng, address });
+            const geo = await reverseGeocode(lat, lng);
+            croquisPoints.push({ lat, lng, address: geo.address, postcode: geo.postcode });
             renderCroquisMarkersAndPath();
         }
 
@@ -805,6 +823,14 @@
                 } else if (idx === total - 1) {
                     type = 'casa';
                     iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
+                    
+                    // AUTO-COMPLETAR DIRECCIÓN Y CP SI ES LA CASA
+                    if (p.address) {
+                        const dirInput = document.getElementById('direccion');
+                        const cpInput = document.getElementById('codigoPostal');
+                        if (dirInput) dirInput.value = p.address;
+                        if (cpInput && p.postcode) cpInput.value = p.postcode;
+                    }
                 } else {
                     type = 'poste';
                     iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`;
@@ -894,15 +920,29 @@
             updateCroquisSummary();
         }
 
+        // GEOLOCALIZACIÓN INVERSA MEJORADA CON EXTRACCIÓN DE CÓDIGO POSTAL
         async function reverseGeocode(lat, lng) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                 if (res.ok) {
                     const data = await res.json();
-                    return data.display_name.split(',').slice(0, 3).join(',');
+                    const addressObj = data.address || {};
+                    const road = addressObj.road || addressObj.pedestrian || addressObj.suburb || '';
+                    const houseNumber = addressObj.house_number ? ' ' + addressObj.house_number : '';
+                    const town = addressObj.city || addressObj.town || addressObj.village || addressObj.municipality || addressObj.county || '';
+                    const postcode = addressObj.postcode || '';
+
+                    let cleanAddress = '';
+                    if (road) {
+                        cleanAddress = road + houseNumber + (town ? ', ' + town : '');
+                    } else {
+                        cleanAddress = data.display_name.split(',').slice(0, 3).join(',');
+                    }
+
+                    return { address: cleanAddress.trim(), postcode: postcode.trim() };
                 }
             } catch (e) {}
-            return `Ubicación (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            return { address: `Ubicación (${lat.toFixed(4)}, ${lng.toFixed(4)})`, postcode: '' };
         }
 
         async function searchAddressOnMap() {
@@ -1043,6 +1083,102 @@
             return valid;
         }
 
+        // RENDERIZAR DESGLOSE DE REVISIÓN COMPLETA EN LA SECCIÓN 6
+        function renderReviewSummary() {
+            const container = document.getElementById('summary-breakdown-container');
+            if (!container) return;
+
+            const formData = new FormData(document.getElementById('pole-form'));
+
+            const nOt = document.getElementById('nOt').value || '-';
+            const contrata = document.getElementById('contrataPrincipal').value || '-';
+            const tipo = formData.get('tipo') || '-';
+            const estadoInfra = formData.get('estado') || '-';
+            const fechaHora = document.getElementById('fechaHora').value || '-';
+            const direccion = document.getElementById('direccion').value || '-';
+            const cp = document.getElementById('codigoPostal').value || '-';
+
+            const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
+            const nomTec1 = document.getElementById('nombreTec1').value || '-';
+            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
+            const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || '-';
+
+            const tipoPoste = formData.get('tipoPoste') || '-';
+            const estadoPoste = document.getElementById('estadoPoste').value || '-';
+            const paraSubir = document.getElementById('paraSubir').value || '-';
+            const sePuede = formData.get('sePuede') || '-';
+
+            const ladderChecks = formData.getAll('ladderCheck');
+            const epis = formData.getAll('epis');
+            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
+            const obs = document.getElementById('observaciones').value || 'Sin observaciones';
+
+            let photosBadges = [];
+            if (uploadedFiles['file-croquis']) photosBadges.push('Croquis Mapa');
+            if (uploadedFiles['file-escalera']) photosBadges.push('Foto Escalera');
+            if (uploadedFiles['file-foto1']) photosBadges.push('Foto 1 (Entorno)');
+            if (uploadedFiles['file-foto2']) photosBadges.push('Foto 2 (Detalle)');
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Bloque 1: OT -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 relative">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">1. Datos OT</span>
+                            <button type="button" onclick="goToStep(1)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-semibold">${nOt}</span></div>
+                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${contrata}</span> | <strong>Tipo:</strong> <span class="text-slate-200">${tipo}</span></div>
+                        <div><strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
+                        <div><strong class="text-slate-400">Dirección:</strong> <span class="text-slate-200">${direccion} (${cp})</span></div>
+                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${fechaHora}</span></div>
+                    </div>
+
+                    <!-- Bloque 2: Personal -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 relative">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">2. Personal</span>
+                            <button type="button" onclick="goToStep(2)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">TEC1:</strong> <span class="text-white font-semibold">${aliasTec1}</span> <span class="text-slate-300">(${nomTec1})</span></div>
+                        <div><strong class="text-slate-400">Recurso Prev.:</strong> <span class="text-white font-semibold">${aliasRecurso}</span> <span class="text-slate-300">(${nomRecurso})</span></div>
+                    </div>
+
+                    <!-- Bloque 3: Poste -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 relative">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">3. Evaluación Poste</span>
+                            <button type="button" onclick="goToStep(3)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">Material:</strong> <span class="text-slate-200">${tipoPoste}</span></div>
+                        <div><strong class="text-slate-400">Estado:</strong> <span class="text-slate-200">${estadoPoste}</span> | <strong>Método:</strong> <span class="text-slate-200">${paraSubir}</span></div>
+                        <div><strong class="text-slate-400">Apto Escalera:</strong> <span class="${sePuede === 'SI' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${sePuede}</span></div>
+                    </div>
+
+                    <!-- Bloque 4: Checklists & EPIs -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 relative">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">4. Checks & EPIs</span>
+                            <button type="button" onclick="goToStep(4)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">Checks Escalera:</strong> <span class="text-emerald-400 font-bold">${ladderChecks.length} marcados</span></div>
+                        <div><strong class="text-slate-400">EPIs Seleccionados:</strong> <span class="text-emerald-400 font-bold">${epis.length} marcados</span></div>
+                    </div>
+
+                    <!-- Bloque 5: Croquis, Ubicaciones y Fotos -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2 relative">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">5. Trazado, Postes y Evidencias</span>
+                            <button type="button" onclick="goToStep(5)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">Nº Total Postes:</strong> <span class="text-emerald-400 font-bold">${cantidadPostes}</span></div>
+                        <div><strong class="text-slate-400">Archivos Cargados:</strong> <span class="text-purple-300">${photosBadges.length > 0 ? photosBadges.join(', ') : 'Ninguna'}</span></div>
+                        <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${obs}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
         function goToStep(step) {
             if (step < 1 || step > 6) return;
 
@@ -1062,7 +1198,10 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (step === 5) setTimeout(initCroquisMap, 150);
-            if (step === 6) setTimeout(resizeCanvas, 100);
+            if (step === 6) {
+                renderReviewSummary();
+                setTimeout(resizeCanvas, 100);
+            }
         }
 
         function nextStep(s) { goToStep(s); }
@@ -1251,7 +1390,7 @@
                     <div class="print-section">
                         <h3 style="font-size: 11px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 2px;">1. DATOS DE LA ACTUACIÓN</h3>
                         <div class="print-grid" style="font-size: 9.5px;">
-                            <div><strong>Nº OT / IUA:</strong> ${document.getElementById('nOt').value || '-'}</div>
+                            <div><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}</div>
                             <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
                             <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
                             <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
@@ -1348,7 +1487,6 @@
             return rawDatetime;
         }
 
-        // FUNCIONES DE CONVERSIÓN DE BLOB A BASE64 Y VICEVERSA PARA COLA OFFLINE
         function blobToBase64(blob) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -1371,7 +1509,6 @@
             return new Blob(byteArrays, { type: mimeType });
         }
 
-        // GUARDAR EN COLA OFFLINE
         function saveToOfflineQueue(item) {
             let queue = [];
             try {
@@ -1397,7 +1534,6 @@
             goToStep(1);
         }
 
-        // ACTUALIZAR BOTÓN Y CONTADOR DE PENDIENTES
         function updatePendingBadge() {
             let queue = [];
             try {
@@ -1417,7 +1553,6 @@
             }
         }
 
-        // ENVIAR PAQUETE A FORMSUBMIT
         async function sendPayloadToFormSubmit(item) {
             const sendData = new FormData();
             sendData.append('_subject', item._subject);
@@ -1439,7 +1574,6 @@
             return true;
         }
 
-        // PROCESAR Y SINCRONIZAR COLA PENDIENTE
         async function syncPendingSubmissions() {
             let queue = [];
             try {
@@ -1477,7 +1611,6 @@
             }
         }
 
-        // GESTIÓN ENVÍO FORMULARIO (ONLINE U OFFLINE)
         async function handleFormSubmit(e) {
             e.preventDefault();
 
@@ -1554,7 +1687,6 @@
                     pdfName: `Informe_PRL_Poste_${nOt}.pdf`
                 };
 
-                // COMPROBACIÓN DE COBERTURA
                 if (!navigator.onLine) {
                     saveToOfflineQueue(payloadObj);
                     return;
