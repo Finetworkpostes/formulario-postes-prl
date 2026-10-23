@@ -12,8 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Librería Gratuita para Generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Librería para Capturas de Pantalla -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Leaflet MAPS (Gratuito) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -36,7 +34,7 @@
         .tab-active { border-color: #8b5cf6; color: #8b5cf6; background-color: rgba(139, 92, 246, 0.1); }
         .signature-canvas { touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
-        /* Estilos del mapa Leaflet */
+        /* Estilos del mapa Leaflet (Satelital) */
         #croquis-map { height: 380px; width: 100%; border-radius: 0.75rem; z-index: 10; }
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
@@ -388,33 +386,27 @@
 
             <!-- SECCIÓN 5: CROQUIS FTTH EVIDENCIAS FOTOGRÁFICAS -->
             <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis FTTH Interactivo y Evidencias Fotográficas</h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis FTTH Satelital y Evidencias Fotográficas</h2>
 
-                <!-- HERRAMIENTA MAPA CROQUIS INTERACTIVO -->
+                <!-- HERRAMIENTA MAPA CROQUIS INTERACTIVO SATELITAL -->
                 <div id="croquis-tool-container" class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-4 space-y-4 shadow-2xl">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div>
                             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-map-location-dot text-brand-400"></i>
-                                Generador de Croquis de Tendido FTTH
+                                <i class="fa-solid fa-earth-americas text-brand-400"></i>
+                                Croquis Satelital de Tendido FTTH
                             </h3>
-                            <p class="text-xs text-slate-400">Haga clic en el mapa para marcar: 1º CTO, 2º Postes intermedios y 3º Casa Cliente.</p>
+                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º Clic CTO (🔌), clics siguientes Postes (🪵) y el último clic siempre será la Casa (🏠).</p>
                         </div>
-                        
-                        <!-- BARRA DE ACCIONES Y MODOS DEL MAPA -->
-                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                            <span class="text-[11px] text-purple-300 font-semibold uppercase">Modo:</span>
-                            <button type="button" id="btn-mode-cto" onclick="setCroquisMode('cto')" class="px-2.5 py-1 bg-purple-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow">📦 CTO</button>
-                            <button type="button" id="btn-mode-poste" onclick="setCroquisMode('poste')" class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium transition flex items-center gap-1">🪵 Poste</button>
-                            <button type="button" id="btn-mode-casa" onclick="setCroquisMode('casa')" class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium transition flex items-center gap-1">🏠 Casa</button>
-                            <button type="button" onclick="clearCroquisMap()" class="px-2.5 py-1 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-lg text-xs font-medium transition ml-auto"><i class="fa-solid fa-trash-can"></i> Borrar</button>
-                        </div>
+                        <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-medium transition shrink-0">
+                            <i class="fa-solid fa-trash-can"></i> Borrar Mapa
+                        </button>
                     </div>
 
                     <!-- BUSCADOR DE DIRECCIÓN Y GEOLOCALIZACIÓN -->
                     <div class="flex flex-col sm:flex-row gap-2">
                         <div class="relative flex-grow">
-                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio para centrar el mapa..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio para centrar el mapa satelital..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
                         </div>
                         <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-magnifying-glass"></i> Buscar
@@ -435,12 +427,12 @@
                                 <div><strong class="text-purple-300">Postes Intermedios:</strong> <span id="summary-poles-count" class="text-white font-bold">0</span></div>
                             </div>
                             <div id="summary-points-list" class="space-y-1 text-[11px] text-slate-300 max-h-28 overflow-y-auto pr-1">
-                                <em class="text-slate-500">Haga clic en el mapa para situar la CTO, los postes y la vivienda del cliente.</em>
+                                <em class="text-slate-500">Haga clic en el mapa satelital para situar la CTO, los postes y la vivienda.</em>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BOTÓN PRINCIPAL PARA ADJUNTAR CAPTURA -->
+                    <!-- BOTONES PRINCIPALES -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-1">
                         <button type="button" onclick="captureAndAttachCroquis()" class="w-full sm:w-2/3 py-3 bg-gradient-to-r from-purple-600 to-brand-600 hover:from-purple-500 hover:to-brand-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-camera"></i> 📸 Capturar y Adjuntar Croquis al Formulario
@@ -611,12 +603,23 @@
         let isSigning = false;
         const uploadedFiles = {};
 
-        // VARIABLES DEL MAPA DE CROQUIS
+        // LISTA DE RESPALDO SI FALLA EL JSON LOCAL
+        const DEFAULT_USUARIOS = [
+            { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López" },
+            { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz" },
+            { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki" },
+            { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano" },
+            { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil" },
+            { "Contrata": "OBREMO", "Alias": "O011", "NombreCompleto": "Gonzalo Pérez Vera" },
+            { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos" },
+            { "Contrata": "ZENER", "Alias": "Z003", "NombreCompleto": "Sergio Blanco Castro" }
+        ];
+
+        // VARIABLES DEL MAPA SATELITAL DE CROQUIS
         let croquisMap = null;
-        let croquisPoints = []; // [{ type: 'cto'|'poste'|'casa', lat, lng, address }]
+        let croquisPoints = []; // [{ lat, lng, address }]
         let mapMarkers = [];
         let croquisPolyline = null;
-        let currentCroquisMode = 'cto'; // 'cto', 'poste', 'casa'
 
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
@@ -631,43 +634,70 @@
 
         // Cargar lista JSON de usuarios
         async function cargarListaUsuarios() {
+            let rawData = null;
             try {
                 const res = await fetch('usuarios.json?v=' + new Date().getTime());
-                if (res.ok) {
-                    const rawData = await res.json();
-                    USUARIOS_DB = rawData.reduce((acc, item) => {
-                        if (!acc[item.Contrata]) acc[item.Contrata] = [];
-                        acc[item.Contrata].push(item);
-                        return acc;
-                    }, {});
-                }
+                if (res.ok) rawData = await res.json();
             } catch (err) {
-                console.error("Error cargando usuarios.json", err);
+                console.warn("No se pudo cargar usuarios.json desde servidor, usando respaldo.", err);
             }
+
+            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+                rawData = DEFAULT_USUARIOS;
+            }
+
+            USUARIOS_DB = rawData.reduce((acc, item) => {
+                if (item && item.Contrata) {
+                    const key = item.Contrata.trim().toUpperCase();
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(item);
+                }
+                return acc;
+            }, {});
+
+            handleContractorChange();
         }
 
         function handleContractorChange() {
-            const contrata = document.getElementById('contrataPrincipal').value;
+            const selectContrata = document.getElementById('contrataPrincipal');
+            if (!selectContrata) return;
+
+            const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             const warning = document.getElementById('contractor-warning');
 
+            if (!selectTec1 || !selectRecurso) return;
+
+            const prevTec1Val = selectTec1.value;
+            const prevRecursoVal = selectRecurso.value;
+
             selectTec1.innerHTML = '<option value="">Seleccione Alias...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Alias...</option>';
 
-            if (contrata && USUARIOS_DB[contrata]) {
-                warning.classList.add('hidden');
+            if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
+                if (warning) warning.classList.add('hidden');
                 USUARIOS_DB[contrata].forEach(u => {
-                    selectTec1.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
-                    selectRecurso.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
+                    const opt1 = document.createElement('option');
+                    opt1.value = u.Alias;
+                    opt1.textContent = `${u.Alias} - ${u.NombreCompleto}`;
+                    selectTec1.appendChild(opt1);
+
+                    const opt2 = document.createElement('option');
+                    opt2.value = u.Alias;
+                    opt2.textContent = `${u.Alias} - ${u.NombreCompleto}`;
+                    selectRecurso.appendChild(opt2);
                 });
+
+                if (prevTec1Val) selectTec1.value = prevTec1Val;
+                if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
             } else {
-                warning.classList.remove('hidden');
+                if (warning) warning.classList.remove('hidden');
             }
         }
 
         function handleAliasTec1Change(alias) {
-            const contrata = document.getElementById('contrataPrincipal').value;
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreTec1').value = user ? user.NombreCompleto : '';
@@ -675,14 +705,13 @@
         }
 
         function handleAliasRecursoChange(alias) {
-            const contrata = document.getElementById('contrataPrincipal').value;
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
             }
         }
 
-        // TRIGGER PARA SELECCIONAR ARCHIVO AL HACER CLIC EN DROPZONE
         function triggerFileInput(id) {
             document.getElementById(id).click();
         }
@@ -723,93 +752,85 @@
             reader.readAsDataURL(file);
         }
 
-        // ==========================================
-        // LÓGICA DEL MAPA INTERACTIVO DE CROQUIS
-        // ==========================================
+        // ========================================================
+        // MAPA INTERACTIVO 100% SATELITAL CON ASIGNACIÓN AUTOMÁTICA
+        // ========================================================
         function initCroquisMap() {
             if (croquisMap) {
                 setTimeout(() => croquisMap.invalidateSize(), 200);
                 return;
             }
 
-            // Inicializar mapa centrado en España por defecto
-            croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 14);
+            croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 15);
 
-            // Capa de mapa base CartoDB Voyager
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap & CartoDB',
-                maxZoom: 20
+            // CAPA 100% SATELITAL (ArcGIS Esri World Imagery)
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri World Imagery',
+                maxZoom: 19
             }).addTo(croquisMap);
 
-            // Evento clic en el mapa para añadir puntos
             croquisMap.on('click', async (e) => {
                 await addCroquisPoint(e.latlng.lat, e.latlng.lng);
             });
         }
 
-        function setCroquisMode(mode) {
-            currentCroquisMode = mode;
-            ['cto', 'poste', 'casa'].forEach(m => {
-                const btn = document.getElementById(`btn-mode-${m}`);
-                if (m === mode) {
-                    btn.className = "px-2.5 py-1 bg-purple-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow";
-                } else {
-                    btn.className = "px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium transition flex items-center gap-1";
-                }
-            });
-        }
-
         async function addCroquisPoint(lat, lng) {
             const address = await reverseGeocode(lat, lng);
-            const pointObj = {
-                type: currentCroquisMode,
-                lat: lat,
-                lng: lng,
-                address: address
-            };
-
-            croquisPoints.push(pointObj);
-
-            // Crear icono según el modo
-            let iconHtml = '';
-            if (currentCroquisMode === 'cto') {
-                iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">🔌</div>`;
-            } else if (currentCroquisMode === 'poste') {
-                const poleIndex = croquisPoints.filter(p => p.type === 'poste').length;
-                iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">P${poleIndex}</div>`;
-            } else {
-                iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">🏠</div>`;
-            }
-
-            const customIcon = L.divIcon({
-                html: iconHtml,
-                className: '',
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            });
-
-            const marker = L.marker([lat, lng], { icon: customIcon }).addTo(croquisMap);
-            marker.bindPopup(`<strong>${currentCroquisMode.toUpperCase()}</strong><br>${address}<br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`);
-            mapMarkers.push(marker);
-
-            // Avanzar automáticamente de modo: si es CTO pasa a Poste
-            if (currentCroquisMode === 'cto') {
-                setCroquisMode('poste');
-            }
-
-            updateCroquisPathAndSummary();
+            croquisPoints.push({ lat, lng, address });
+            renderCroquisMarkersAndPath();
         }
 
-        function updateCroquisPathAndSummary() {
-            // Dibujar/Actualizar Polyline
-            const latLngs = croquisPoints.map(p => [p.lat, p.lng]);
+        function renderCroquisMarkersAndPath() {
+            // Limpiar marcadores y línea previa
+            mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
+            mapMarkers = [];
 
-            if (latLngs.length > 1) {
-                croquisPolyline = L.polyline(latLngs, { color: '#8b5cf6', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
+            const total = croquisPoints.length;
+
+            croquisPoints.forEach((p, idx) => {
+                let type = '';
+                let iconHtml = '';
+
+                if (idx === 0) {
+                    // 1.er Clic: CTO
+                    type = 'cto';
+                    iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">🔌</div>`;
+                } else if (idx === total - 1) {
+                    // Último Clic: Casa del Cliente
+                    type = 'casa';
+                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">🏠</div>`;
+                } else {
+                    // Clics intermedios: Postes
+                    type = 'poste';
+                    const poleNum = idx; // P1, P2, etc.
+                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">P${poleNum}</div>`;
+                }
+
+                p.type = type;
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: '',
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
+                });
+
+                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
+                marker.bindPopup(`<strong>${type.toUpperCase()} ${type === 'poste' ? 'P' + idx : ''}</strong><br>${p.address}<br><small>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</small>`);
+                mapMarkers.push(marker);
+            });
+
+            // Trazar línea morada de tendido
+            if (total > 1) {
+                const latLngs = croquisPoints.map(p => [p.lat, p.lng]);
+                croquisPolyline = L.polyline(latLngs, { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
             }
 
-            // Calcular distancia total
+            updateCroquisSummary();
+        }
+
+        function updateCroquisSummary() {
             let totalMeters = 0;
             for (let i = 0; i < croquisPoints.length - 1; i++) {
                 const p1 = L.latLng(croquisPoints[i].lat, croquisPoints[i].lng);
@@ -817,22 +838,22 @@
                 totalMeters += p1.distanceTo(p2);
             }
 
-            const poleCount = croquisPoints.filter(p => p.type === 'poste').length;
+            // Postes intermedios = total puntos menos la CTO (1) y menos la Casa (1)
+            const poleCount = Math.max(0, croquisPoints.length - 2);
             document.getElementById('summary-distance').innerText = `${Math.round(totalMeters)} metros`;
             document.getElementById('summary-poles-count').innerText = poleCount;
             document.getElementById('cantidadPostes').value = poleCount > 0 ? poleCount : '';
 
-            // Renderizar lista de puntos
             const listContainer = document.getElementById('summary-points-list');
             if (croquisPoints.length === 0) {
-                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa para situar la CTO, los postes y la vivienda del cliente.</em>`;
+                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para situar la CTO, los postes y la vivienda.</em>`;
                 return;
             }
 
             listContainer.innerHTML = croquisPoints.map((p, idx) => {
                 let badge = '';
                 if (p.type === 'cto') badge = '<span class="bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-bold">🔌 CTO</span>';
-                else if (p.type === 'poste') badge = `<span class="bg-brand-900 text-brand-200 px-1.5 py-0.5 rounded font-bold">🪵 Poste</span>`;
+                else if (p.type === 'poste') badge = `<span class="bg-brand-900 text-brand-200 px-1.5 py-0.5 rounded font-bold">🪵 Poste P${idx}</span>`;
                 else badge = '<span class="bg-emerald-900 text-emerald-200 px-1.5 py-0.5 rounded font-bold">🏠 Casa</span>';
 
                 return `<div class="flex items-center justify-between py-0.5 border-b border-slate-800/50">
@@ -848,8 +869,7 @@
             mapMarkers = [];
             croquisPoints = [];
             croquisPolyline = null;
-            setCroquisMode('cto');
-            updateCroquisPathAndSummary();
+            updateCroquisSummary();
         }
 
         async function reverseGeocode(lat, lng) {
@@ -874,10 +894,8 @@
                     if (data.length > 0) {
                         const lat = parseFloat(data[0].lat);
                         const lon = parseFloat(data[0].lon);
-                        croquisMap.setView([lat, lon], 17);
-                    } else {
-                        alert('No se encontraron resultados para la búsqueda.');
-                    }
+                        croquisMap.setView([lat, lon], 18);
+                    } else alert('No se encontraron resultados para la búsqueda.');
                 }
             } catch (e) {
                 alert('Error al realizar la búsqueda.');
@@ -890,9 +908,7 @@
                 return;
             }
             navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18);
-                },
+                (pos) => croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18),
                 () => alert('No se pudo obtener su ubicación actual.')
             );
         }
@@ -900,19 +916,18 @@
         // CAPTURAR EL ÁREA DEL MAPA Y ADJUNTARLO A LA TARJETA 1
         async function captureAndAttachCroquis() {
             if (croquisPoints.length < 2) {
-                alert('⚠️ Debe marcar al menos la CTO y la Casa o un Poste para generar el croquis.');
+                alert('⚠️ Debe marcar al menos la CTO y la Casa para generar el croquis.');
                 return;
             }
 
             const captureBox = document.getElementById('croquis-capture-area');
             try {
-                const canvas = await html2canvas(captureBox, { useCORS: true, allowTaint: true, scale: 2 });
+                const opt = { useCORS: true, allowTaint: true, scale: 2 };
+                const canvas = await (window.html2canvas ? html2canvas(captureBox, opt) : html2pdf().Worker().from(captureBox).toCanvas().get('canvas'));
                 const imgData = canvas.toDataURL('image/png');
 
-                // Guardar en la variable global de adjuntos
                 uploadedFiles['file-croquis'] = imgData;
 
-                // Actualizar el preview de la tarjeta 1
                 const previewContainer = document.getElementById('preview-croquis');
                 previewContainer.innerHTML = `
                     <div class="relative group">
@@ -925,7 +940,7 @@
                 const dropzoneBox = document.getElementById('file-croquis').closest('.file-dropzone');
                 if (dropzoneBox) dropzoneBox.classList.add('border-emerald-500/50');
 
-                alert('✅ Croquis capturado y adjuntado con éxito en la Tarjeta 1.');
+                alert('✅ Croquis satelital capturado y adjuntado con éxito en la Tarjeta 1.');
                 autoSaveDraft();
             } catch (e) {
                 console.error(e);
@@ -933,8 +948,7 @@
             }
         }
 
-        // DESCARGAR PDF INDIVIDUAL DEL CROQUIS
-        async function downloadCroquisPDF() {
+        function downloadCroquisPDF() {
             if (croquisPoints.length === 0) {
                 alert('⚠️ No hay ningún croquis dibujado en el mapa.');
                 return;
@@ -950,7 +964,7 @@
             html2pdf().set(opt).from(captureBox).save();
         }
 
-        // FUNCIÓN DE VALIDACIÓN DEL PASO ACTUAL
+        // VALIDACIÓN
         function validateCurrentStep(step) {
             const stepContainer = document.getElementById(`step-${step}`);
             if (!stepContainer) return true;
@@ -995,7 +1009,6 @@
                 }
             });
 
-            // Validación específica de Poste de Madera
             if (step === 3) {
                 const tipoPoste = stepContainer.querySelector('input[name="tipoPoste"]:checked');
                 if (tipoPoste && tipoPoste.value === 'POSTE DE MADERA') {
@@ -1018,7 +1031,6 @@
         function goToStep(step) {
             if (step < 1 || step > 6) return;
 
-            // Validar sección actual antes de avanzar
             if (step > currentStep) {
                 if (!validateCurrentStep(currentStep)) return;
             }
@@ -1034,12 +1046,8 @@
             updateProgressBar();
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            if (step === 5) {
-                setTimeout(initCroquisMap, 150);
-            }
-            if (step === 6) {
-                setTimeout(resizeCanvas, 100);
-            }
+            if (step === 5) setTimeout(initCroquisMap, 150);
+            if (step === 6) setTimeout(resizeCanvas, 100);
         }
 
         function nextStep(s) { goToStep(s); }
@@ -1184,7 +1192,7 @@
             }
         }
 
-        // GENERACIÓN DE PDF Y ENVÍO VÍA FORMSUBMIT
+        // GENERACIÓN DE PDF Y ENVÍO
         async function handleFormSubmit(e) {
             e.preventDefault();
 
