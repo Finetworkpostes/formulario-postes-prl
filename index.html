@@ -380,6 +380,22 @@
             <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis y Evidencias Fotográficas</h2>
 
+                <!-- BANNER DESTACADO PARA EL MAPA CROQUIS -->
+                <div class="bg-gradient-to-r from-purple-900/60 to-brand-900/60 border-2 border-purple-500/50 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-purple-600/30 rounded-xl border border-purple-400/30 text-purple-300">
+                            <i class="fa-solid fa-map-location-dot text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Herramienta de Mapa para Croquis FTTH</h3>
+                            <p class="text-xs text-slate-300">Genere la ruta/posicionamiento de los postes en la herramienta del mapa.</p>
+                        </div>
+                    </div>
+                    <a href="https://finetworkpostes.github.io/mapa-postes/" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-up-right-from-square"></i> Abrir Mapa Croquis
+                    </a>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="cantidadPostes" class="block text-xs font-medium text-slate-300">Cantidad de Postes en la Intervención</label>
@@ -388,26 +404,26 @@
 
                     <!-- FOTOS / ADJUNTOS -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">1. Subir Croquis Alta FTTH *</label>
-                        <input type="file" id="file-croquis" accept="image/*,.pdf" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-croquis')">
+                        <label class="block text-xs font-semibold text-slate-200">1. Subir Croquis Alta FTTH <span class="text-rose-500">*</span></label>
+                        <input type="file" id="file-croquis" required accept="image/*,.pdf" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-croquis')">
                         <div id="preview-croquis" class="text-xs text-slate-500 mt-1"></div>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste *</label>
-                        <input type="file" id="file-escalera" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-escalera')">
+                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste <span class="text-rose-500">*</span></label>
+                        <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-escalera')">
                         <div id="preview-escalera" class="text-xs text-slate-500 mt-1"></div>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">3. Foto 1 (Entorno / Pie de poste) *</label>
-                        <input type="file" id="file-foto1" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto1')">
+                        <label class="block text-xs font-semibold text-slate-200">3. Foto 1 (Entorno / Pie de poste) <span class="text-rose-500">*</span></label>
+                        <input type="file" id="file-foto1" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto1')">
                         <div id="preview-foto1" class="text-xs text-slate-500 mt-1"></div>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-200">4. Foto 2 (Detalle / Herrajes) *</label>
-                        <input type="file" id="file-foto2" accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto2')">
+                        <label class="block text-xs font-semibold text-slate-200">4. Foto 2 (Detalle / Herrajes) <span class="text-rose-500">*</span></label>
+                        <input type="file" id="file-foto2" required accept="image/*" capture="environment" class="w-full text-xs text-slate-400" onchange="handleFileSelect(this, 'preview-foto2')">
                         <div id="preview-foto2" class="text-xs text-slate-500 mt-1"></div>
                     </div>
 
@@ -557,8 +573,79 @@
             }
         }
 
+        // FUNCIÓN DE VALIDACIÓN DEL PASO ACTUAL
+        function validateCurrentStep(step) {
+            const stepContainer = document.getElementById(`step-${step}`);
+            if (!stepContainer) return true;
+
+            let valid = true;
+            let firstInvalidInput = null;
+
+            // Inputs marcados con 'required'
+            const requiredInputs = stepContainer.querySelectorAll('[required]');
+            const processedRadioNames = new Set();
+
+            requiredInputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (!processedRadioNames.has(input.name)) {
+                        processedRadioNames.add(input.name);
+                        const checked = stepContainer.querySelector(`input[name="${input.name}"]:checked`);
+                        if (!checked) {
+                            valid = false;
+                            const options = stepContainer.querySelectorAll(`input[name="${input.name}"]`);
+                            options.forEach(opt => opt.parentElement.classList.add('border-rose-500'));
+                        } else {
+                            const options = stepContainer.querySelectorAll(`input[name="${input.name}"]`);
+                            options.forEach(opt => opt.parentElement.classList.remove('border-rose-500'));
+                        }
+                    }
+                } else if (input.type === 'file') {
+                    if (!uploadedFiles[input.id] && input.files.length === 0) {
+                        valid = false;
+                        input.classList.add('border', 'border-rose-500', 'p-1', 'rounded-lg');
+                        if (!firstInvalidInput) firstInvalidInput = input;
+                    } else {
+                        input.classList.remove('border', 'border-rose-500', 'p-1', 'rounded-lg');
+                    }
+                } else {
+                    if (!input.value || !input.value.trim()) {
+                        valid = false;
+                        input.classList.add('border-rose-500', 'ring-1', 'ring-rose-500');
+                        if (!firstInvalidInput) firstInvalidInput = input;
+                    } else {
+                        input.classList.remove('border-rose-500', 'ring-1', 'ring-rose-500');
+                    }
+                }
+            });
+
+            // Validación específica de Poste de Madera
+            if (step === 3) {
+                const tipoPoste = stepContainer.querySelector('input[name="tipoPoste"]:checked');
+                if (tipoPoste && tipoPoste.value === 'POSTE DE MADERA') {
+                    const medidasChecked = stepContainer.querySelectorAll('input[name="medidasMadera"]:checked');
+                    if (medidasChecked.length === 0) {
+                        alert('⚠️ Atención: Para Poste de Madera debe marcar al menos las comprobaciones preventivas realizadas.');
+                        return false;
+                    }
+                }
+            }
+
+            if (!valid) {
+                alert('⚠️ No se puede avanzar: Faltan campos obligatorios (*) por rellenar en esta sección.');
+                if (firstInvalidInput) firstInvalidInput.focus();
+            }
+
+            return valid;
+        }
+
         function goToStep(step) {
             if (step < 1 || step > 6) return;
+
+            // Validar sección actual antes de avanzar
+            if (step > currentStep) {
+                if (!validateCurrentStep(currentStep)) return;
+            }
+
             for (let i = 1; i <= 6; i++) {
                 document.getElementById(`step-${i}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-btn-${i}`);
@@ -568,6 +655,7 @@
             document.getElementById(`tab-btn-${step}`).classList.add('tab-active');
             currentStep = step;
             updateProgressBar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             if (step === 6) setTimeout(resizeCanvas, 100);
         }
 
@@ -613,6 +701,7 @@
             reader.onload = function (e) {
                 uploadedFiles[input.id] = e.target.result;
                 document.getElementById(previewId).innerText = `Archivo cargado: ${file.name}`;
+                input.classList.remove('border-rose-500', 'border');
                 autoSaveDraft();
             };
             reader.readAsDataURL(file);
@@ -727,10 +816,12 @@
         // GENERACIÓN DE PDF Y ENVÍO VÍA FORMSUBMIT
         async function handleFormSubmit(e) {
             e.preventDefault();
+
+            if (!validateCurrentStep(6)) return;
+
             const firma = document.getElementById('firmaData').value;
             if (!firma) {
-                alert('Firma requerida en la Sección 6.');
-                goToStep(6);
+                alert('⚠️ La firma táctil es obligatoria en la Sección 6.');
                 return;
             }
 
@@ -804,7 +895,7 @@
 
             printArea.innerHTML = `
                 <div style="font-family: Arial, sans-serif; padding: 15px; color: #0f172a;">
-                    <div style="border-bottom: 2px solid #6d28d9; pb-2; margin-bottom: 15px; display: flex; justify-content: space-between;">
+                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between;">
                         <div>
                             <h1 style="font-size: 16px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
                             <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Prevención de Riesgos Laborales</p>
