@@ -115,7 +115,7 @@
                     <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES EN COLUMNA (UNO ENCIMA DE OTRO) -->
+            <!-- BOTONES SUPERIORES EN COLUMNA -->
             <div class="flex flex-col items-end space-y-1.5">
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-full justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
@@ -634,14 +634,15 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between pt-4 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock"></i> Guardar para más tarde
+                <!-- BOTONERA INFERIOR REESTRUCTURADA PARA MÓVIL (FLEX-WRAP / COLUMNAS ADAPTABLES) -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-clock"></i> Guardar
                         </button>
-                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm"><i class="fa-solid fa-print"></i> Vista Previa</button>
-                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center gap-2">
+                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm text-center flex-grow sm:flex-grow-0"><i class="fa-solid fa-print"></i> Vista Previa</button>
+                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 w-full sm:w-auto">
                             <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
                         </button>
                     </div>
@@ -1119,7 +1120,6 @@
             return valid;
         }
 
-        // MOSTRAR TODOS LOS DATOS EN EL DESGLOSE INCLUYENDO DIRECCIONES DE POSTES
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
@@ -1365,7 +1365,6 @@
             } catch (e) {}
         }
 
-        // GUARDAR PARA MÁS TARDE Y RECUPERAR
         function saveForLater() {
             const formData = new FormData(document.getElementById('pole-form'));
             const data = {};
@@ -1490,7 +1489,6 @@
             }
         }
 
-        // HISTORIAL DE PARTES ENVIADOS
         function saveToSentHistory(nOt) {
             let sentList = [];
             try {
