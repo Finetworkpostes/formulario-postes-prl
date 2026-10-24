@@ -41,7 +41,7 @@
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal, #admin-workers-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -716,12 +716,49 @@
                     </h3>
                     <p class="text-xs text-slate-400">Control centralizado de partes de todos los técnicos.</p>
                 </div>
-                <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="openWorkersEditor()" class="px-3 py-1.5 bg-brand-700 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-users-gear"></i> Gestionar Trabajadores
+                    </button>
+                    <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base px-2"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div id="admin-parts-list" class="flex-grow overflow-y-auto space-y-3 text-xs pr-1"></div>
             <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
                 <span class="text-xs text-slate-400" id="admin-total-count">Total Registros: 0</span>
                 <button type="button" onclick="closeAdminDashboard()" class="px-5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold">Cerrar Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIÓN DE TRABAJADORES (EDITAR JSON) -->
+    <div id="admin-workers-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 no-print">
+        <div class="bg-slate-900 border border-brand-700 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-users-gear text-brand-400"></i> Editor de Plantilla de Trabajadores (JSON)
+                    </h3>
+                    <p class="text-xs text-slate-400">Añade o edita técnicos y contratas al instante sin tocar GitHub.</p>
+                </div>
+                <button type="button" onclick="closeWorkersEditor()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex justify-between items-center shrink-0">
+                <button type="button" onclick="addNewWorkerRow()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> Añadir Trabajador
+                </button>
+                <span class="text-[11px] text-slate-400">Los cambios se aplican de inmediato en la app.</span>
+            </div>
+
+            <div id="workers-editor-list" class="flex-grow overflow-y-auto space-y-2 text-xs pr-1"></div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
+                <button type="button" onclick="resetWorkersToDefault()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs">Restaurar Originales</button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeWorkersEditor()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
+                    <button type="button" onclick="saveWorkersChanges()" class="px-5 py-2 bg-safety-600 hover:bg-safety-500 text-white font-bold rounded-xl text-xs">Guardar Cambios</button>
+                </div>
             </div>
         </div>
     </div>
@@ -805,10 +842,21 @@
 
         async function cargarListaUsuarios() {
             let rawData = null;
-            try {
-                const res = await fetch('usuarios.json?v=' + new Date().getTime());
-                if (res.ok) rawData = await res.json();
-            } catch (err) {}
+            
+            // Comprobar primero si hay una versión editada desde el panel admin en localStorage
+            const localStoredWorkers = localStorage.getItem('master_admin_workers_json');
+            if (localStoredWorkers) {
+                try {
+                    rawData = JSON.parse(localStoredWorkers);
+                } catch (e) {}
+            }
+
+            if (!rawData) {
+                try {
+                    const res = await fetch('usuarios.json?v=' + new Date().getTime());
+                    if (res.ok) rawData = await res.json();
+                } catch (err) {}
+            }
 
             if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
                 rawData = DEFAULT_USUARIOS;
@@ -1463,7 +1511,6 @@
             data['uploadedFiles'] = { ...uploadedFiles };
             data['nOt'] = nOt;
 
-            // Guardar en Historial Local (Móvil)
             let sentList = [];
             try {
                 sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
@@ -1471,7 +1518,6 @@
             sentList.unshift(data);
             localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
 
-            // Guardar en Nube Compartida (Panel Maestro PC)
             let masterList = [];
             try {
                 masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
@@ -1533,7 +1579,6 @@
                 if (el && typeof item[k] === 'string') el.value = item[k];
             });
 
-            // CARGAR LAS FOTOS EN MEMORIA PARA QUE SALGAN EN EL PDF
             if (item.uploadedFiles) {
                 Object.keys(item.uploadedFiles).forEach(fk => {
                     uploadedFiles[fk] = item.uploadedFiles[fk];
@@ -1615,6 +1660,82 @@
 
         function closeAdminDashboard() {
             document.getElementById('admin-dashboard-modal').classList.add('hidden');
+        }
+
+        // EDITOR DE TRABAJADORES (JSON DESDE ADMIN)
+        async function openWorkersEditor() {
+            closeAdminDashboard();
+            let currentWorkers = [];
+            const localStored = localStorage.getItem('master_admin_workers_json');
+            if (localStored) {
+                try { currentWorkers = JSON.parse(localStored); } catch (e) {}
+            }
+            if (!currentWorkers || currentWorkers.length === 0) {
+                currentWorkers = DEFAULT_USUARIOS;
+            }
+            renderWorkersEditorList(currentWorkers);
+            document.getElementById('admin-workers-modal').classList.remove('hidden');
+        }
+
+        function closeWorkersEditor() {
+            document.getElementById('admin-workers-modal').classList.add('hidden');
+        }
+
+        function renderWorkersEditorList(workers) {
+            const container = document.getElementById('workers-editor-list');
+            container.innerHTML = workers.map((w, index) => `
+                <div class="worker-row bg-slate-800 border border-slate-700 rounded-xl p-2.5 flex items-center gap-2" data-index="${index}">
+                    <input type="text" placeholder="Contrata (ej. INSTELCA)" value="${w.Contrata || ''}" class="worker-contrata w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
+                    <input type="text" placeholder="Alias (ej. IN002)" value="${w.Alias || ''}" class="worker-alias w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
+                    <input type="text" placeholder="Nombre y Apellidos" value="${w.NombreCompleto || ''}" class="worker-nombre flex-grow bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white outline-none">
+                    <button type="button" onclick="this.closest('.worker-row').remove()" class="px-2 py-1 bg-rose-950/60 text-rose-300 rounded-lg text-xs hover:bg-rose-900"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function addNewWorkerRow() {
+            const container = document.getElementById('workers-editor-list');
+            const div = document.createElement('div');
+            div.className = 'worker-row bg-slate-800 border border-slate-700 rounded-xl p-2.5 flex items-center gap-2';
+            div.innerHTML = `
+                <input type="text" placeholder="Contrata" value="" class="worker-contrata w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
+                <input type="text" placeholder="Alias" value="" class="worker-alias w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
+                <input type="text" placeholder="Nombre y Apellidos" value="" class="worker-nombre flex-grow bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white outline-none">
+                <button type="button" onclick="this.closest('.worker-row').remove()" class="px-2 py-1 bg-rose-950/60 text-rose-300 rounded-lg text-xs hover:bg-rose-900"><i class="fa-solid fa-trash-can"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveWorkersChanges() {
+            const rows = document.querySelectorAll('.worker-row');
+            let newWorkers = [];
+            rows.forEach(r => {
+                const contrata = r.querySelector('.worker-contrata').value.trim().toUpperCase();
+                const alias = r.querySelector('.worker-alias').value.trim().toUpperCase();
+                const nombre = r.querySelector('.worker-nombre').value.trim();
+                if (contrata && alias && nombre) {
+                    newWorkers.push({ Contrata: contrata, Alias: alias, NombreCompleto: nombre });
+                }
+            });
+
+            if (newWorkers.length === 0) {
+                alert('⚠️ Debe haber al menos un trabajador válido.');
+                return;
+            }
+
+            localStorage.setItem('master_admin_workers_json', JSON.stringify(newWorkers));
+            cargarListaUsuarios();
+            closeWorkersEditor();
+            alert('✅ Plantilla de trabajadores actualizada con éxito en la aplicación.');
+        }
+
+        function resetWorkersToDefault() {
+            if (confirm('¿Restaurar la lista de trabajadores original por defecto?')) {
+                localStorage.removeItem('master_admin_workers_json');
+                cargarListaUsuarios();
+                closeWorkersEditor();
+                alert('🔄 Lista restaurada.');
+            }
         }
 
         function confirmResetForm() {
