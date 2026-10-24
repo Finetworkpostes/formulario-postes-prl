@@ -41,7 +41,7 @@
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal, #admin-workers-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -111,16 +111,16 @@
                     <p class="text-[11px] sm:text-xs text-slate-400 truncate">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES APILADOS Y ADAPTADOS -->
+            <!-- BOTONES SUPERIORES APILADOS Y ADAPTADOS (Administrador PRIMERO) -->
             <div class="flex flex-col items-end space-y-1.5 shrink-0">
+                <button type="button" onclick="openAdminLoginModal()" class="px-2.5 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-600 transition flex items-center justify-between gap-2 w-36 sm:w-40">
+                    <span><i class="fa-solid fa-lock text-amber-400"></i> Administrador</span>
+                </button>
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-36 sm:w-40 justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
                 <button type="button" onclick="openSentPartsModal()" class="px-2.5 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-36 sm:w-40">
                     <span><i class="fa-solid fa-paper-plane"></i> Mis Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
-                </button>
-                <button type="button" onclick="openAdminLoginModal()" class="px-2.5 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-600 transition flex items-center justify-between gap-2 w-36 sm:w-40">
-                    <span><i class="fa-solid fa-lock text-amber-400"></i> Panel PC</span> <span class="text-[10px] bg-purple-950 px-1.5 py-0.5 rounded">Admin</span>
                 </button>
                 <button type="button" onclick="confirmResetForm()" class="px-2.5 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-36 sm:w-40">
                     <span><i class="fa-solid fa-trash-can"></i> Limpiar</span>
@@ -716,46 +716,17 @@
                     </h3>
                     <p class="text-xs text-slate-400">Control centralizado de partes de todos los técnicos.</p>
                 </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="openWorkersEditor()" class="px-3 py-1.5 bg-brand-700 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-code"></i> Editar Lista JSON
-                    </button>
-                    <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base px-2"><i class="fa-solid fa-xmark"></i></button>
-                </div>
+                <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
+
+            <!-- RESUMEN DE ENVÍOS POR CONTRATA -->
+            <div id="contractor-stats-summary" class="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0"></div>
+
             <div id="admin-parts-list" class="flex-grow overflow-y-auto space-y-3 text-xs pr-1"></div>
+            
             <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
                 <span class="text-xs text-slate-400" id="admin-total-count">Total Registros: 0</span>
                 <button type="button" onclick="closeAdminDashboard()" class="px-5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold">Cerrar Panel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL GESTIÓN DE TRABAJADORES (PEGAR JSON COMPLETO) -->
-    <div id="admin-workers-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 no-print">
-        <div class="bg-slate-900 border border-brand-700 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col p-5 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-code text-brand-400"></i> Pegar Lista JSON de Trabajadores
-                    </h3>
-                    <p class="text-xs text-slate-400">Pega aquí tu lista completa en formato JSON y guárdala al instante.</p>
-                </div>
-                <button type="button" onclick="closeWorkersEditor()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="flex-grow flex flex-col space-y-2">
-                <label for="workers-json-textarea" class="block text-xs font-medium text-slate-300">Código JSON:</label>
-                <textarea id="workers-json-textarea" rows="12" class="w-full flex-grow bg-slate-950 border border-slate-700 focus:border-brand-500 rounded-xl p-3 font-mono text-xs text-emerald-400 outline-none resize-none" placeholder='[&#10;  { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki" }&#10;]'></textarea>
-                <span class="text-[10px] text-slate-400">Asegúrate de que la estructura tenga los campos: <code>Contrata</code>, <code>Alias</code> y <code>NombreCompleto</code>.</span>
-            </div>
-
-            <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
-                <button type="button" onclick="resetWorkersToDefault()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs">Restaurar Originales</button>
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeWorkersEditor()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
-                    <button type="button" onclick="saveWorkersJson()" class="px-5 py-2 bg-safety-600 hover:bg-safety-500 text-white font-bold rounded-xl text-xs">Guardar JSON</button>
-                </div>
             </div>
         </div>
     </div>
@@ -839,20 +810,10 @@
 
         async function cargarListaUsuarios() {
             let rawData = null;
-            
-            const localStoredWorkers = localStorage.getItem('master_admin_workers_json');
-            if (localStoredWorkers) {
-                try {
-                    rawData = JSON.parse(localStoredWorkers);
-                } catch (e) {}
-            }
-
-            if (!rawData) {
-                try {
-                    const res = await fetch('usuarios.json?v=' + new Date().getTime());
-                    if (res.ok) rawData = await res.json();
-                } catch (err) {}
-            }
+            try {
+                const res = await fetch('usuarios.json?v=' + new Date().getTime());
+                if (res.ok) rawData = await res.json();
+            } catch (err) {}
 
             if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
                 rawData = DEFAULT_USUARIOS;
@@ -1506,6 +1467,7 @@
             data['croquisPoints'] = croquisPoints;
             data['uploadedFiles'] = { ...uploadedFiles };
             data['nOt'] = nOt;
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value || 'OTRAS';
 
             let sentList = [];
             try {
@@ -1627,6 +1589,27 @@
                 masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
             } catch (e) { masterList = []; }
 
+            // CALCULAR RESUMEN POR CONTRATA
+            const stats = {};
+            masterList.forEach(item => {
+                const c = (item.contrataPrincipal || 'OTRAS').trim().toUpperCase();
+                stats[c] = (stats[c] || 0) + 1;
+            });
+
+            const statsContainer = document.getElementById('contractor-stats-summary');
+            const contratasKeys = Object.keys(stats);
+
+            if (contratasKeys.length === 0) {
+                statsContainer.innerHTML = `<div class="col-span-full bg-slate-800 p-2.5 rounded-xl text-center text-slate-400 text-xs">Sin envíos registrados todavía.</div>`;
+            } else {
+                statsContainer.innerHTML = contratasKeys.map(c => `
+                    <div class="bg-slate-800 border border-purple-900/40 rounded-xl p-2.5 text-center">
+                        <div class="text-[10px] text-purple-300 font-bold uppercase truncate">${c}</div>
+                        <div class="text-base font-extrabold text-emerald-400 mt-0.5">${stats[c]} <span class="text-[10px] text-slate-400 font-normal">envíos</span></div>
+                    </div>
+                `).join('');
+            }
+
             const listContainer = document.getElementById('admin-parts-list');
             document.getElementById('admin-total-count').innerText = `Total Registros en Nube: ${masterList.length}`;
 
@@ -1656,59 +1639,6 @@
 
         function closeAdminDashboard() {
             document.getElementById('admin-dashboard-modal').classList.add('hidden');
-        }
-
-        // EDITOR DE TRABAJADORES (PEGAR JSON COMPLETO)
-        async function openWorkersEditor() {
-            closeAdminDashboard();
-            let currentWorkers = [];
-            const localStored = localStorage.getItem('master_admin_workers_json');
-            if (localStored) {
-                try { currentWorkers = JSON.parse(localStored); } catch (e) {}
-            }
-            if (!currentWorkers || currentWorkers.length === 0) {
-                currentWorkers = DEFAULT_USUARIOS;
-            }
-            document.getElementById('workers-json-textarea').value = JSON.stringify(currentWorkers, null, 2);
-            document.getElementById('admin-workers-modal').classList.remove('hidden');
-        }
-
-        function closeWorkersEditor() {
-            document.getElementById('admin-workers-modal').classList.add('hidden');
-        }
-
-        function saveWorkersJson() {
-            const rawText = document.getElementById('workers-json-textarea').value.trim();
-            try {
-                const parsed = JSON.parse(rawText);
-                if (!Array.isArray(parsed)) {
-                    alert('⚠️ El JSON debe ser una lista (array) de objetos.');
-                    return;
-                }
-                // Validar estructura mínima
-                for (let item of parsed) {
-                    if (!item.Contrata || !item.Alias || !item.NombreCompleto) {
-                        alert('⚠️ Cada objeto debe contener: "Contrata", "Alias" y "NombreCompleto".');
-                        return;
-                    }
-                }
-
-                localStorage.setItem('master_admin_workers_json', JSON.stringify(parsed));
-                cargarListaUsuarios();
-                closeWorkersEditor();
-                alert('✅ ¡Lista de trabajadores actualizada con éxito pegando el JSON!');
-            } catch (e) {
-                alert('❌ Error: El formato JSON no es válido. Revisa las comillas o corchetes.');
-            }
-        }
-
-        function resetWorkersToDefault() {
-            if (confirm('¿Restaurar la lista de trabajadores original por defecto?')) {
-                localStorage.removeItem('master_admin_workers_json');
-                cargarListaUsuarios();
-                closeWorkersEditor();
-                alert('🔄 Lista restaurada.');
-            }
         }
 
         function confirmResetForm() {
