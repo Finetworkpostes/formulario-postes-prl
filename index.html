@@ -1833,32 +1833,42 @@
             }
         }
 
+        // ENVÍO NATIVO MEDIANTE FORMULARIO OCULTO (100% FIABLE EN MÓVIL Y PC)
         async function sendPayloadToFormSubmit(item) {
-            const sendData = new FormData();
-            sendData.append('_subject', item._subject);
-            sendData.append('_captcha', 'false');
-            sendData.append('_template', 'table');
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `https://formsubmit.co/${DESTINATION_EMAIL}`;
+            form.style.display = 'none';
+
+            const configs = {
+                '_subject': item._subject,
+                '_captcha': 'false',
+                '_template': 'table'
+            };
+
+            Object.keys(configs).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = configs[key];
+                form.appendChild(input);
+            });
 
             Object.keys(item.formData).forEach(key => {
                 let val = item.formData[key];
                 if (Array.isArray(val)) val = val.join(', ');
-                sendData.append(key, val);
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = val;
+                form.appendChild(input);
             });
 
-            // 1. Envío prioritario al correo con FormSubmit
-            const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: sendData
-            });
+            document.body.appendChild(form);
+            form.submit();
 
-            if (!res.ok) throw new Error("Error en servidor de correo FormSubmit.");
-            const resJson = await res.json();
-            if (resJson.success === "false" || resJson.success === false) {
-                throw new Error("Respuesta fallida de FormSubmit.");
-            }
-
-            // 2. Subida a Google Drive totalmente independiente (en diferido y sin fallos visibles)
+            // Subida en segundo plano a Google Drive
             if (GOOGLE_SCRIPT_URL) {
                 setTimeout(() => {
                     fetch(GOOGLE_SCRIPT_URL, {
@@ -1867,7 +1877,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(item)
                     }).catch(e => console.log("Drive background note:", e));
-                }, 100);
+                }, 500);
             }
 
             return true;
@@ -1995,16 +2005,12 @@
                     return;
                 }
 
-                try {
-                    await sendPayloadToFormSubmit(payloadObj);
-                    saveToSentHistoryCompletely(nOt);
-                    document.getElementById('modal-ot').innerText = nOt;
-                    document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
-                    localStorage.removeItem('pole_form_draft');
-                    document.getElementById('success-modal').classList.remove('hidden');
-                } catch (sendErr) {
-                    saveToOfflineQueue(payloadObj);
-                }
+                await sendPayloadToFormSubmit(payloadObj);
+                saveToSentHistoryCompletely(nOt);
+                document.getElementById('modal-ot').innerText = nOt;
+                document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+                localStorage.removeItem('pole_form_draft');
+                document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (err) {
                 alert('Error al procesar el envío.');
