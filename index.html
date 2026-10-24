@@ -1474,7 +1474,6 @@
             document.getElementById('saved-parts-modal').classList.add('hidden');
         }
 
-        // RECUPERAR DATOS CON RESTAURACIÓN COMPLETA Y UNIFICADA PARA BORRADORES Y ENVIADOS
         function loadSavedPartData(index, isFromSent = false) {
             let list = [];
             try {
@@ -1487,7 +1486,6 @@
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
 
-            // Restaurar campos de texto, number y selects directos
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
                 if (el && typeof item[k] === 'string') {
@@ -1500,7 +1498,6 @@
                 }
             });
 
-            // Si los datos provienen del historial de enviados, mapear sus propiedades internas al DOM de forma explícita
             if (isFromSent && item.formData) {
                 if (item.formData.ASUNTO_OT) document.getElementById('nOt').value = item.formData.ASUNTO_OT;
                 if (item.formData.CONTRATA) document.getElementById('contrataPrincipal').value = item.formData.CONTRATA;
@@ -1516,7 +1513,6 @@
                 if (item.formData.CANTIDAD_POSTES) document.getElementById('cantidadPostes').value = item.formData.CANTIDAD_POSTES;
                 if (item.formData.OBSERVACIONES) document.getElementById('observaciones').value = item.formData.OBSERVACIONES;
 
-                // Radios de Enviados
                 document.querySelectorAll('input[name="tipo"]').forEach(r => { if (r.value === item.formData.TIPO_ACTUACION) r.checked = true; });
                 document.querySelectorAll('input[name="estado"]').forEach(r => { if (r.value === item.formData.ESTADO_INFRAESTRUCTURA) r.checked = true; });
                 document.querySelectorAll('input[name="tipoPoste"]').forEach(r => { if (r.value === item.formData.MATERIAL_POSTE) r.checked = true; });
@@ -1539,7 +1535,6 @@
                 }, 300);
             }
 
-            // RESTAURACIÓN CLAVE DE ARCHIVOS E IMÁGENES EN MEMORIA INTERNA
             if (item.uploadedFiles) {
                 Object.keys(item.uploadedFiles).forEach(fileKey => {
                     uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
@@ -1857,20 +1852,6 @@
             });
         }
 
-        function base64ToBlob(base64, mimeType = 'application/pdf') {
-            const byteCharacters = atob(base64.split(',')[1]);
-            const byteArrays = [];
-            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-                const slice = byteCharacters.slice(offset, offset + 512);
-                const byteNumbers = new Array(slice.length);
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-                byteArrays.push(new Uint8Array(byteNumbers));
-            }
-            return new Blob(byteArrays, { type: mimeType });
-        }
-
         function saveToOfflineQueue(item) {
             let queue = [];
             try {
@@ -1920,9 +1901,8 @@
                 sendData.append(key, item.formData[key]);
             });
 
-            const pdfBlob = base64ToBlob(item.pdfBase64);
-            const pdfFile = new File([pdfBlob], item.pdfName, { type: 'application/pdf' });
-            sendData.append('attachment', pdfFile, item.pdfName);
+            // Enlace directo incrustado en el correo para descarga sin límite de tamaño
+            sendData.append('📥_ENLACE_DESCARGA_PDF_COMPLETO', `<a href="${item.pdfBase64}" download="${item.pdfName}" style="background:#7c3aed; color:white; padding:10px 15px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block;">📥 DESCARGAR INFORME PDF COMPLETO (CON FOTOS Y CROQUIS)</a>`);
 
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
