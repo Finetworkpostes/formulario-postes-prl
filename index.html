@@ -214,11 +214,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
+                <!-- BOTONERA ADAPTADA MÓVIL -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-clock"></i> Guardar para más tarde
                     </button>
-                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -260,12 +261,15 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i> Guardar para más tarde
-                    </button>
-                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                <!-- BOTONERA ADAPTADA MÓVIL -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-clock"></i> Guardar
+                        </button>
+                        <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center flex-grow sm:flex-grow-0">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -366,12 +370,15 @@
                     <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
                 </div>
 
-                <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i> Guardar para más tarde
-                    </button>
-                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                <!-- BOTONERA ADAPTADA MÓVIL -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-clock"></i> Guardar
+                        </button>
+                        <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -440,12 +447,15 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i> Guardar para más tarde
-                    </button>
-                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                <!-- BOTONERA ADAPTADA MÓVIL -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-clock"></i> Guardar
+                        </button>
+                        <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -582,12 +592,15 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i> Guardar para más tarde
-                    </button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                <!-- BOTONERA ADAPTADA MÓVIL -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-clock"></i> Guardar
+                        </button>
+                        <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -634,7 +647,7 @@
                     </div>
                 </div>
 
-                <!-- BOTONERA INFERIOR REESTRUCTURADA PARA MÓVIL (FLEX-WRAP / COLUMNAS ADAPTABLES) -->
+                <!-- BOTONERA INFERIOR ADAPTADA MÓVIL -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
                     <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
                     <div class="flex flex-wrap items-center justify-end gap-2">
@@ -747,7 +760,8 @@
             });
         });
 
-        function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.7) {
+        // COMPRESIÓN DE IMÁGENES OPTIMIZADA PARA CORREO (LIGERA Y NÍTIDA)
+        function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -870,7 +884,7 @@
             try {
                 let compressedDataUrl;
                 if (file.type.startsWith('image/')) {
-                    compressedDataUrl = await compressImage(file, 1000, 1000, 0.7);
+                    compressedDataUrl = await compressImage(file, 800, 800, 0.6);
                 } else {
                     const reader = new FileReader();
                     compressedDataUrl = await new Promise((res) => {
@@ -1074,7 +1088,7 @@
                 const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: false, scale: 1.2, logging: false });
                 controls.forEach(c => c.style.display = '');
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.7);
+                const imgData = canvas.toDataURL('image/jpeg', 0.6);
                 uploadedFiles['file-croquis'] = imgData;
 
                 document.getElementById('preview-croquis').innerHTML = `
@@ -1365,19 +1379,36 @@
             } catch (e) {}
         }
 
+        // GUARDAR TODO AL 100% (INCLUYENDO CHECKBOXES, MAPA Y ARCHIVOS)
         function saveForLater() {
-            const formData = new FormData(document.getElementById('pole-form'));
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
             const data = {};
+
             formData.forEach((value, key) => {
                 if (data[key]) {
                     if (!Array.isArray(data[key])) data[key] = [data[key]];
                     data[key].push(value);
-                } else data[key] = value;
+                } else {
+                    data[key] = value;
+                }
             });
+
+            // Guardar checkboxes múltiples seleccionados explícitamente
+            const checkboxesStates = {};
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.name) {
+                    if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = [];
+                    if (cb.checked) checkboxesStates[cb.name].push(cb.value);
+                }
+            });
+
+            data['checkboxesStates'] = checkboxesStates;
             data['firmaData'] = document.getElementById('firmaData').value;
             data['savedAt'] = new Date().toLocaleString();
             data['step'] = currentStep;
             data['croquisPoints'] = croquisPoints;
+            data['uploadedFiles'] = uploadedFiles;
 
             let savedList = [];
             try {
@@ -1394,7 +1425,7 @@
 
             localStorage.setItem('user_saved_pole_parts', JSON.stringify(savedList));
             updateSavedPartsBadge();
-            alert(`💾 Parte de la OT "${nOt}" guardado correctamente.`);
+            alert(`💾 Parte de la OT "${nOt}" guardado correctamente con todos sus datos.`);
         }
 
         function updateSavedPartsBadge() {
@@ -1435,6 +1466,7 @@
             document.getElementById('saved-parts-modal').classList.add('hidden');
         }
 
+        // RECUPERAR TODO AL 100%
         function loadSavedPart(index) {
             let savedList = [];
             try {
@@ -1444,20 +1476,63 @@
             const item = savedList[index];
             if (!item) return;
 
+            // Limpiar formulario antes de cargar
+            document.getElementById('pole-form').reset();
+
+            // Cargar inputs de texto, selects y radios
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
-                if (el && typeof item[k] === 'string') el.value = item[k];
+                if (el && typeof item[k] === 'string') {
+                    el.value = item[k];
+                } else {
+                    const radios = document.querySelectorAll(`input[name="${k}"]`);
+                    radios.forEach(r => {
+                        if (r.value === item[k]) r.checked = true;
+                    });
+                }
             });
 
+            // Restaurar estados de checkboxes múltiples (Checklists, EPIs, Medidas Madera)
+            if (item.checkboxesStates) {
+                Object.keys(item.checkboxesStates).forEach(name => {
+                    const values = item.checkboxesStates[name];
+                    document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+                        cb.checked = values.includes(cb.value);
+                    });
+                });
+            }
+
+            // Restaurar puntos del mapa y renderizar
             if (item.croquisPoints) {
                 croquisPoints = item.croquisPoints;
-                setTimeout(renderCroquisMarkersAndPath, 300);
+                setTimeout(() => {
+                    initCroquisMap();
+                    renderCroquisMarkersAndPath();
+                }, 300);
+            }
+
+            // Restaurar imágenes subidas y previsualizaciones
+            if (item.uploadedFiles) {
+                Object.keys(item.uploadedFiles).forEach(fileKey => {
+                    uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
+                    if (fileKey === 'file-croquis') {
+                        document.getElementById('preview-croquis').innerHTML = `<img src="${item.uploadedFiles[fileKey]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Recuperado</div>`;
+                    } else if (fileKey === 'file-escalera') {
+                        document.getElementById('preview-escalera').innerHTML = `<img src="${item.uploadedFiles[fileKey]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Foto Recuperada</div>`;
+                    } else if (fileKey === 'file-foto1') {
+                        document.getElementById('preview-foto1').innerHTML = `<img src="${item.uploadedFiles[fileKey]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Foto Recuperada</div>`;
+                    } else if (fileKey === 'file-foto2') {
+                        document.getElementById('preview-foto2').innerHTML = `<img src="${item.uploadedFiles[fileKey]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Foto Recuperada</div>`;
+                    }
+                });
             }
 
             if (item.contrataPrincipal) {
                 handleContractorChange();
                 if (item.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = item.aliasKairosTec1;
                 if (item.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = item.aliasRecursoPreventivo;
+                if (item.nombreTec1) document.getElementById('nombreTec1').value = item.nombreTec1;
+                if (item.nombreRecursoPreventivo) document.getElementById('nombreRecursoPreventivo').value = item.nombreRecursoPreventivo;
             }
 
             if (item.firmaData) {
@@ -1470,9 +1545,13 @@
                 document.getElementById('firmaData').value = item.firmaData;
             }
 
+            // Comprobar estado de poste para alertas
+            handlePoleStatusChange();
+            toggleWoodPoleMeasures();
+
             goToStep(item.step || 1);
             closeSavedPartsModal();
-            alert(`✅ Parte OT "${item.nOt}" recuperado.`);
+            alert(`✅ Parte OT "${item.nOt}" recuperado íntegramente.`);
         }
 
         function deleteSavedPart(index) {
@@ -1865,7 +1944,7 @@
                 const opt = {
                     margin: 0,
                     filename: pdfFileName,
-                    image: { type: 'jpeg', quality: 0.7 },
+                    image: { type: 'jpeg', quality: 0.6 },
                     html2canvas: { scale: 1.5, useCORS: true, logging: false },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
                     pagebreak: { mode: ['css', 'legacy'] }
