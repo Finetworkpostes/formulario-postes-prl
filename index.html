@@ -677,7 +677,12 @@
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
             </div>
-            <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-brand-600 text-white font-medium rounded-xl text-sm">Realizar Nueva Actuación</button>
+            <div class="space-y-2 pt-2">
+                <button type="button" onclick="downloadPdfDirectly()" class="w-full py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> 📥 Descargar Informe PDF
+                </button>
+                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Realizar Nueva Actuación</button>
+            </div>
         </div>
     </div>
 
@@ -725,6 +730,8 @@
         let signatureCanvas, signatureCtx;
         let isSigning = false;
         const uploadedFiles = {};
+        let lastGeneratedPdfBlob = null;
+        let lastGeneratedPdfName = '';
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López" },
@@ -1394,7 +1401,6 @@
                 }
             });
 
-            // Guardar checkboxes múltiples seleccionados explícitamente
             const checkboxesStates = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 if (cb.name) {
@@ -1476,10 +1482,8 @@
             const item = savedList[index];
             if (!item) return;
 
-            // Limpiar formulario antes de cargar
             document.getElementById('pole-form').reset();
 
-            // Cargar inputs de texto, selects y radios
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
                 if (el && typeof item[k] === 'string') {
@@ -1492,7 +1496,6 @@
                 }
             });
 
-            // Restaurar estados de checkboxes múltiples (Checklists, EPIs, Medidas Madera)
             if (item.checkboxesStates) {
                 Object.keys(item.checkboxesStates).forEach(name => {
                     const values = item.checkboxesStates[name];
@@ -1502,7 +1505,6 @@
                 });
             }
 
-            // Restaurar puntos del mapa y renderizar
             if (item.croquisPoints) {
                 croquisPoints = item.croquisPoints;
                 setTimeout(() => {
@@ -1511,7 +1513,6 @@
                 }, 300);
             }
 
-            // Restaurar imágenes subidas y previsualizaciones
             if (item.uploadedFiles) {
                 Object.keys(item.uploadedFiles).forEach(fileKey => {
                     uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
@@ -1545,7 +1546,6 @@
                 document.getElementById('firmaData').value = item.firmaData;
             }
 
-            // Comprobar estado de poste para alertas
             handlePoleStatusChange();
             toggleWoodPoleMeasures();
 
@@ -1771,6 +1771,19 @@
             printArea.classList.add('hidden');
         }
 
+        function downloadPdfDirectly() {
+            if (!lastGeneratedPdfBlob) {
+                alert('No hay PDF disponible para descargar.');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(lastGeneratedPdfBlob);
+            link.download = lastGeneratedPdfName || 'Informe_PRL_Poste.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function formatFechaSubject(rawDatetime) {
             if (!rawDatetime) return 'SIN-FECHA';
             const parts = rawDatetime.split('T')[0].split('-');
@@ -1916,6 +1929,7 @@
             const submitBtn = document.getElementById('submit-btn');
             const submitText = document.getElementById('submit-text');
             const submitIcon = document.getElementById('submit-icon');
+            
             submitBtn.disabled = true;
             submitText.innerText = 'Generando PDF...';
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
@@ -1952,6 +1966,9 @@
 
                 const pdfWorker = html2pdf().set(opt).from(printArea);
                 const pdfBlob = await pdfWorker.output('blob');
+
+                lastGeneratedPdfBlob = pdfBlob;
+                lastGeneratedPdfName = pdfFileName;
 
                 printArea.classList.add('hidden');
 
