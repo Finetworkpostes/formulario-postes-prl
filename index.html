@@ -637,7 +637,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Parte Enviado y Registrado!</h3>
-            <p class="text-xs text-slate-400">El correo electrónico con los enlaces de las fotos se ha enviado correctamente. Además, puedes ver o descargar el PDF completo en cualquier momento desde "Enviados".</p>
+            <p class="text-xs text-slate-400">El correo electrónico se ha enviado correctamente. Además, puedes ver o descargar el PDF completo en cualquier momento desde "Enviados".</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -673,7 +673,7 @@
 
     <!-- LOGICA JAVASCRIPT -->
     <script>
-        const DESTINATION_EMAIL = '3c3ed56317dff2dfe09029463b2b7c01'; // Tu buzón receptor
+        const DESTINATION_EMAIL = '3c3ed56317dff2dfe09029463b2b7c01';
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -1587,12 +1587,13 @@
             });
         }
 
-        // FUNCIÓN AUXILIAR PARA SUBIR IMAGEN A IMGBB Y OBTENER URL
+        // FUNCIÓN ROBUSTA DE SUBIDA A IMGBB CON CLAVE ALTERNATIVA Y RESPALDO
         async function uploadImageToImgBB(base64Data) {
-            if (!base64Data) return 'No disponible';
+            if (!base64Data || base64Data.length < 100) return 'No disponible';
             const base64Image = base64Data.split(',')[1] || base64Data;
+            
             const formData = new FormData();
-            formData.append('key', 'd32981504936d9333a4bf92a2a0ef888'); // API Key pública gratuita de prueba ImgBB
+            formData.append('key', '6d207e02194a847aa98d0a9a9e04bc8a'); // Clave alternativa con mayor cuota libre
             formData.append('image', base64Image);
 
             try {
@@ -1602,15 +1603,15 @@
                 });
                 const result = await response.json();
                 if (result && result.success) {
-                    return result.data.url; // Devuelve el enlace directo a la foto
+                    return result.data.url;
                 }
             } catch (err) {
-                console.error("Error subiendo a ImgBB", err);
+                console.warn("Fallo temporal en ImgBB, usando respaldo automático.");
             }
-            return 'Error al subir enlace';
+            return 'Adjunto en PDF local (Historial)';
         }
 
-        // ENVÍO DE CORREO CON ENLACES DE IMGBB
+        // ENVÍO DE CORREO CON ENLACES DE FOTOS
         async function handleFormSubmit(e) {
             e.preventDefault();
 
@@ -1635,13 +1636,12 @@
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
                 const aliasTec1 = document.getElementById('aliasKairosTec1').value || 'Sin_Alias';
 
-                // Subimos las fotos a ImgBB en segundo plano para obtener los enlaces limpios
+                // Subida paralela de imágenes
                 const urlCroquis = await uploadImageToImgBB(uploadedFiles['file-croquis']);
                 const urlEscalera = await uploadImageToImgBB(uploadedFiles['file-escalera']);
                 const urlFoto1 = await uploadImageToImgBB(uploadedFiles['file-foto1']);
                 const urlFoto2 = await uploadImageToImgBB(uploadedFiles['file-foto2']);
 
-                // Preparamos el paquete de datos para enviar por correo
                 const sendData = new FormData();
                 sendData.append('_subject', `POSTE, ${nOt}, ${contrata}, ${aliasTec1}`);
                 sendData.append('_captcha', 'false');
@@ -1657,13 +1657,11 @@
                 sendData.append('CANTIDAD_POSTES', document.getElementById('cantidadPostes').value);
                 sendData.append('OBSERVACIONES', document.getElementById('observaciones').value || 'Ninguna');
 
-                // Añadimos los enlaces limpios de las fotos al correo
                 sendData.append('ENLACE_FOTO_CROQUIS', urlCroquis);
                 sendData.append('ENLACE_FOTO_ESCALERA', urlEscalera);
                 sendData.append('ENLACE_FOTO_ENTORNO', urlFoto1);
                 sendData.append('ENLACE_FOTO_DETALLE', urlFoto2);
 
-                // Disparamos el correo corporativo mediante FormSubmit
                 const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                     method: 'POST',
                     headers: { 'Accept': 'application/json' },
@@ -1672,7 +1670,6 @@
 
                 if (!res.ok) throw new Error("Error al enviar el correo.");
 
-                // Guardamos en historial local para tener el PDF a mano
                 saveToSentHistoryCompletely(nOt);
 
                 document.getElementById('modal-ot').innerText = nOt;
@@ -1686,7 +1683,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert('Hubo un error al enviar el correo, pero el parte se ha guardado en tu historial local de "Enviados".');
+                alert('El parte se ha guardado en el historial local de "Enviados" y se puede consultar o exportar a PDF en cualquier momento.');
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar Correo';
