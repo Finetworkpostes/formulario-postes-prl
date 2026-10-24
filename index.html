@@ -668,7 +668,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS al correo con su PDF adjunto.</p>
+            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS al correo con todos los datos detallados.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -1837,31 +1837,11 @@
             }
         }
 
-        // ENVÍO PROFESIONAL Y LIMPIO MEDIANTE EMAILJS
+        // ENVÍO PROFESIONAL Y LIMPIO MEDIANTE EMAILJS (SIN ADJUNTOS PESADOS)
         async function sendPayloadToEmailJS(item) {
-            const printArea = document.getElementById('print-area');
-            const buildData = buildPrintHTML();
-            printArea.classList.remove('hidden');
-
-            const opt = {
-                margin:       5,
-                filename:     `Parte_OT_${item.nOt}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            const pdfWorker = html2pdf().from(printArea).set(opt);
-            const pdfBlob = await pdfWorker.output('blob');
-            printArea.classList.add('hidden');
-
-            const reader = new FileReader();
-            const pdfBase64 = await new Promise((resolve) => {
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(pdfBlob);
-            });
-
             const formElement = document.getElementById('pole-form');
+            const buildData = buildPrintHTML();
+
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
                 ot_number: item.nOt,
@@ -1883,8 +1863,7 @@
                 epis_utilizados: Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno',
                 medidas_madera: Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'No aplica',
                 desglose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
-                observaciones: item.formData.observaciones || 'Sin observaciones',
-                content_pdf: pdfBase64
+                observaciones: item.formData.observaciones || 'Sin observaciones'
             };
 
             await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
