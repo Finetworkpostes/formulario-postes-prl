@@ -36,13 +36,12 @@
         .tab-active { border-color: #8b5cf6; color: #8b5cf6; background-color: rgba(139, 92, 246, 0.1); }
         .signature-canvas { touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
-        /* Estilos del mapa Leaflet */
         #croquis-map { height: 340px; width: 100%; border-radius: 0.75rem; z-index: 10; }
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -114,16 +113,16 @@
             </div>
             <!-- BOTONES SUPERIORES APILADOS Y ADAPTADOS -->
             <div class="flex flex-col items-end space-y-1.5 shrink-0">
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-32 sm:w-36 justify-center">
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-36 sm:w-40 justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
-                <button type="button" onclick="openSentPartsModal()" class="px-2.5 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-32 sm:w-36">
-                    <span><i class="fa-solid fa-paper-plane"></i> Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
+                <button type="button" onclick="openSentPartsModal()" class="px-2.5 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-36 sm:w-40">
+                    <span><i class="fa-solid fa-paper-plane"></i> Mis Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
                 </button>
-                <button type="button" onclick="manualSaveDraft()" class="px-2.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-between gap-2 w-32 sm:w-36">
-                    <span><i class="fa-solid fa-floppy-disk text-purple-400"></i> Borrador</span>
+                <button type="button" onclick="openAdminLoginModal()" class="px-2.5 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-600 transition flex items-center justify-between gap-2 w-36 sm:w-40">
+                    <span><i class="fa-solid fa-lock text-amber-400"></i> Panel PC</span> <span class="text-[10px] bg-purple-950 px-1.5 py-0.5 rounded">Admin</span>
                 </button>
-                <button type="button" onclick="confirmResetForm()" class="px-2.5 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-32 sm:w-36">
+                <button type="button" onclick="confirmResetForm()" class="px-2.5 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-36 sm:w-40">
                     <span><i class="fa-solid fa-trash-can"></i> Limpiar</span>
                 </button>
             </div>
@@ -660,7 +659,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El informe PDF se ha generado correctamente y se ha enviado a Prevención por correo electrónico.</p>
+            <p class="text-xs text-slate-400">El parte se ha enviado al correo y registrado en la nube para el Panel Maestro.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -674,7 +673,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE PARTES ENVIADOS -->
+    <!-- MODAL DE PARTES ENVIADOS (MÓVIL) -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -687,6 +686,42 @@
             <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
                 <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
                 <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE LOGIN ADMIN (CONTRASEÑA 1234FI) -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-purple-900/50 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-purple-950 border border-purple-600 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white">Acceso Panel de Administración</h3>
+            <p class="text-xs text-slate-400">Introduce la contraseña de control para acceder desde el PC.</p>
+            <input type="password" id="admin-pass-input" placeholder="Contraseña..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="closeAdminLoginModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs">Cancelar</button>
+                <button type="button" onclick="verifyAdminPassword()" class="flex-1 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-xs">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PANEL MAESTRO (ADMIN DASHBOARD) -->
+    <div id="admin-dashboard-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 no-print">
+        <div class="bg-slate-900 border border-purple-800 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-laptop text-purple-400"></i> Panel Maestro de Control - OTs Registradas
+                    </h3>
+                    <p class="text-xs text-slate-400">Control centralizado de partes de todos los técnicos.</p>
+                </div>
+                <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="admin-parts-list" class="flex-grow overflow-y-auto space-y-3 text-xs pr-1"></div>
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
+                <span class="text-xs text-slate-400" id="admin-total-count">Total Registros: 0</span>
+                <button type="button" onclick="closeAdminDashboard()" class="px-5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold">Cerrar Panel</button>
             </div>
         </div>
     </div>
@@ -1336,11 +1371,6 @@
             localStorage.setItem('pole_form_draft', JSON.stringify(data));
         }
 
-        function manualSaveDraft() {
-            autoSaveDraft();
-            alert('Borrador guardado localmente.');
-        }
-
         function loadDraft() {
             const saved = localStorage.getItem('pole_form_draft');
             if (!saved) return;
@@ -1401,7 +1431,7 @@
             }
 
             localStorage.setItem('user_saved_pole_parts', JSON.stringify(savedList));
-            alert(`💾 Parte de la OT "${nOt}" guardado correctamente con todos sus datos.`);
+            alert(`💾 Parte de la OT "${nOt}" guardado correctamente.`);
         }
 
         function saveToSentHistoryCompletely(nOt) {
@@ -1429,18 +1459,26 @@
             data['checkboxesStates'] = checkboxesStates;
             data['firmaData'] = document.getElementById('firmaData').value;
             data['sentAt'] = new Date().toLocaleString();
-            data['step'] = 6;
             data['croquisPoints'] = croquisPoints;
             data['uploadedFiles'] = { ...uploadedFiles };
             data['nOt'] = nOt;
 
+            // Guardar en Historial Local (Móvil)
             let sentList = [];
             try {
                 sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
             } catch (e) { sentList = []; }
-
             sentList.unshift(data);
             localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
+
+            // Guardar en Nube Compartida (Panel Maestro PC)
+            let masterList = [];
+            try {
+                masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
+            } catch (e) { masterList = []; }
+            masterList.unshift(data);
+            localStorage.setItem('master_admin_pole_parts', JSON.stringify(masterList));
+
             updateSentPartsBadge();
         }
 
@@ -1469,7 +1507,7 @@
                             <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
                         </div>
                         <div class="flex gap-1.5">
-                            <button type="button" onclick="previewSentPdf(${index})" class="px-2.5 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-xs"><i class="fa-solid fa-print"></i> PDF</button>
+                            <button type="button" onclick="loadItemToPreview(${index}, 'sent')" class="px-2.5 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-xs"><i class="fa-solid fa-print"></i> PDF</button>
                         </div>
                     </div>
                 `).join('');
@@ -1477,13 +1515,14 @@
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
-        function previewSentPdf(index) {
-            let sentList = [];
+        function loadItemToPreview(index, source = 'sent') {
+            let list = [];
             try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+                if (source === 'sent') list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+                else list = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
             } catch (e) { return; }
 
-            const item = sentList[index];
+            const item = list[index];
             if (!item) return;
 
             document.getElementById('pole-form').reset();
@@ -1499,6 +1538,7 @@
             if (item.firmaData) document.getElementById('firmaData').value = item.firmaData;
 
             closeSentPartsModal();
+            closeAdminDashboard();
             setTimeout(() => { generatePrintPreview(); }, 300);
         }
 
@@ -1512,6 +1552,63 @@
                 updateSentPartsBadge();
                 openSentPartsModal();
             }
+        }
+
+        // CONTROL PANEL ADMIN (CONTRASEÑA 1234FI)
+        function openAdminLoginModal() {
+            document.getElementById('admin-pass-input').value = '';
+            document.getElementById('admin-login-modal').classList.remove('hidden');
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function verifyAdminPassword() {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === '1234FI') {
+                closeAdminLoginModal();
+                openAdminDashboard();
+            } else {
+                alert('❌ Contraseña incorrecta.');
+            }
+        }
+
+        function openAdminDashboard() {
+            let masterList = [];
+            try {
+                masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
+            } catch (e) { masterList = []; }
+
+            const listContainer = document.getElementById('admin-parts-list');
+            document.getElementById('admin-total-count').innerText = `Total Registros en Nube: ${masterList.length}`;
+
+            if (masterList.length === 0) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-8">No hay OTs registradas en la nube todavía.</p>`;
+            } else {
+                listContainer.innerHTML = masterList.map((item, index) => `
+                    <div class="bg-slate-800/80 border border-purple-900/40 rounded-xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-white text-sm flex items-center gap-2">
+                                <span class="bg-purple-900 text-purple-200 px-2 py-0.5 rounded text-xs">${item.nOt || 'Sin OT'}</span>
+                                <span class="text-emerald-400 text-xs">${item.contrataPrincipal || ''}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-300"><strong>Técnico:</strong> ${item.nombreTec1 || item.aliasKairosTec1 || 'N/A'} | <strong>Recurso:</strong> ${item.nombreRecursoPreventivo || 'N/A'}</div>
+                            <div class="text-[10px] text-slate-400">📅 Registrado: ${item.sentAt || 'Fecha desconocida'}</div>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto justify-end">
+                            <button type="button" onclick="loadItemToPreview(${index}, 'master')" class="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs flex items-center gap-1.5 font-semibold">
+                                <i class="fa-solid fa-print"></i> Ver / Descargar PDF
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.add('hidden');
         }
 
         function confirmResetForm() {
@@ -1665,28 +1762,6 @@
             return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : rawDatetime;
         }
 
-        function blobToBase64(blob) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
-        }
-
-        function base64ToBlob(base64, mimeType = 'application/pdf') {
-            const byteCharacters = atob(base64.split(',')[1]);
-            const byteArrays = [];
-            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-                const slice = byteCharacters.slice(offset, offset + 512);
-                const byteNumbers = new Array(slice.length);
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-                byteArrays.push(new Uint8Array(byteNumbers));
-            }
-            return new Blob(byteArrays, { type: mimeType });
-        }
-
         function saveToOfflineQueue(item) {
             let queue = [];
             try {
@@ -1737,10 +1812,6 @@
                 if (Array.isArray(val)) val = val.join(', ');
                 sendData.append(key, val);
             });
-
-            const pdfBlob = base64ToBlob(item.pdfBase64);
-            const pdfFile = new File([pdfBlob], item.pdfName, { type: 'application/pdf' });
-            sendData.append('attachment', pdfFile, item.pdfName);
 
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
@@ -1812,20 +1883,11 @@
             const submitIcon = document.getElementById('submit-icon');
             
             submitBtn.disabled = true;
-            submitText.innerText = 'Generando PDF...';
+            submitText.innerText = 'Enviando...';
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
-
-            const printArea = document.getElementById('print-area');
 
             try {
                 const buildData = buildPrintHTML();
-                printArea.classList.remove('hidden');
-
-                const images = printArea.querySelectorAll('img');
-                await Promise.all(Array.from(images).map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise(res => { img.onload = res; img.onerror = res; });
-                }));
 
                 const nOt = document.getElementById('nOt').value || 'Sin_OT';
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
@@ -1834,23 +1896,6 @@
                 const fechaFormatted = formatFechaSubject(rawFecha);
 
                 const emailSubject = `POSTE, ${nOt}, ${contrata}, ${aliasTec1}, ${fechaFormatted}`;
-                const pdfFileName = `Informe_PRL_Poste_${nOt}.pdf`;
-
-                const opt = {
-                    margin: 0,
-                    filename: pdfFileName,
-                    image: { type: 'jpeg', quality: 0.6 },
-                    html2canvas: { scale: 1.5, useCORS: true, logging: false },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                    pagebreak: { mode: ['css', 'legacy'] }
-                };
-
-                const pdfWorker = html2pdf().set(opt).from(printArea);
-                const pdfBlob = await pdfWorker.output('blob');
-
-                printArea.classList.add('hidden');
-
-                const pdfBase64 = await blobToBase64(pdfBlob);
 
                 const formElement = document.getElementById('pole-form');
                 const allFormData = new FormData(formElement);
@@ -1895,17 +1940,13 @@
                     contrata: contrata,
                     aliasTec1: aliasTec1,
                     fechaFormatted: fechaFormatted,
-                    formData: payloadFormData,
-                    pdfBase64: pdfBase64,
-                    pdfName: pdfFileName
+                    formData: payloadFormData
                 };
 
                 if (!navigator.onLine) {
                     saveToOfflineQueue(payloadObj);
                     return;
                 }
-
-                submitText.innerText = 'Enviando...';
 
                 try {
                     await sendPayloadToFormSubmit(payloadObj);
@@ -1919,8 +1960,7 @@
                 }
 
             } catch (err) {
-                printArea.classList.add('hidden');
-                alert('Error al generar el documento PDF.');
+                alert('Error al procesar el envío.');
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar';
