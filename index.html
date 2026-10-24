@@ -103,31 +103,27 @@
 
     <!-- Header -->
     <header class="bg-brand-950 border-b border-purple-900/40 sticky top-0 z-30 shadow-lg no-print">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <!-- LOGO PNG CON FONDO INTEGRADO DE LA WEB -->
-                <div class="p-2 rounded-xl border border-purple-900/50 shadow-md flex items-center bg-[#1e1b4b]">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsmdbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" alt="Finetwork by Wewi" class="h-10 w-auto object-contain">
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-white flex items-center gap-2">
-                        Actuación en Poste <span class="text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30">PRL FTTH</span>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3 min-w-0">
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg font-bold text-white flex items-center gap-2 truncate">
+                        <span class="truncate">Actuación en Poste</span> <span class="text-[10px] sm:text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30 shrink-0">PRL FTTH</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES -->
-            <div class="flex flex-col items-end space-y-1.5">
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-full justify-center">
+            <!-- BOTONES SUPERIORES APILADOS Y ADAPTADOS -->
+            <div class="flex flex-col items-end space-y-1.5 shrink-0">
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-32 sm:w-36 justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
-                <button type="button" onclick="openSentPartsModal()" class="px-3 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-36">
+                <button type="button" onclick="openSentPartsModal()" class="px-2.5 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-32 sm:w-36">
                     <span><i class="fa-solid fa-paper-plane"></i> Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
                 </button>
-                <button type="button" onclick="manualSaveDraft()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-between gap-2 w-36">
+                <button type="button" onclick="manualSaveDraft()" class="px-2.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-between gap-2 w-32 sm:w-36">
                     <span><i class="fa-solid fa-floppy-disk text-purple-400"></i> Borrador</span>
                 </button>
-                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-36">
+                <button type="button" onclick="confirmResetForm()" class="px-2.5 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-32 sm:w-36">
                     <span><i class="fa-solid fa-trash-can"></i> Limpiar</span>
                 </button>
             </div>
@@ -1561,12 +1557,9 @@
                 <!-- PÁGINA 1 -->
                 <div class="pdf-page">
                     <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsmdbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" style="height: 25px; width: auto; background: #1e1b4b; padding: 2px; border-radius: 3px;">
-                            <div>
-                                <h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
-                                <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
-                            </div>
+                        <div>
+                            <h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                            <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
                         </div>
                         <div style="text-align: right; font-size: 8.5px;">
                             <strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}<br>
@@ -1739,7 +1732,6 @@
             sendData.append('_captcha', 'false');
             sendData.append('_template', 'table');
 
-            // VOLCADO SEGURO DE TODOS LOS CAMPOS EN TEXTO PLANO
             Object.keys(item.formData).forEach(key => {
                 let val = item.formData[key];
                 if (Array.isArray(val)) val = val.join(', ');
@@ -1860,7 +1852,6 @@
 
                 const pdfBase64 = await blobToBase64(pdfBlob);
 
-                // RECOPILAR TODOS LOS DATOS DEL FORMULARIO DE FORMA LIMPIA
                 const formElement = document.getElementById('pole-form');
                 const allFormData = new FormData(formElement);
                 const payloadFormData = {};
@@ -1873,7 +1864,6 @@
                     }
                 });
 
-                // Incluir campos estructurados adicionales y checkboxes
                 const ladderChecksArr = [];
                 formElement.querySelectorAll('input[name="ladderCheck"]:checked').forEach(cb => ladderChecksArr.push(cb.value));
                 const episArr = [];
