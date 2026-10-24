@@ -672,7 +672,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El informe se ha registrado y enviado correctamente a Prevención.</p>
+            <p class="text-xs text-slate-400">El informe PDF se ha generado correctamente y se ha enviado a Prevención por correo electrónico.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -765,6 +765,7 @@
             });
         });
 
+        // COMPRESIÓN DE IMÁGENES OPTIMIZADA PARA CORREO (LIGERA Y NÍTIDA)
         function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1473,6 +1474,7 @@
             document.getElementById('saved-parts-modal').classList.add('hidden');
         }
 
+        // RECUPERAR DATOS CON RESTAURACIÓN COMPLETA Y UNIFICADA PARA BORRADORES Y ENVIADOS
         function loadSavedPartData(index, isFromSent = false) {
             let list = [];
             try {
@@ -1485,6 +1487,7 @@
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
 
+            // Restaurar campos de texto, number y selects directos
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
                 if (el && typeof item[k] === 'string') {
@@ -1497,6 +1500,7 @@
                 }
             });
 
+            // Si los datos provienen del historial de enviados, mapear sus propiedades internas al DOM de forma explícita
             if (isFromSent && item.formData) {
                 if (item.formData.ASUNTO_OT) document.getElementById('nOt').value = item.formData.ASUNTO_OT;
                 if (item.formData.CONTRATA) document.getElementById('contrataPrincipal').value = item.formData.CONTRATA;
@@ -1512,6 +1516,7 @@
                 if (item.formData.CANTIDAD_POSTES) document.getElementById('cantidadPostes').value = item.formData.CANTIDAD_POSTES;
                 if (item.formData.OBSERVACIONES) document.getElementById('observaciones').value = item.formData.OBSERVACIONES;
 
+                // Radios de Enviados
                 document.querySelectorAll('input[name="tipo"]').forEach(r => { if (r.value === item.formData.TIPO_ACTUACION) r.checked = true; });
                 document.querySelectorAll('input[name="estado"]').forEach(r => { if (r.value === item.formData.ESTADO_INFRAESTRUCTURA) r.checked = true; });
                 document.querySelectorAll('input[name="tipoPoste"]').forEach(r => { if (r.value === item.formData.MATERIAL_POSTE) r.checked = true; });
@@ -1534,6 +1539,7 @@
                 }, 300);
             }
 
+            // RESTAURACIÓN CLAVE DE ARCHIVOS E IMÁGENES EN MEMORIA INTERNA
             if (item.uploadedFiles) {
                 Object.keys(item.uploadedFiles).forEach(fileKey => {
                     uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
@@ -1843,6 +1849,28 @@
             return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : rawDatetime;
         }
 
+        function blobToBase64(blob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function base64ToBlob(base64, mimeType = 'application/pdf') {
+            const byteCharacters = atob(base64.split(',')[1]);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+            return new Blob(byteArrays, { type: mimeType });
+        }
+
         function saveToOfflineQueue(item) {
             let queue = [];
             try {
@@ -1855,9 +1883,7 @@
             updatePendingBadge();
             localStorage.removeItem('pole_form_draft');
 
-            document.getElementById('modal-ot').innerText = item.nOt;
-            document.getElementById('modal-tec').innerText = item.formData.NOMBRE_TECNICO || 'Técnico';
-            document.getElementById('success-modal').classList.remove('hidden');
+            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación de la OT ${item.nOt} se ha guardado localmente.\n\nSe enviará automáticamente en cuanto recuperes la conexión.`);
 
             document.getElementById('pole-form').reset();
             clearCroquisMap();
@@ -1893,6 +1919,10 @@
             Object.keys(item.formData).forEach(key => {
                 sendData.append(key, item.formData[key]);
             });
+
+            const pdfBlob = base64ToBlob(item.pdfBase64);
+            const pdfFile = new File([pdfBlob], item.pdfName, { type: 'application/pdf' });
+            sendData.append('attachment', pdfFile, item.pdfName);
 
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
@@ -1964,11 +1994,21 @@
             const submitIcon = document.getElementById('submit-icon');
             
             submitBtn.disabled = true;
-            submitText.innerText = 'Enviando...';
+            submitText.innerText = 'Generando PDF...';
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
+
+            const printArea = document.getElementById('print-area');
 
             try {
                 const buildData = buildPrintHTML();
+                printArea.classList.remove('hidden');
+
+                const images = printArea.querySelectorAll('img');
+                await Promise.all(Array.from(images).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(res => { img.onload = res; img.onerror = res; });
+                }));
+
                 const nOt = document.getElementById('nOt').value || 'Sin_OT';
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
                 const aliasTec1 = document.getElementById('aliasKairosTec1').value || 'Sin_Alias';
@@ -1976,6 +2016,23 @@
                 const fechaFormatted = formatFechaSubject(rawFecha);
 
                 const emailSubject = `POSTE, ${nOt}, ${contrata}, ${aliasTec1}, ${fechaFormatted}`;
+                const pdfFileName = `Informe_PRL_Poste_${nOt}.pdf`;
+
+                const opt = {
+                    margin: 0,
+                    filename: pdfFileName,
+                    image: { type: 'jpeg', quality: 0.6 },
+                    html2canvas: { scale: 1.5, useCORS: true, logging: false },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
+
+                const pdfWorker = html2pdf().set(opt).from(printArea);
+                const pdfBlob = await pdfWorker.output('blob');
+
+                printArea.classList.add('hidden');
+
+                const pdfBase64 = await blobToBase64(pdfBlob);
 
                 const payloadObj = {
                     _subject: emailSubject,
@@ -2004,13 +2061,17 @@
                         METROS_TENDIDO: calculateTotalMeters() + 'm',
                         UBICACIONES: buildData.puntosTextoBreve || 'Sin desglosar',
                         OBSERVACIONES: document.getElementById('observaciones').value || ''
-                    }
+                    },
+                    pdfBase64: pdfBase64,
+                    pdfName: pdfFileName
                 };
 
                 if (!navigator.onLine) {
                     saveToOfflineQueue(payloadObj);
                     return;
                 }
+
+                submitText.innerText = 'Enviando...';
 
                 try {
                     await sendPayloadToFormSubmit(payloadObj);
@@ -2025,8 +2086,9 @@
                 }
 
             } catch (err) {
+                printArea.classList.add('hidden');
                 console.error(err);
-                alert('Error al procesar el envío.');
+                alert('Error al generar el documento PDF.');
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar';
