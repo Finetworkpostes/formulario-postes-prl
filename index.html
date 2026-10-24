@@ -1845,7 +1845,7 @@
                 sendData.append(key, val);
             });
 
-            // 1. Envío al correo con FormSubmit
+            // 1. Envío prioritario al correo con FormSubmit (Instantáneo)
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json' },
@@ -1858,18 +1858,16 @@
                 throw new Error("Respuesta fallida de FormSubmit.");
             }
 
-            // 2. Subida a Google Drive mediante Apps Script (con mode no-cors para asegurar que llegue sin bloqueos)
+            // 2. Subida a Google Drive en segundo plano (No bloquea la app en ningún dispositivo)
             if (GOOGLE_SCRIPT_URL) {
-                try {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(item)
-                    });
-                } catch (driveErr) {
-                    console.error("Error al subir a Google Drive:", driveErr);
-                }
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                }).catch(driveErr => {
+                    console.error("Error en segundo plano con Drive:", driveErr);
+                });
             }
 
             return true;
