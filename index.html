@@ -659,7 +659,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado al correo y registrado en la nube para el Panel Maestro.</p>
+            <p class="text-xs text-slate-400">El parte se ha enviado al correo y registrado en Google Drive.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -737,6 +737,8 @@
     <!-- LOGICA JAVASCRIPT -->
     <script>
         const DESTINATION_EMAIL = '3c3ed56317dff2dfe09029463b2b7c01';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywSvZC8ka_7VFKUBp1--r6-B8MM15MxUFkO1xocs4MlmNZ1Uk-5Z7E36J7rrxZ0LruBA/exec'; 
+
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -1843,6 +1845,7 @@
                 sendData.append(key, val);
             });
 
+            // 1. Envío al correo con FormSubmit
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json' },
@@ -1854,6 +1857,21 @@
             if (resJson.success === "false" || resJson.success === false) {
                 throw new Error("Respuesta fallida de FormSubmit.");
             }
+
+            // 2. Subida automática a Google Drive mediante Apps Script
+            if (GOOGLE_SCRIPT_URL) {
+                try {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item)
+                    });
+                } catch (driveErr) {
+                    console.error("Error al subir a Google Drive:", driveErr);
+                }
+            }
+
             return true;
         }
 
@@ -1970,7 +1988,8 @@
                     contrata: contrata,
                     aliasTec1: aliasTec1,
                     fechaFormatted: fechaFormatted,
-                    formData: payloadFormData
+                    formData: payloadFormData,
+                    uploadedFiles: uploadedFiles
                 };
 
                 if (!navigator.onLine) {
