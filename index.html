@@ -1472,7 +1472,7 @@
             document.getElementById('saved-parts-modal').classList.add('hidden');
         }
 
-        // RECUPERAR TODO AL 100%
+        // RECUPERAR TODO AL 100% Y REINICIAR MEMORIA DE ARCHIVOS
         function loadSavedPart(index) {
             let savedList = [];
             try {
@@ -1483,6 +1483,7 @@
             if (!item) return;
 
             document.getElementById('pole-form').reset();
+            Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
 
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
