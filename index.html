@@ -672,7 +672,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El informe PDF se ha generado correctamente y se ha enviado a Prevención por correo electrónico.</p>
+            <p class="text-xs text-slate-400">El informe se ha registrado y enviado correctamente a Prevención.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -765,7 +765,6 @@
             });
         });
 
-        // COMPRESIÓN DE IMÁGENES OPTIMIZADA PARA CORREO (LIGERA Y NÍTIDA)
         function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1844,14 +1843,6 @@
             return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : rawDatetime;
         }
 
-        function blobToBase64(blob) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
-        }
-
         function saveToOfflineQueue(item) {
             let queue = [];
             try {
@@ -1864,7 +1855,9 @@
             updatePendingBadge();
             localStorage.removeItem('pole_form_draft');
 
-            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación de la OT ${item.nOt} se ha guardado localmente.\n\nSe enviará automáticamente en cuanto recuperes la conexión.`);
+            document.getElementById('modal-ot').innerText = item.nOt;
+            document.getElementById('modal-tec').innerText = item.formData.NOMBRE_TECNICO || 'Técnico';
+            document.getElementById('success-modal').classList.remove('hidden');
 
             document.getElementById('pole-form').reset();
             clearCroquisMap();
@@ -1900,9 +1893,6 @@
             Object.keys(item.formData).forEach(key => {
                 sendData.append(key, item.formData[key]);
             });
-
-            // Enlace directo incrustado en el correo para descarga sin límite de tamaño
-            sendData.append('📥_ENLACE_DESCARGA_PDF_COMPLETO', `<a href="${item.pdfBase64}" download="${item.pdfName}" style="background:#7c3aed; color:white; padding:10px 15px; border-radius:8px; text-decoration:none; font-weight:bold; display:inline-block;">📥 DESCARGAR INFORME PDF COMPLETO (CON FOTOS Y CROQUIS)</a>`);
 
             const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
                 method: 'POST',
@@ -1974,21 +1964,11 @@
             const submitIcon = document.getElementById('submit-icon');
             
             submitBtn.disabled = true;
-            submitText.innerText = 'Generando PDF...';
+            submitText.innerText = 'Enviando...';
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
-
-            const printArea = document.getElementById('print-area');
 
             try {
                 const buildData = buildPrintHTML();
-                printArea.classList.remove('hidden');
-
-                const images = printArea.querySelectorAll('img');
-                await Promise.all(Array.from(images).map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise(res => { img.onload = res; img.onerror = res; });
-                }));
-
                 const nOt = document.getElementById('nOt').value || 'Sin_OT';
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
                 const aliasTec1 = document.getElementById('aliasKairosTec1').value || 'Sin_Alias';
@@ -1996,23 +1976,6 @@
                 const fechaFormatted = formatFechaSubject(rawFecha);
 
                 const emailSubject = `POSTE, ${nOt}, ${contrata}, ${aliasTec1}, ${fechaFormatted}`;
-                const pdfFileName = `Informe_PRL_Poste_${nOt}.pdf`;
-
-                const opt = {
-                    margin: 0,
-                    filename: pdfFileName,
-                    image: { type: 'jpeg', quality: 0.6 },
-                    html2canvas: { scale: 1.5, useCORS: true, logging: false },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                    pagebreak: { mode: ['css', 'legacy'] }
-                };
-
-                const pdfWorker = html2pdf().set(opt).from(printArea);
-                const pdfBlob = await pdfWorker.output('blob');
-
-                printArea.classList.add('hidden');
-
-                const pdfBase64 = await blobToBase64(pdfBlob);
 
                 const payloadObj = {
                     _subject: emailSubject,
@@ -2041,17 +2004,13 @@
                         METROS_TENDIDO: calculateTotalMeters() + 'm',
                         UBICACIONES: buildData.puntosTextoBreve || 'Sin desglosar',
                         OBSERVACIONES: document.getElementById('observaciones').value || ''
-                    },
-                    pdfBase64: pdfBase64,
-                    pdfName: pdfFileName
+                    }
                 };
 
                 if (!navigator.onLine) {
                     saveToOfflineQueue(payloadObj);
                     return;
                 }
-
-                submitText.innerText = 'Enviando...';
 
                 try {
                     await sendPayloadToFormSubmit(payloadObj);
@@ -2066,9 +2025,8 @@
                 }
 
             } catch (err) {
-                printArea.classList.add('hidden');
                 console.error(err);
-                alert('Error al generar el documento PDF.');
+                alert('Error al procesar el envío.');
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar';
