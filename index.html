@@ -41,7 +41,7 @@
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -1527,13 +1527,19 @@
 
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
+            
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
                 if (el && typeof item[k] === 'string') el.value = item[k];
             });
+
+            // CARGAR LAS FOTOS EN MEMORIA PARA QUE SALGAN EN EL PDF
             if (item.uploadedFiles) {
-                Object.keys(item.uploadedFiles).forEach(fk => uploadedFiles[fk] = item.uploadedFiles[fk]);
+                Object.keys(item.uploadedFiles).forEach(fk => {
+                    uploadedFiles[fk] = item.uploadedFiles[fk];
+                });
             }
+
             if (item.croquisPoints) croquisPoints = item.croquisPoints;
             if (item.firmaData) document.getElementById('firmaData').value = item.firmaData;
 
