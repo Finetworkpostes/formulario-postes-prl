@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- html2canvas -->
+    <!-- html2canvas (Captura de pantalla del mapa) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- html2pdf.js -->
+    <!-- html2pdf (Generación de PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Leaflet MAPS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -41,7 +41,7 @@
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
-        /* ÁREA DE IMPRESIÓN Y PDF - DISEÑO EN 2 PÁGINAS ESTRICTAS PARA NO CORTAR FOTOS */
+        /* Reglas estricta para PDF e impresión */
         @media print {
             header, footer, nav, .no-print, main, #success-modal { display: none !important; }
             body { background: white !important; color: black !important; }
@@ -92,7 +92,7 @@
         }
 
         .print-img {
-            max-height: 140px;
+            max-height: 120px;
             width: 100%;
             object-fit: contain;
             border-radius: 2px;
@@ -111,12 +111,19 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-white flex items-center gap-2">
-                        Actuación en Poste <span class="text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30">PRL</span>
+                        Actuación en Poste <span class="text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30">PRL FTTH</span>
                     </h1>
+                    <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 text-rose-300 rounded-lg border border-rose-800/50 flex items-center gap-1.5">
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse">
+                    <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
+                </button>
+                <button type="button" onclick="manualSaveDraft()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk text-purple-400"></i> Borrador
+                </button>
+                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-trash-can"></i> Limpiar
                 </button>
             </div>
@@ -138,18 +145,17 @@
         <!-- Navigation Tabs -->
         <div class="mb-6 overflow-x-auto pb-2 border-b border-slate-800">
             <nav class="flex space-x-2 min-w-max">
-                <button type="button" onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">1. Datos OT</button>
-                <button type="button" onclick="goToStep(2)" id="tab-btn-2" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">2. Personal</button>
-                <button type="button" onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">3. Poste</button>
-                <button type="button" onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">4. Checklists</button>
-                <button type="button" onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">5. Mapa & Fotos</button>
-                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs flex items-center gap-2 text-slate-400 transition">6. Firma</button>
+                <button type="button" onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">1. Datos OT</button>
+                <button type="button" onclick="goToStep(2)" id="tab-btn-2" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">2. Personal</button>
+                <button type="button" onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">3. Poste</button>
+                <button type="button" onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">4. Checklists & EPIs</button>
+                <button type="button" onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">5. Croquis & Fotos</button>
+                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Confirmación & Firma</button>
             </nav>
         </div>
 
         <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
-            <!-- CAMPOS OCULTOS DE DIRECCIÓN Y CP (No estorban, se rellenan con el mapa) -->
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
 
@@ -209,18 +215,23 @@
 
             <!-- SECCIÓN 2: PERSONAL -->
             <div id="step-2" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal</h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal (Auto-completado)</h2>
+                
+                <div id="contractor-warning" class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal en la Sección 1 para desplegar la lista de técnicos actualizada.
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300">Técnico Principal (TEC1)</h3>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-medium text-slate-300">Alias / Usuario <span class="text-rose-500">*</span></label>
-                            <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione...</option>
+                            <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias / Usuario KAIROS TEC1 <span class="text-rose-500">*</span></label>
+                            <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                                <option value="">Seleccione Usuario...</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-medium text-slate-300">Nombre Completo <span class="text-rose-500">*</span></label>
+                            <label for="nombreTec1" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (TEC1) <span class="text-rose-500">*</span></label>
                             <input type="text" id="nombreTec1" name="nombreTec1" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
                         </div>
                     </div>
@@ -228,20 +239,21 @@
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Recurso Preventivo Habilitado</h3>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-medium text-slate-300">Alias / Usuario <span class="text-rose-500">*</span></label>
-                            <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione...</option>
+                            <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias / Usuario Recurso Preventivo <span class="text-rose-500">*</span></label>
+                            <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                                <option value="">Seleccione Usuario...</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-medium text-slate-300">Nombre Completo <span class="text-rose-500">*</span></label>
+                            <label for="nombreRecursoPreventivo" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (Recurso Preventivo) <span class="text-rose-500">*</span></label>
                             <input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
                         </div>
                     </div>
                 </div>
+
                 <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm">Anterior</button>
-                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -273,66 +285,121 @@
                             <i class="fa-solid fa-triangle-exclamation"></i> Medidas Preventivas Obligatorias antes del Ascenso a POSTE DE MADERA:
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Comprobación herrajes" class="mt-0.5 accent-amber-500"><span class="text-slate-300">1. Verificar cable, herrajes y tubos.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Longitud enterrada" class="mt-0.5 accent-amber-500"><span class="text-slate-300">2. Revisar longitud enterrada.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Inspección visual base" class="mt-0.5 accent-amber-500"><span class="text-slate-300">3. Escarbar base (~3cm) y visual.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba empuje" class="mt-0.5 accent-amber-500"><span class="text-slate-300">4. Empujar fuerte perpendicularmente.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Percusión martillo" class="mt-0.5 accent-amber-500"><span class="text-slate-300">5. Percusión con martillo.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba punzante" class="mt-0.5 accent-amber-500"><span class="text-slate-300">6. Punzar la base del poste.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">1. Verificar cable, tirante, soportes, herrajes y tubos de protección.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">2. Revisar longitud enterrada conforme al botón/placa identificativa.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">3. Escarbar base (~3cm) y realizar inspección visual.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">4. Empujar fuerte y repetidamente perpendicular a la línea.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Inspección por percusión martillo" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">5. Percusión con martillo desde el suelo hasta 2m de altura.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Prueba con herramienta punzante" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">6. Punzar oblicuamente (3-4 veces) la base del poste.</span>
+                            </label>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global <span class="text-rose-500">*</span></label>
-                        <select id="estadoPoste" name="estadoPoste" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                        <label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global del Poste <span class="text-rose-500">*</span></label>
+                        <select id="estadoPoste" name="estadoPoste" required onchange="handlePoleStatusChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                             <option value="">Seleccione Estado...</option>
                             <option value="BUENO/ADECUADO">BUENO / ADECUADO</option>
                             <option value="MALO/DEFECTUOSO">MALO / DEFECTUOSO</option>
+                            <option value="NO SUBIR">NO SUBIR (Peligro Crítico)</option>
                         </select>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label for="paraSubir" class="block text-xs font-medium text-slate-300">Método Ascenso <span class="text-rose-500">*</span></label>
-                        <select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                        <label for="paraSubir" class="block text-xs font-medium text-slate-300">Método para Subir al Poste <span class="text-rose-500">*</span></label>
+                        <select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                             <option value="">Seleccione Método...</option>
                             <option value="PLATAFORMA ELEVADORA">PLATAFORMA ELEVADORA</option>
-                            <option value="ESCALERA">ESCALERA (patas extensibles)</option>
+                            <option value="ESCALERA (con patas extensibles)">ESCALERA (con patas extensibles)</option>
+                            <option value="NO PROCEDE">NO PROCEDE</option>
                         </select>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-medium text-slate-300">¿Apto con Escalera? <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-medium text-slate-300">¿Apto para Escalera con Seguridad? <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="SI" required class="accent-emerald-500"><span class="text-xs text-emerald-400 font-bold">SÍ</span></label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="NO" required class="accent-rose-500"><span class="text-xs text-rose-400 font-bold">NO</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="SI" required class="accent-emerald-500">
+                                <span class="text-xs font-semibold text-emerald-400">SÍ</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="NO" required class="accent-rose-500">
+                                <span class="text-xs font-semibold text-rose-400">NO</span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
+                <div id="no-climb-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-2xl p-4 text-center space-y-1">
+                    <i class="fa-solid fa-octagon-exclamation text-rose-400 text-2xl"></i>
+                    <h4 class="text-sm font-bold text-rose-200">¡ALERTA DE SEGURIDAD CRÍTICA!</h4>
+                    <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
+                </div>
+
                 <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm">Anterior</button>
-                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
             <!-- SECCIÓN 4: CHECKLISTS & EPIs -->
             <div id="step-4" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists y EPIs</h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists de Seguridad y EPIs</h2>
                 
                 <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
-                        <h3 class="text-xs font-bold uppercase text-purple-300">Verificación de Escalera</h3>
+                        <h3 class="text-xs font-bold uppercase text-purple-300">Check Verificación de Escalera</h3>
                         <div class="flex gap-2">
-                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-2 text-xs">
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Revisión vigente" class="ladder-check accent-purple-600"><span class="text-slate-200">1. Escalera con revisión vigente y pegatina.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Estado correcto" class="ladder-check accent-purple-600"><span class="text-slate-200">2. Correcto estado y sin defectos.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Zapatas regulables" class="ladder-check accent-purple-600"><span class="text-slate-200">3. Zapatas regulables si necesario.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Suelo firme" class="ladder-check accent-purple-600"><span class="text-slate-200">4. Suelo despejado y apoyo firme.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Inclinación" class="ladder-check accent-purple-600"><span class="text-slate-200">5. Inclinación correcta (~75º).</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Señalizada" class="ladder-check accent-purple-600"><span class="text-slate-200">6. Zona de trabajo señalizada.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Suelo despejado y apoyo firme" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">4. Suelo despejado que permite un apoyo firme.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Inclinación correcta (~75º)" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">5. Inclinación correcta (~75º respecto al suelo).</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Longitud adecuada" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">6. Longitud de la escalera adecuada para la altura.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Zona de trabajo señalizada" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">7. Zona de trabajo señalizada previamente.</span>
+                        </label>
                     </div>
                 </div>
 
@@ -340,28 +407,32 @@
                     <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
                         <h3 class="text-xs font-bold uppercase text-emerald-300">EPIs Utilizados</h3>
                         <div class="flex gap-2">
-                            <button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
+                            <button type="button" onclick="toggleAllCheckboxes('epi-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="CASCO" class="epi-check accent-emerald-500"><span class="text-slate-200">CASCO BARBUQUEJO</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="ARNÉS" class="epi-check accent-emerald-500"><span class="text-slate-200">ARNÉS ANTICAÍDAS</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="GAFAS" class="epi-check accent-emerald-500"><span class="text-slate-200">GAFAS SEGURIDAD</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="BOTAS" class="epi-check accent-emerald-500"><span class="text-slate-200">BOTAS SEGURIDAD</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="CHALECO" class="epi-check accent-emerald-500"><span class="text-slate-200">ALTA VISIBILIDAD</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl cursor-pointer"><input type="checkbox" name="epis" value="LÍNEA VIDA" class="epi-check accent-emerald-500"><span class="text-slate-200">LÍNEA DE VIDA</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CASCO CON BARBUQUEJO" class="epi-check accent-emerald-500"><span class="text-slate-200">CASCO CON BARBUQUEJO</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="ARNÉS ANTICAÍDAS" class="epi-check accent-emerald-500"><span class="text-slate-200">ARNÉS ANTICAÍDAS</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="GAFAS DE SEGURIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">GAFAS DE SEGURIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="BOTAS DE SEGURIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">BOTAS DE SEGURIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CHALECO ALTA VISIBILIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">ALTA VISIBILIDAD</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="GUANTES MECÁNICOS" class="epi-check accent-emerald-500"><span class="text-slate-200">GUANTES MECÁNICOS</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="AMARRE POSICIONAMIENTO" class="epi-check accent-emerald-500"><span class="text-slate-200">AMARRE POSICIONAMIENTO</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="LÍNEA DE VIDA" class="epi-check accent-emerald-500"><span class="text-slate-200">LÍNEA DE VIDA</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="DOBLE CABO ANCLAJE" class="epi-check accent-emerald-500"><span class="text-slate-200">DOBLE CABO ANCLAJE</span></label>
                     </div>
                 </div>
 
                 <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm">Anterior</button>
-                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Mapa & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
             <!-- SECCIÓN 5: CROQUIS FTTH EVIDENCIAS FOTOGRÁFICAS -->
             <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis Satelital y Evidencias Fotográficas</h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis FTTH Satelital y Evidencias Fotográficas</h2>
 
                 <div id="croquis-tool-container" class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-4 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -370,22 +441,22 @@
                                 <i class="fa-solid fa-earth-americas text-brand-400"></i>
                                 Croquis Satelital de Tendido FTTH
                             </h3>
-                            <p class="text-[11px] text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y el último la Casa (🏠).</p>
+                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y el último la Casa (🏠).</p>
                         </div>
                         <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-medium transition shrink-0">
-                            <i class="fa-solid fa-trash-can"></i> Borrar
+                            <i class="fa-solid fa-trash-can"></i> Borrar Mapa
                         </button>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2">
                         <div class="relative flex-grow">
-                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio para centrar..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio para centrar el mapa satelital..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
                         </div>
-                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
+                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-magnifying-glass"></i> Buscar
                         </button>
-                        <button type="button" onclick="geolocateOnMap()" class="px-3.5 py-2 bg-emerald-700 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
-                            <i class="fa-solid fa-location-crosshairs"></i> Ubicación
+                        <button type="button" onclick="geolocateOnMap()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-location-crosshairs"></i> Mi Ubicación
                         </button>
                     </div>
 
@@ -403,15 +474,17 @@
                 <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-4 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-brand-400"></i> Desglose de Ubicaciones
+                            <i class="fa-solid fa-list-check text-brand-400"></i>
+                            Registro Estructurado de Ubicaciones y Coordenadas
                         </h3>
                         <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1">
                             <span class="text-xs text-slate-300 font-semibold">Total Postes:</span>
                             <input type="number" id="cantidadPostes" name="cantidadPostes" readonly min="0" placeholder="0" class="w-12 bg-transparent text-emerald-400 font-bold text-center text-sm outline-none">
                         </div>
                     </div>
+
                     <div id="croquis-points-breakdown" class="space-y-2 text-xs">
-                        <em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>
+                        <em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo secuencialmente la CTO, los postes intermedios y la vivienda del cliente.</em>
                     </div>
                 </div>
 
@@ -419,55 +492,67 @@
                     
                     <!-- DROPZONE 1: Croquis Alta FTTH -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">1. Croquis Alta FTTH <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-map text-brand-400"></i>
+                            1. Croquis Alta FTTH <span class="text-rose-500">*</span>
+                        </label>
                         <p class="text-[11px] text-slate-400">Se genera automáticamente capturando el mapa interactivo superior.</p>
+                        
                         <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center transition bg-slate-900/50">
                             <div id="preview-croquis" class="space-y-2">
                                 <i class="fa-solid fa-lock text-3xl text-purple-400/60"></i>
-                                <div class="text-[11px] text-slate-400 font-medium">Capture el mapa usando el botón morado de arriba</div>
+                                <div class="text-xs text-slate-400 font-medium">Capture el mapa usando el botón morado de arriba</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DROPZONE 2: Foto Escalera (CON ACCESO DIRECTO A CÁMARA capture="environment") -->
+                    <!-- DROPZONE 2: Foto Escalera en Poste -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">2. Foto Escalera en Poste <span class="text-rose-500">*</span></label>
-                        <p class="text-[11px] text-slate-400">Escalera, Línea de vida, Patas extensibles, EPIs.</p>
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-camera text-brand-400"></i>
+                            2. Foto Escalera en Poste <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Escalera, Línea de vida, Patas extensibles, EPIs y Señalización.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
-                            <!-- capture="environment" ABRE DIRECTO LA CÁMARA -->
-                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
+                            <input type="file" id="file-escalera" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                                <div class="text-[11px] text-slate-300 font-medium">Hacer foto de escalera</div>
+                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DROPZONE 3: Foto 1 (Entorno) (CON ACCESO A CÁMARA) -->
+                    <!-- DROPZONE 3: Foto 1 (Estado/Entorno) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">3. Foto 1 (Estado/Entorno) <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-brand-400"></i>
+                            3. Foto 1 (Estado/Entorno) <span class="text-rose-500">*</span>
+                        </label>
                         <p class="text-[11px] text-slate-400">Perspectiva general del poste y pie de vía pública.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto1')">
-                            <input type="file" id="file-foto1" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
+                            <input type="file" id="file-foto1" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
                             <div id="preview-foto1" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-[11px] text-slate-300 font-medium">Hacer foto de entorno</div>
+                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DROPZONE 4: Foto 2 (Detalle) (CON ACCESO A CÁMARA) -->
+                    <!-- DROPZONE 4: Foto 2 (Detalle / Incidencia) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">4. Foto 2 (Detalle / Incidencia) <span class="text-rose-500">*</span></label>
-                        <p class="text-[11px] text-slate-400">Detalle de herrajes, caja CTO o zona defectuosa.</p>
+                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-brand-400"></i>
+                            4. Foto 2 (Detalle / Incidencia) <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Detalle de herrajes, caja CTO o zona defectuosa si procede.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto2')">
-                            <input type="file" id="file-foto2" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
+                            <input type="file" id="file-foto2" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
                             <div id="preview-foto2" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-[11px] text-slate-300 font-medium">Hacer foto de detalle</div>
+                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
                             </div>
                         </div>
                     </div>
@@ -479,7 +564,7 @@
                 </div>
 
                 <div class="flex justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm">Anterior</button>
+                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
                     <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
@@ -488,16 +573,18 @@
             <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
                     <span>Sección 6: Resumen, DNI y Firma Digital</span>
+                    <span class="text-xs font-normal text-slate-400">Verifique los datos antes de enviar</span>
                 </h2>
 
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-check text-brand-400"></i>
-                            Desglose Completo del Trazado
+                            Desglose Completo de la Actuación
                         </h3>
+                        <span class="text-[11px] text-slate-400">Pulse en "Editar" para modificar datos</span>
                     </div>
-                    <!-- AQUÍ AHORA SÍ APARECEN TODOS LOS POSTES -->
+                    
                     <div id="summary-breakdown-container" class="space-y-4 text-xs"></div>
                 </div>
 
@@ -526,10 +613,13 @@
                 </div>
 
                 <div class="flex justify-between pt-4 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm">Anterior</button>
-                    <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center gap-2">
-                        <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Generar y Enviar</span>
-                    </button>
+                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm"><i class="fa-solid fa-print"></i> Vista Previa</button>
+                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -542,19 +632,18 @@
             <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
                 <i class="fa-solid fa-check"></i>
             </div>
-            <h3 class="text-lg font-bold text-white">¡Actuación Enviada!</h3>
-            <p class="text-xs text-slate-400">El informe PDF se ha generado correctamente (sin cortes en las fotos), se ha guardado una copia en tu móvil y se ha enviado por correo a Prevención.</p>
+            <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
+            <p class="text-xs text-slate-400">El informe PDF ligero se ha generado completo sin cortes, descargado localmente y enviado a Prevención por correo electrónico.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
+                <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
             </div>
             <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-brand-600 text-white font-medium rounded-xl text-sm">Realizar Nueva Actuación</button>
         </div>
     </div>
 
-    <!-- ÁREA OCULTA FUERA DE LA PANTALLA PARA IMPRESIÓN Y GENERACIÓN DE PDF PERFECTO (sin overlay) -->
-    <div id="print-area-wrapper" style="position: absolute; left: -9999px; top: 0; width: 794px; z-index: -1;">
-        <div id="print-area" class="print-only"></div>
-    </div>
+    <!-- ÁREA OCULTA PARA IMPRESIÓN Y GENERACIÓN DE PDF -->
+    <div id="print-area" class="hidden print-only"></div>
 
     <!-- LOGICA JAVASCRIPT -->
     <script>
@@ -571,7 +660,9 @@
             { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki" },
             { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano" },
             { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil" },
-            { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos" }
+            { "Contrata": "OBREMO", "Alias": "O011", "NombreCompleto": "Gonzalo Pérez Vera" },
+            { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos" },
+            { "Contrata": "ZENER", "Alias": "Z003", "NombreCompleto": "Sergio Blanco Castro" }
         ];
 
         let croquisMap = null;
@@ -583,11 +674,20 @@
             initSignatureCanvas();
             setNowDateTime();
             await cargarListaUsuarios();
+            loadDraft();
             updateProgressBar();
+            updatePendingBadge();
+
+            document.getElementById('pole-form').addEventListener('input', autoSaveDraft);
+            document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
+
+            window.addEventListener('online', () => {
+                syncPendingSubmissions();
+            });
         });
 
-        // COMPRESIÓN ULTRALIGERA PARA FOTOS (Garantiza PDF < 300KB y permite que el correo se envíe siempre)
-        function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.6) {
+        // COMPRESIÓN ULTRALIGERA PARA FOTOS (Garantiza PDF < 300KB)
+        function compressImage(file, maxWidth = 600, maxHeight = 600, quality = 0.5) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -624,7 +724,10 @@
             try {
                 const res = await fetch('usuarios.json?v=' + new Date().getTime());
                 if (res.ok) rawData = await res.json();
-            } catch (err) {}
+            } catch (err) {
+                console.warn("Usando catálogo de usuarios integrado.", err);
+            }
+
             if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
                 rawData = DEFAULT_USUARIOS;
             }
@@ -648,11 +751,18 @@
             const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
+            const warning = document.getElementById('contractor-warning');
+
+            if (!selectTec1 || !selectRecurso) return;
+
+            const prevTec1Val = selectTec1.value;
+            const prevRecursoVal = selectRecurso.value;
 
             selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
-            if (contrata && USUARIOS_DB[contrata]) {
+            if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
+                if (warning) warning.classList.add('hidden');
                 USUARIOS_DB[contrata].forEach(u => {
                     const opt1 = document.createElement('option');
                     opt1.value = u.Alias;
@@ -664,6 +774,11 @@
                     opt2.textContent = u.Alias;
                     selectRecurso.appendChild(opt2);
                 });
+
+                if (prevTec1Val) selectTec1.value = prevTec1Val;
+                if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
+            } else {
+                if (warning) warning.classList.remove('hidden');
             }
         }
 
@@ -692,12 +807,12 @@
             const previewContainer = document.getElementById(previewId);
             if (!file) return;
 
-            previewContainer.innerHTML = `<div class="text-[11px] text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Procesando foto...</div>`;
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Comprimiendo imagen...</div>`;
 
             try {
                 let compressedDataUrl;
                 if (file.type.startsWith('image/')) {
-                    compressedDataUrl = await compressImage(file, 800, 800, 0.6);
+                    compressedDataUrl = await compressImage(file, 600, 600, 0.5);
                 } else {
                     const reader = new FileReader();
                     compressedDataUrl = await new Promise((res) => {
@@ -710,25 +825,25 @@
                 if (file.type.startsWith('image/')) {
                     previewContainer.innerHTML = `
                         <div class="relative group">
-                            <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-emerald-500 shadow-md">
+                            <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
                             <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-check-circle"></i> Lista
+                                <i class="fa-solid fa-check-circle"></i> Imagen Lista
                             </div>
                         </div>`;
                 }
 
                 const dropzoneBox = input.closest('.file-dropzone');
                 if (dropzoneBox) {
-                    dropzoneBox.classList.remove('border-slate-700', 'border-rose-500');
+                    dropzoneBox.classList.remove('border-rose-500');
                     dropzoneBox.classList.add('border-emerald-500/50');
                 }
+                autoSaveDraft();
             } catch (err) {
                 console.error("Error comprimiendo imagen:", err);
                 alert("Error al procesar la imagen.");
             }
         }
 
-        // --- FUNCIONES MAPA ---
         function initCroquisMap() {
             if (croquisMap) {
                 setTimeout(() => croquisMap.invalidateSize(), 200);
@@ -738,6 +853,7 @@
             croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 15);
 
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Esri World Imagery',
                 maxZoom: 19,
                 crossOrigin: 'anonymous'
             }).addTo(croquisMap);
@@ -770,8 +886,6 @@
                 } else if (idx === total - 1) {
                     type = 'casa';
                     iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:28px; height:28px; text-align:center; line-height:26px; font-size:13px;">🏠</div>`;
-                    
-                    // Cuando marcan la casa, asignamos en oculto la dirección
                     if (p.address) {
                         const dirInput = document.getElementById('direccion');
                         const cpInput = document.getElementById('codigoPostal');
@@ -902,14 +1016,15 @@
                 const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: false, scale: 1.0, logging: false });
                 controls.forEach(c => c.style.display = '');
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.6);
+                const imgData = canvas.toDataURL('image/jpeg', 0.5);
                 uploadedFiles['file-croquis'] = imgData;
 
                 document.getElementById('preview-croquis').innerHTML = `
-                    <img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-emerald-500 shadow-md">
+                    <img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
                     <div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
 
                 alert('✅ Foto del mapa capturada con éxito.');
+                autoSaveDraft();
             } catch (e) {
                 controls.forEach(c => c.style.display = '');
                 alert('Error al capturar mapa.');
@@ -921,6 +1036,7 @@
             if (!stepContainer) return true;
 
             let valid = true;
+            let firstInvalidInput = null;
             const requiredInputs = stepContainer.querySelectorAll('[required]');
             const processedRadioNames = new Set();
 
@@ -947,34 +1063,22 @@
             return valid;
         }
 
-        // DESGLOSE COMPLETO EN LA SECCIÓN 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
 
-            let breakdownHTML = '';
-            if (croquisPoints.length === 0) {
-                breakdownHTML = '<em class="text-slate-500">Sin trazado registrado.</em>';
-            } else {
-                breakdownHTML = '<ul class="list-disc pl-4 text-slate-300 space-y-1">';
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    breakdownHTML += `<li><strong>${label}:</strong> ${p.address}</li>`;
-                });
-                breakdownHTML += '</ul>';
-            }
-
+            const formData = new FormData(document.getElementById('pole-form'));
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <strong class="text-purple-400 uppercase text-[11px] block mb-1">1. Datos OT</strong>
-                        <div><strong class="text-slate-400">OT:</strong> <span class="text-white">${document.getElementById('nOt').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Técnico:</strong> <span class="text-white">${document.getElementById('aliasKairosTec1').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Dirección Final:</strong> <span class="text-emerald-300">${document.getElementById('direccion').value || '-'}</span></div>
+                        <strong class="text-purple-400 uppercase text-[11px]">1. Datos OT</strong>
+                        <div><strong class="text-slate-400">OT:</strong> ${document.getElementById('nOt').value || '-'} | <strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
+                        <div><strong class="text-slate-400">Dirección:</strong> ${document.getElementById('direccion').value || '-'}</div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 md:col-span-2">
-                        <strong class="text-purple-400 uppercase text-[11px] block mb-1">Trazado y Puntos</strong>
-                        ${breakdownHTML}
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400 uppercase text-[11px]">2. Personal</strong>
+                        <div><strong class="text-slate-400">TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'} (${document.getElementById('nombreTec1').value || '-'})</div>
+                        <div><strong class="text-slate-400">Recurso:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'} (${document.getElementById('nombreRecursoPreventivo').value || '-'})</div>
                     </div>
                 </div>`;
         }
@@ -1020,8 +1124,16 @@
             else block.classList.add('hidden');
         }
 
+        function handlePoleStatusChange() {
+            const val = document.getElementById('estadoPoste').value;
+            const alertBox = document.getElementById('no-climb-alert');
+            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
+            else alertBox.classList.add('hidden');
+        }
+
         function toggleAllCheckboxes(cls, state) {
             document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
+            autoSaveDraft();
         }
 
         function initSignatureCanvas() {
@@ -1074,6 +1186,7 @@
             if (isSigning) {
                 isSigning = false;
                 document.getElementById('firmaData').value = signatureCanvas.toDataURL();
+                autoSaveDraft();
             }
         }
 
@@ -1081,10 +1194,47 @@
             signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             document.getElementById('signature-placeholder').classList.remove('hidden');
             document.getElementById('firmaData').value = '';
+            autoSaveDraft();
+        }
+
+        function autoSaveDraft() {
+            const formData = new FormData(document.getElementById('pole-form'));
+            const data = {};
+            formData.forEach((value, key) => {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) data[key] = [data[key]];
+                    data[key].push(value);
+                } else data[key] = value;
+            });
+            data['firmaData'] = document.getElementById('firmaData').value;
+            localStorage.setItem('pole_form_draft', JSON.stringify(data));
+        }
+
+        function manualSaveDraft() {
+            autoSaveDraft();
+            alert('Borrador guardado localmente.');
+        }
+
+        function loadDraft() {
+            const saved = localStorage.getItem('pole_form_draft');
+            if (!saved) return;
+            try {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(k => {
+                    const el = document.getElementById(k);
+                    if (el && typeof data[k] === 'string') el.value = data[k];
+                });
+                if (data.contrataPrincipal) {
+                    handleContractorChange();
+                    if (data.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = data.aliasKairosTec1;
+                    if (data.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = data.aliasRecursoPreventivo;
+                }
+            } catch (e) {}
         }
 
         function confirmResetForm() {
             if (confirm('¿Limpiar todo el formulario?')) {
+                localStorage.removeItem('pole_form_draft');
                 document.getElementById('pole-form').reset();
                 clearCroquisMap();
                 clearSignatureCanvas();
@@ -1092,7 +1242,7 @@
             }
         }
 
-        // MAQUETACIÓN ESTRUCTURADA EN 2 PÁGINAS FIJAS (El código original que NO cortaba imágenes)
+        // MAQUETACIÓN ESTRUCTURADA EN 2 PÁGINAS FIJAS (Cero cortes de fotos)
         function buildPrintHTML() {
             const printArea = document.getElementById('print-area');
             const form = document.getElementById('pole-form');
@@ -1102,7 +1252,7 @@
             let puntosTextoBreve = [];
             if (croquisPoints.length > 0) {
                 pointsPrintHTML = `<div style="margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 8.5px; background:#f8fafc;">
-                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO COMPLETO:</strong><br>`;
+                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO:</strong><br>`;
                 croquisPoints.forEach((p, idx) => {
                     let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
                     pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
@@ -1123,15 +1273,16 @@
             const epis = formData.getAll('epis');
 
             printArea.innerHTML = `
-                <!-- PÁGINA 1: DATOS, PERSONAL Y CHECKS -->
+                <!-- PÁGINA 1: DATOS, PERSONAL, EVALUACIÓN Y CHECKS -->
                 <div class="pdf-page">
                     <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h1 style="font-size: 14px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL</h1>
+                            <h1 style="font-size: 14px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                            <p style="font-size: 9px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
                         </div>
                         <div style="text-align: right; font-size: 9px;">
                             <strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}<br>
-                            <strong>Fecha:</strong> ${document.getElementById('fechaHora').value || '-'}
+                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value || '-'}
                         </div>
                     </div>
 
@@ -1142,7 +1293,7 @@
                             <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
                             <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
                             <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
-                            <div style="grid-column: span 2;"><strong>Dirección Final:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
+                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
                         </div>
                     </div>
 
@@ -1169,12 +1320,12 @@
                     </div>
 
                     <div class="print-section">
-                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">4. CHECKLISTS Y EPIS</h3>
+                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">4. CHECKLISTS DE SEGURIDAD Y EPIS</h3>
                         <div style="font-size: 8.5px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                             <div>
-                                <strong>Checks Escalera Marcados (${ladderChecks.length}):</strong>
+                                <strong>Verificaciones Escalera Marcadas (${ladderChecks.length}):</strong>
                                 <ul style="margin: 2px 0 0 10px; padding: 0;">
-                                    ${ladderChecks.map(c => `<li>${c}</li>`).join('') || '<em>Ninguno marcado</em>'}
+                                    ${ladderChecks.map(c => `<li>${c}</li>`).join('') || '<em>Ninguna marcada</em>'}
                                 </ul>
                             </div>
                             <div>
@@ -1187,22 +1338,22 @@
                     </div>
                 </div>
 
-                <!-- PÁGINA 2: EVIDENCIAS FOTOGRÁFICAS, TRAZADO Y FIRMA -->
+                <!-- PÁGINA 2: EVIDENCIAS FOTOGRÁFICAS, CROQUIS Y FIRMA -->
                 <div class="pdf-page pdf-page-last">
                     <div class="print-section">
-                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS</h3>
+                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-                            ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Croquis del Trazado</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>Escalera en Poste</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>Foto Escalera en Poste</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
                             ${uploadedFiles['file-foto1'] ? `<div class="print-img-box"><span>Foto 1 (Entorno)</span><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-foto2'] ? `<div class="print-img-box"><span>Foto 2 (Detalle)</span><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto2'] ? `<div class="print-img-box"><span>Foto 2 (Detalle / Incidencia)</span><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
                         </div>
                         ${pointsPrintHTML}
                         ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8.5px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
                     </div>
 
                     <div class="print-section" style="margin-top: 6px;">
-                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">6. FIRMA Y DECLARACIÓN</h3>
+                        <h3 style="font-size: 10px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">6. FIRMA Y DECLARACIÓN RESPONSABLE</h3>
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 9px;">
                             <div>
                                 <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}<br>
@@ -1217,6 +1368,14 @@
             `;
 
             return { puntosTextoBreve: puntosTextoBreve.join(' || ') };
+        }
+
+        function generatePrintPreview() {
+            buildPrintHTML();
+            const printArea = document.getElementById('print-area');
+            printArea.classList.remove('hidden');
+            window.print();
+            printArea.classList.add('hidden');
         }
 
         function formatFechaSubject(rawDatetime) {
@@ -1247,6 +1406,109 @@
             return new Blob(byteArrays, { type: mimeType });
         }
 
+        function saveToOfflineQueue(item) {
+            let queue = [];
+            try {
+                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
+            } catch (e) { queue = []; }
+
+            queue.push(item);
+            localStorage.setItem('pending_pole_submissions', JSON.stringify(queue));
+
+            updatePendingBadge();
+            localStorage.removeItem('pole_form_draft');
+
+            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación de la OT ${item.nOt} se ha guardado localmente.\n\nSe enviará automáticamente en cuanto recuperes la conexión.`);
+
+            document.getElementById('pole-form').reset();
+            clearCroquisMap();
+            clearSignatureCanvas();
+            goToStep(1);
+        }
+
+        function updatePendingBadge() {
+            let queue = [];
+            try {
+                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
+            } catch (e) { queue = []; }
+
+            const btn = document.getElementById('btn-sync-offline');
+            const countSpan = document.getElementById('pending-count');
+
+            if (btn && countSpan) {
+                if (queue.length > 0) {
+                    countSpan.innerText = queue.length;
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+        }
+
+        // ENVÍO LIGERO Y GARANTIZADO POR FORMSUBMIT
+        async function sendPayloadToFormSubmit(item) {
+            const sendData = new FormData();
+            sendData.append('_subject', item._subject);
+            sendData.append('_captcha', 'false');
+            sendData.append('_template', 'table');
+
+            Object.keys(item.formData).forEach(key => {
+                sendData.append(key, item.formData[key]);
+            });
+
+            const pdfBlob = base64ToBlob(item.pdfBase64);
+            const pdfFile = new File([pdfBlob], item.pdfName, { type: 'application/pdf' });
+            sendData.append('attachment', pdfFile, item.pdfName);
+
+            const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: sendData
+            });
+
+            if (!res.ok) throw new Error("Error en servidor de correo FormSubmit.");
+            const resJson = await res.json();
+            if (resJson.success === "false" || resJson.success === false) {
+                throw new Error("Respuesta fallida de FormSubmit.");
+            }
+            return true;
+        }
+
+        async function syncPendingSubmissions() {
+            let queue = [];
+            try {
+                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
+            } catch (e) { queue = []; }
+
+            if (queue.length === 0) return;
+            if (!navigator.onLine) {
+                alert("⚠️ Aún estás sin conexión a internet.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-sync-offline');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+            let remaining = [];
+            let successCount = 0;
+
+            for (let item of queue) {
+                try {
+                    await sendPayloadToFormSubmit(item);
+                    successCount++;
+                } catch (err) {
+                    remaining.push(item);
+                }
+            }
+
+            localStorage.setItem('pending_pole_submissions', JSON.stringify(remaining));
+            updatePendingBadge();
+
+            if (successCount > 0) {
+                alert(`✅ ¡Se han enviado correctamente ${successCount} informe(s) pendiente(s) a Prevención!`);
+            }
+        }
+
         async function handleFormSubmit(e) {
             e.preventDefault();
 
@@ -1269,10 +1531,7 @@
 
             try {
                 const buildData = buildPrintHTML();
-                
-                // NO OCULTAMOS CON HIDDEN. Hacemos que sea visible pero esté fuera de la pantalla.
-                // Así html2pdf lo puede "ver" pero tú no ves un pantallazo blanco raro en el móvil.
-                printArea.style.display = 'block';
+                printArea.classList.remove('hidden');
 
                 const images = printArea.querySelectorAll('img');
                 await Promise.all(Array.from(images).map(img => {
@@ -1301,10 +1560,7 @@
                 const pdfWorker = html2pdf().set(opt).from(printArea);
                 const pdfBlob = await pdfWorker.output('blob');
 
-                // Ocultar área de impresión de nuevo
-                printArea.style.display = 'none';
-
-                // Descarga local en tu móvil para asegurarnos de que no pierdas nada
+                // Descarga local de seguridad
                 const downloadUrl = URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
@@ -1314,41 +1570,66 @@
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(downloadUrl), 8000);
 
+                printArea.classList.add('hidden');
+
+                const pdfBase64 = await blobToBase64(pdfBlob);
+
+                const payloadObj = {
+                    _subject: emailSubject,
+                    _captcha: 'false',
+                    nOt: nOt,
+                    contrata: contrata,
+                    aliasTec1: aliasTec1,
+                    fechaFormatted: fechaFormatted,
+                    formData: {
+                        ASUNTO_OT: nOt,
+                        CONTRATA: contrata,
+                        ALIAS_TECNICO: aliasTec1,
+                        FECHA: fechaFormatted,
+                        TIPO_ACTUACION: document.querySelector('input[name="tipo"]:checked')?.value || '',
+                        ESTADO_INFRAESTRUCTURA: document.querySelector('input[name="estado"]:checked')?.value || '',
+                        DIRECCION_CLIENTE: document.getElementById('direccion').value || '',
+                        CODIGO_POSTAL: document.getElementById('codigoPostal').value || '',
+                        NOMBRE_TECNICO: document.getElementById('nombreTec1').value || '',
+                        ALIAS_RECURSO: document.getElementById('aliasRecursoPreventivo').value || '',
+                        NOMBRE_RECURSO: document.getElementById('nombreRecursoPreventivo').value || '',
+                        DNI_RECURSO: document.getElementById('dniRecurso').value || '',
+                        MATERIAL_POSTE: document.querySelector('input[name="tipoPoste"]:checked')?.value || '',
+                        ESTADO_POSTE: document.getElementById('estadoPoste').value || '',
+                        METODO_ASCENSO: document.getElementById('paraSubir').value || '',
+                        CANTIDAD_POSTES: document.getElementById('cantidadPostes').value || '0',
+                        UBICACIONES: buildData.puntosTextoBreve || 'Sin desglosar',
+                        OBSERVACIONES: document.getElementById('observaciones').value || ''
+                    },
+                    pdfBase64: pdfBase64,
+                    pdfName: pdfFileName
+                };
+
+                if (!navigator.onLine) {
+                    saveToOfflineQueue(payloadObj);
+                    return;
+                }
+
                 submitText.innerText = 'Enviando...';
 
-                // ENVÍO GARANTIZADO DE CORREO (Solo adjuntamos el PDF porque pesa poco y lleva las 4 fotos ordenadas)
-                const sendData = new FormData();
-                sendData.append('_subject', emailSubject);
-                sendData.append('_captcha', 'false');
-                sendData.append('_template', 'table');
-                
-                sendData.append('Nº_OT', nOt);
-                sendData.append('Técnico', document.getElementById('nombreTec1').value);
-                sendData.append('Desglose_Trazado', buildData.puntosTextoBreve);
-                sendData.append('Observaciones', document.getElementById('observaciones').value || 'Ninguna');
-
-                // Adjuntar PDF
-                const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
-                sendData.append('attachment', pdfFile, pdfFileName);
-
-                const res = await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json' },
-                    body: sendData
-                });
-
-                if (!res.ok) throw new Error("Fallo envío a servidor FormSubmit.");
-
-                document.getElementById('modal-ot').innerText = nOt;
-                document.getElementById('success-modal').classList.remove('hidden');
+                try {
+                    await sendPayloadToFormSubmit(payloadObj);
+                    document.getElementById('modal-ot').innerText = nOt;
+                    document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+                    localStorage.removeItem('pole_form_draft');
+                    document.getElementById('success-modal').classList.remove('hidden');
+                } catch (sendErr) {
+                    console.warn("Fallo en envío directo. Guardando en cola offline...", sendErr);
+                    saveToOfflineQueue(payloadObj);
+                }
 
             } catch (err) {
-                printArea.style.display = 'none';
+                printArea.classList.add('hidden');
                 console.error(err);
-                alert('Hubo un error al enviar el correo, pero el PDF debería haberse guardado en tu móvil.');
+                alert('Error al generar el documento PDF.');
             } finally {
                 submitBtn.disabled = false;
-                submitText.innerText = 'Generar y Enviar';
+                submitText.innerText = 'Finalizar y Enviar';
                 submitIcon.className = 'fa-solid fa-paper-plane';
             }
         }
