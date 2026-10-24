@@ -1389,7 +1389,6 @@
             } catch (e) {}
         }
 
-        // GUARDAR TODO AL 100% (INCLUYENDO CHECKBOXES, MAPA Y ARCHIVOS)
         function saveForLater() {
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
@@ -1417,7 +1416,7 @@
             data['savedAt'] = new Date().toLocaleString();
             data['step'] = currentStep;
             data['croquisPoints'] = croquisPoints;
-            data['uploadedFiles'] = uploadedFiles;
+            data['uploadedFiles'] = { ...uploadedFiles };
 
             let savedList = [];
             try {
@@ -1475,7 +1474,7 @@
             document.getElementById('saved-parts-modal').classList.add('hidden');
         }
 
-        // RECUPERAR TODO AL 100% Y REINICIAR MEMORIA DE ARCHIVOS
+        // RECUPERAR DATOS CON RESTAURACIÓN COMPLETA Y UNIFICADA PARA BORRADORES Y ENVIADOS
         function loadSavedPartData(index, isFromSent = false) {
             let list = [];
             try {
@@ -1488,6 +1487,7 @@
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
 
+            // Restaurar campos de texto, number y selects directos
             Object.keys(item).forEach(k => {
                 const el = document.getElementById(k);
                 if (el && typeof item[k] === 'string') {
@@ -1499,6 +1499,28 @@
                     });
                 }
             });
+
+            // Si los datos provienen del historial de enviados, mapear sus propiedades internas al DOM de forma explícita
+            if (isFromSent && item.formData) {
+                if (item.formData.ASUNTO_OT) document.getElementById('nOt').value = item.formData.ASUNTO_OT;
+                if (item.formData.CONTRATA) document.getElementById('contrataPrincipal').value = item.formData.CONTRATA;
+                if (item.formData.ALIAS_TECNICO) document.getElementById('aliasKairosTec1').value = item.formData.ALIAS_TECNICO;
+                if (item.formData.DIRECCION_CLIENTE) document.getElementById('direccion').value = item.formData.DIRECCION_CLIENTE;
+                if (item.formData.CODIGO_POSTAL) document.getElementById('codigoPostal').value = item.formData.CODIGO_POSTAL;
+                if (item.formData.NOMBRE_TECNICO) document.getElementById('nombreTec1').value = item.formData.NOMBRE_TECNICO;
+                if (item.formData.ALIAS_RECURSO) document.getElementById('aliasRecursoPreventivo').value = item.formData.ALIAS_RECURSO;
+                if (item.formData.NOMBRE_RECURSO) document.getElementById('nombreRecursoPreventivo').value = item.formData.NOMBRE_RECURSO;
+                if (item.formData.DNI_RECURSO) document.getElementById('dniRecurso').value = item.formData.DNI_RECURSO;
+                if (item.formData.ESTADO_POSTE) document.getElementById('estadoPoste').value = item.formData.ESTADO_POSTE;
+                if (item.formData.METODO_ASCENSO) document.getElementById('paraSubir').value = item.formData.METODO_ASCENSO;
+                if (item.formData.CANTIDAD_POSTES) document.getElementById('cantidadPostes').value = item.formData.CANTIDAD_POSTES;
+                if (item.formData.OBSERVACIONES) document.getElementById('observaciones').value = item.formData.OBSERVACIONES;
+
+                // Radios de Enviados
+                document.querySelectorAll('input[name="tipo"]').forEach(r => { if (r.value === item.formData.TIPO_ACTUACION) r.checked = true; });
+                document.querySelectorAll('input[name="estado"]').forEach(r => { if (r.value === item.formData.ESTADO_INFRAESTRUCTURA) r.checked = true; });
+                document.querySelectorAll('input[name="tipoPoste"]').forEach(r => { if (r.value === item.formData.MATERIAL_POSTE) r.checked = true; });
+            }
 
             if (item.checkboxesStates) {
                 Object.keys(item.checkboxesStates).forEach(name => {
@@ -1517,6 +1539,7 @@
                 }, 300);
             }
 
+            // RESTAURACIÓN CLAVE DE ARCHIVOS E IMÁGENES EN MEMORIA INTERNA
             if (item.uploadedFiles) {
                 Object.keys(item.uploadedFiles).forEach(fileKey => {
                     uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
@@ -1532,12 +1555,12 @@
                 });
             }
 
-            if (item.contrataPrincipal) {
+            if (item.contrataPrincipal || (item.formData && item.formData.CONTRATA)) {
                 handleContractorChange();
-                if (item.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = item.aliasKairosTec1;
-                if (item.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = item.aliasRecursoPreventivo;
-                if (item.nombreTec1) document.getElementById('nombreTec1').value = item.nombreTec1;
-                if (item.nombreRecursoPreventivo) document.getElementById('nombreRecursoPreventivo').value = item.nombreRecursoPreventivo;
+                const aliasTec = item.aliasKairosTec1 || (item.formData && item.formData.ALIAS_TECNICO);
+                const aliasRec = item.aliasRecursoPreventivo || (item.formData && item.formData.ALIAS_RECURSO);
+                if (aliasTec) document.getElementById('aliasKairosTec1').value = aliasTec;
+                if (aliasRec) document.getElementById('aliasRecursoPreventivo').value = aliasRec;
             }
 
             if (item.firmaData) {
@@ -1556,7 +1579,7 @@
             goToStep(item.step || 1);
             if (isFromSent) closeSentPartsModal();
             else closeSavedPartsModal();
-            alert(`✅ Parte OT "${item.nOt}" recuperado íntegramente.`);
+            alert(`✅ Parte OT "${item.nOt || (item.formData && item.formData.ASUNTO_OT)}" recuperado íntegramente.`);
         }
 
         function deleteSavedPart(index) {
@@ -1573,7 +1596,6 @@
             }
         }
 
-        // GUARDAR COMPLETO EN ENVIADOS (INCLUYENDO ARCHIVOS Y MAPA PARA RECUPERACIÓN POSTERIOR)
         function saveToSentHistoryCompletely(nOt) {
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
@@ -1601,7 +1623,8 @@
             data['sentAt'] = new Date().toLocaleString();
             data['step'] = 6;
             data['croquisPoints'] = croquisPoints;
-            data['uploadedFiles'] = uploadedFiles;
+            data['uploadedFiles'] = { ...uploadedFiles };
+            data['nOt'] = nOt;
 
             let sentList = [];
             try {
@@ -1634,7 +1657,7 @@
                 listContainer.innerHTML = sentList.map((item, index) => `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                         <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
+                            <div class="font-bold text-white">OT: ${item.nOt || (item.formData && item.formData.ASUNTO_OT) || 'Sin OT'}</div>
                             <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
                         </div>
                         <div class="flex gap-1.5">
@@ -1656,7 +1679,6 @@
             const item = sentList[index];
             if (!item) return;
 
-            // Cargar provisionalmente los datos en el formulario para generar vista previa exacta
             loadSavedPartData(index, true);
             closeSentPartsModal();
             setTimeout(() => {
@@ -1929,16 +1951,16 @@
             }
 
             const btn = document.getElementById('btn-sync-offline');
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
 
             let remaining = [];
-            let successCount = 0;
+            let lastSuccessfulItem = null;
 
             for (let item of queue) {
                 try {
                     await sendPayloadToFormSubmit(item);
                     saveToSentHistoryCompletely(item.nOt);
-                    successCount++;
+                    lastSuccessfulItem = item;
                 } catch (err) {
                     remaining.push(item);
                 }
@@ -1947,8 +1969,12 @@
             localStorage.setItem('pending_pole_submissions', JSON.stringify(remaining));
             updatePendingBadge();
 
-            if (successCount > 0) {
-                alert(`✅ ¡Se han enviado correctamente ${successCount} informe(s) pendiente(s) a Prevención!`);
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-wifi"></i> Sincronizar';
+
+            if (lastSuccessfulItem) {
+                document.getElementById('modal-ot').innerText = lastSuccessfulItem.nOt;
+                document.getElementById('modal-tec').innerText = lastSuccessfulItem.formData.NOMBRE_TECNICO || 'Técnico';
+                document.getElementById('success-modal').classList.remove('hidden');
             }
         }
 
