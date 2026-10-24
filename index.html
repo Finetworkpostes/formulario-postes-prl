@@ -637,14 +637,14 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Parte Enviado y Registrado!</h3>
-            <p class="text-xs text-slate-400">El correo electrónico se ha enviado correctamente. Además, puedes ver o descargar el PDF completo en cualquier momento desde "Enviados".</p>
+            <p class="text-xs text-slate-400">El correo electrónico se ha enviado correctamente. Además, puedes ver o descargar el PDF completo con todos sus datos desde "Enviados".</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
             </div>
             <div class="space-y-2 pt-2">
                 <button type="button" onclick="generatePrintPreview()" class="w-full py-3 bg-gradient-to-r from-purple-700 to-brand-600 hover:from-purple-600 hover:to-brand-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-file-pdf text-base"></i> 📥 Ver / Descargar PDF con Fotos
+                    <i class="fa-solid fa-file-pdf text-base"></i> 📥 Ver / Descargar PDF Oficial
                 </button>
                 <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Realizar Nueva Actuación</button>
             </div>
@@ -1084,25 +1084,25 @@
             if (!container) return;
 
             const formData = new FormData(document.getElementById('pole-form'));
-            const nOt = document.getElementById('nOt').value || '-';
-            const contrata = document.getElementById('contrataPrincipal').value || '-';
+            const nOt = formData.get('nOt') || '-';
+            const contrata = formData.get('contrataPrincipal') || '-';
             const tipo = formData.get('tipo') || '-';
             const estadoInfra = formData.get('estado') || '-';
-            const fechaHora = document.getElementById('fechaHora').value || '-';
-            const direccion = document.getElementById('direccion').value || '-';
+            const fechaHora = formData.get('fechaHora') || '-';
+            const direccion = formData.get('direccion') || '-';
             
-            const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
-            const nomTec1 = document.getElementById('nombreTec1').value || '-';
-            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
-            const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || '-';
+            const aliasTec1 = formData.get('aliasKairosTec1') || '-';
+            const nomTec1 = formData.get('nombreTec1') || '-';
+            const aliasRecurso = formData.get('aliasRecursoPreventivo') || '-';
+            const nomRecurso = formData.get('nombreRecursoPreventivo') || '-';
 
             const tipoPoste = formData.get('tipoPoste') || '-';
-            const estadoPoste = document.getElementById('estadoPoste').value || '-';
-            const paraSubir = document.getElementById('paraSubir').value || '-';
+            const estadoPoste = formData.get('estadoPoste') || '-';
+            const paraSubir = formData.get('paraSubir') || '-';
             const sePuede = formData.get('sePuede') || '-';
-            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
+            const cantidadPostes = formData.get('cantidadPostes') || '0';
             const totalMeters = calculateTotalMeters();
-            const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
+            const observaciones = formData.get('observaciones') || 'Sin observaciones';
 
             const ladderChecks = formData.getAll('ladderCheck');
             const epis = formData.getAll('epis');
@@ -1370,18 +1370,23 @@
             const item = sentList[index];
             if (!item) return false;
 
+            // Restablecer de forma segura los valores de la UI sin vaciar la variable formData real
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
 
             Object.keys(item).forEach(k => {
-                const el = document.getElementById(k);
-                if (el && typeof item[k] === 'string') {
-                    el.value = item[k];
-                } else {
-                    const radios = document.querySelectorAll(`input[name="${k}"]`);
-                    radios.forEach(r => {
-                        if (r.value === item[k]) r.checked = true;
-                    });
+                if (k === 'checkboxesStates' || k === 'uploadedFiles' || k === 'croquisPoints' || k === 'firmaData' || k === 'sentAt' || k === 'step') return;
+                
+                const elements = document.getElementsByName(k);
+                if (elements.length > 0) {
+                    const el = elements[0];
+                    if (el.type === 'radio') {
+                        elements.forEach(r => {
+                            if (r.value === item[k]) r.checked = true;
+                        });
+                    } else if (el.type !== 'checkbox' && el.type !== 'file') {
+                        el.value = item[k];
+                    }
                 }
             });
 
@@ -1442,11 +1447,13 @@
                 document.getElementById('pole-form').reset();
                 clearCroquisMap();
                 clearSignatureCanvas();
+                Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
                 goToStep(1);
             }
         }
 
         function buildPrintHTML() {
+            // Se usa formData real para asegurar la fiabilidad de captura de campos
             const printArea = document.getElementById('print-area');
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
@@ -1482,29 +1489,29 @@
                             <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
                         </div>
                         <div style="text-align: right; font-size: 8.5px;">
-                            <strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}<br>
-                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value || '-'}
+                            <strong>Nº OT:</strong> ${formData.get('nOt') || '-'}<br>
+                            <strong>Fecha/Hora:</strong> ${formData.get('fechaHora') || '-'}
                         </div>
                     </div>
 
                     <div class="print-section">
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">1. DATOS DE LA ACTUACIÓN</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}</div>
-                            <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
+                            <div><strong>Nº OT:</strong> ${formData.get('nOt') || '-'}</div>
+                            <div><strong>Contrata Principal:</strong> ${formData.get('contrataPrincipal') || '-'}</div>
                             <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
                             <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
-                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
+                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${formData.get('direccion') || '-'} (${formData.get('codigoPostal') || '-'})</div>
                         </div>
                     </div>
 
                     <div class="print-section">
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. IDENTIFICACIÓN DEL PERSONAL</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'}</div>
-                            <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value || '-'}</div>
-                            <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'}</div>
-                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}</div>
+                            <div><strong>Alias TEC1:</strong> ${formData.get('aliasKairosTec1') || '-'}</div>
+                            <div><strong>Técnico TEC1:</strong> ${formData.get('nombreTec1') || '-'}</div>
+                            <div><strong>Alias Recurso Preventivo:</strong> ${formData.get('aliasRecursoPreventivo') || '-'}</div>
+                            <div><strong>Recurso Preventivo:</strong> ${formData.get('nombreRecursoPreventivo') || '-'}</div>
                         </div>
                     </div>
 
@@ -1512,10 +1519,10 @@
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">3. EVALUACIÓN TÉCNICA DEL POSTE</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
                             <div><strong>Material del Poste:</strong> ${formData.get('tipoPoste') || '-'}</div>
-                            <div><strong>Estado Global del Poste:</strong> ${document.getElementById('estadoPoste').value || '-'}</div>
-                            <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value || '-'}</div>
+                            <div><strong>Estado Global del Poste:</strong> ${formData.get('estadoPoste') || '-'}</div>
+                            <div><strong>Método Ascenso:</strong> ${formData.get('paraSubir') || '-'}</div>
                             <div><strong>Apto Escalera con Seguridad:</strong> ${formData.get('sePuede') || '-'}</div>
-                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'} | <strong>Metros:</strong> ${calculateTotalMeters()} m</div>
+                            <div><strong>Total Postes:</strong> ${formData.get('cantidadPostes') || '0'} | <strong>Metros:</strong> ${calculateTotalMeters()} m</div>
                             ${medidasMaderaHTML}
                         </div>
                     </div>
@@ -1550,15 +1557,15 @@
                             ${uploadedFiles['file-foto2'] ? `<div class="print-img-box"><span>Foto 2 (Detalle / Incidencia)</span><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
                         </div>
                         ${pointsPrintHTML}
-                        ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
+                        ${formData.get('observaciones') ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${formData.get('observaciones')}</div>` : ''}
                     </div>
 
                     <div class="print-section" style="margin-top: 4px;">
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">6. FIRMA Y DECLARACIÓN RESPONSABLE</h3>
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 8.5px;">
                             <div>
-                                <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}<br>
-                                <strong>DNI / NIE:</strong> ${document.getElementById('dniRecurso').value || '-'}
+                                <strong>Recurso Preventivo:</strong> ${formData.get('nombreRecursoPreventivo') || '-'}<br>
+                                <strong>DNI / NIE:</strong> ${formData.get('dniRecurso') || '-'}
                             </div>
                             <div style="text-align: center;">
                                 ${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 35px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}
@@ -1587,28 +1594,34 @@
             });
         }
 
-        // FUNCIÓN ROBUSTA DE SUBIDA A IMGBB CON CLAVE ALTERNATIVA Y RESPALDO
+        // ==========================================
+        // ¡LA CLAVE ESTÁ AQUÍ!: Subida a ImgBB vía BLOB
+        // ==========================================
         async function uploadImageToImgBB(base64Data) {
             if (!base64Data || base64Data.length < 100) return 'No disponible';
-            const base64Image = base64Data.split(',')[1] || base64Data;
             
-            const formData = new FormData();
-            formData.append('key', '6d207e02194a847aa98d0a9a9e04bc8a'); // Clave alternativa con mayor cuota libre
-            formData.append('image', base64Image);
-
             try {
-                const response = await fetch('https://api.imgbb.com/1/upload', {
+                // Convertimos el base64 a un Blob (archivo real) para que el servidor de ImgBB nunca bloquee el tamaño del string.
+                const fetchRes = await fetch(base64Data);
+                const blob = await fetchRes.blob();
+                
+                const formData = new FormData();
+                formData.append('key', '6d207e02194a847aa98d0a9a9e04bc8a'); // Usamos una API libre menos saturada
+                formData.append('image', blob, 'foto_prl.jpg');
+
+                const uploadRes = await fetch('https://api.imgbb.com/1/upload', {
                     method: 'POST',
                     body: formData
                 });
-                const result = await response.json();
+                
+                const result = await uploadRes.json();
                 if (result && result.success) {
                     return result.data.url;
                 }
             } catch (err) {
-                console.warn("Fallo temporal en ImgBB, usando respaldo automático.");
+                console.error("Error en la subida a ImgBB:", err);
             }
-            return 'Adjunto en PDF local (Historial)';
+            return 'Adjunto seguro en PDF (Historial)';
         }
 
         // ENVÍO DE CORREO CON ENLACES DE FOTOS
@@ -1636,7 +1649,10 @@
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
                 const aliasTec1 = document.getElementById('aliasKairosTec1').value || 'Sin_Alias';
 
-                // Subida paralela de imágenes
+                // Guardamos el historial LOCALMENTE ANTES de que cualquier cosa pueda fallar
+                saveToSentHistoryCompletely(nOt);
+
+                // Subida paralela de imágenes usando Blobs físicos
                 const urlCroquis = await uploadImageToImgBB(uploadedFiles['file-croquis']);
                 const urlEscalera = await uploadImageToImgBB(uploadedFiles['file-escalera']);
                 const urlFoto1 = await uploadImageToImgBB(uploadedFiles['file-foto1']);
@@ -1670,16 +1686,11 @@
 
                 if (!res.ok) throw new Error("Error al enviar el correo.");
 
-                saveToSentHistoryCompletely(nOt);
-
+                // Mostramos el modal de éxito.
+                // ¡IMPORTANTE!: YA NO BORRAMOS EL FORMULARIO AQUÍ PARA QUE EL PDF SALGA CON DATOS
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
-
-                document.getElementById('pole-form').reset();
-                clearCroquisMap();
-                clearSignatureCanvas();
-                goToStep(1);
 
             } catch (err) {
                 console.error(err);
@@ -1691,11 +1702,14 @@
             }
         }
 
+        // Esta función se encarga de limpiar el formulario y cerrar el modal. 
+        // Solo se lanza cuando tú decides salir pulsando el botón "Nueva Actuación".
         function resetFormAndCloseModal() {
             document.getElementById('success-modal').classList.add('hidden');
             document.getElementById('pole-form').reset();
             clearCroquisMap();
             clearSignatureCanvas();
+            Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
             goToStep(1);
         }
     </script>
