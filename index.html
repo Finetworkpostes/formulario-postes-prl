@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- html2canvas (Captura de pantalla del mapa) -->
+    <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- html2pdf (Generación de PDF) -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Leaflet MAPS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -41,7 +41,6 @@
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
-        /* Reglas estricta para PDF e impresión */
         @media print {
             header, footer, nav, .no-print, main, #success-modal { display: none !important; }
             body { background: white !important; color: black !important; }
@@ -156,6 +155,7 @@
 
         <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
+            <!-- Campos ocultos de dirección y CP -->
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
 
@@ -506,7 +506,7 @@
                         </div>
                     </div>
 
-                    <!-- DROPZONE 2: Foto Escalera en Poste -->
+                    <!-- DROPZONE 2: Foto Escalera (SIN capture forzoso -> Permite Cámara o Galería) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-camera text-brand-400"></i>
@@ -515,15 +515,16 @@
                         <p class="text-[11px] text-slate-400">Escalera, Línea de vida, Patas extensibles, EPIs y Señalización.</p>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
+                            <!-- Se quita capture="environment" para que el móvil pregunte: Cámara o Galería/Archivo -->
                             <input type="file" id="file-escalera" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
+                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DROPZONE 3: Foto 1 (Estado/Entorno) -->
+                    <!-- DROPZONE 3: Foto 1 (Entorno) (Cámara o Galería) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-image text-brand-400"></i>
@@ -535,12 +536,12 @@
                             <input type="file" id="file-foto1" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
                             <div id="preview-foto1" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
+                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- DROPZONE 4: Foto 2 (Detalle / Incidencia) -->
+                    <!-- DROPZONE 4: Foto 2 (Detalle) (Cámara o Galería) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-image text-brand-400"></i>
@@ -552,7 +553,7 @@
                             <input type="file" id="file-foto2" required accept="image/*" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
                             <div id="preview-foto2" class="space-y-2">
                                 <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Tomar foto o seleccionar archivo</div>
+                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
                             </div>
                         </div>
                     </div>
@@ -573,19 +574,20 @@
             <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
                     <span>Sección 6: Resumen, DNI y Firma Digital</span>
-                    <span class="text-xs font-normal text-slate-400">Verifique los datos antes de enviar</span>
+                    <span class="text-xs font-normal text-slate-400">Verifique y modifique si es necesario</span>
                 </h2>
 
+                <!-- DESGLOSE COMPLETO Y EDITABLE -->
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-check text-brand-400"></i>
                             Desglose Completo de la Actuación
                         </h3>
-                        <span class="text-[11px] text-slate-400">Pulse en "Editar" para modificar datos</span>
+                        <span class="text-[11px] text-slate-400">Pulse "Editar" en cualquier sección para cambiar datos</span>
                     </div>
                     
-                    <div id="summary-breakdown-container" class="space-y-4 text-xs"></div>
+                    <div id="summary-breakdown-container" class="space-y-3 text-xs"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -686,7 +688,6 @@
             });
         });
 
-        // COMPRESIÓN ULTRALIGERA PARA FOTOS (Garantiza PDF < 300KB)
         function compressImage(file, maxWidth = 600, maxHeight = 600, quality = 0.5) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -724,9 +725,7 @@
             try {
                 const res = await fetch('usuarios.json?v=' + new Date().getTime());
                 if (res.ok) rawData = await res.json();
-            } catch (err) {
-                console.warn("Usando catálogo de usuarios integrado.", err);
-            }
+            } catch (err) {}
 
             if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
                 rawData = DEFAULT_USUARIOS;
@@ -1036,7 +1035,6 @@
             if (!stepContainer) return true;
 
             let valid = true;
-            let firstInvalidInput = null;
             const requiredInputs = stepContainer.querySelectorAll('[required]');
             const processedRadioNames = new Set();
 
@@ -1063,22 +1061,74 @@
             return valid;
         }
 
+        // DESGLOSE COMPLETO Y CON BOTONES DE EDICIÓN RÁPIDA EN EL PASO 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
 
             const formData = new FormData(document.getElementById('pole-form'));
+            
+            let ladderChecks = formData.getAll('ladderCheck');
+            let epis = formData.getAll('epis');
+
+            let pointsHTML = '';
+            if (croquisPoints.length > 0) {
+                croquisPoints.forEach((p, idx) => {
+                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    pointsHTML += `<div>• <strong>${label}:</strong> ${p.address}</div>`;
+                });
+            } else {
+                pointsHTML = '<em>Sin puntos en el mapa.</em>';
+            }
+
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <strong class="text-purple-400 uppercase text-[11px]">1. Datos OT</strong>
-                        <div><strong class="text-slate-400">OT:</strong> ${document.getElementById('nOt').value || '-'} | <strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
-                        <div><strong class="text-slate-400">Dirección:</strong> ${document.getElementById('direccion').value || '-'}</div>
+                    <!-- Bloque 1: OT -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 relative">
+                        <button type="button" onclick="goToStep(1)" class="absolute top-2 right-2 px-2 py-1 bg-brand-900/60 text-purple-300 hover:bg-brand-800 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <strong class="text-purple-400 uppercase text-[11px] block">1. Datos OT</strong>
+                        <div><strong class="text-slate-400">OT:</strong> <span class="text-white">${document.getElementById('nOt').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-white">${document.getElementById('contrataPrincipal').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Tipo:</strong> <span class="text-white">${formData.get('tipo') || '-'}</span> | <strong>Infraestructura:</strong> <span class="text-white">${formData.get('estado') || '-'}</span></div>
+                        <div><strong class="text-slate-400">Dirección:</strong> <span class="text-emerald-300">${document.getElementById('direccion').value || 'Sin definir en mapa'}</span></div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <strong class="text-purple-400 uppercase text-[11px]">2. Personal</strong>
-                        <div><strong class="text-slate-400">TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'} (${document.getElementById('nombreTec1').value || '-'})</div>
-                        <div><strong class="text-slate-400">Recurso:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'} (${document.getElementById('nombreRecursoPreventivo').value || '-'})</div>
+
+                    <!-- Bloque 2: Personal -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 relative">
+                        <button type="button" onclick="goToStep(2)" class="absolute top-2 right-2 px-2 py-1 bg-brand-900/60 text-purple-300 hover:bg-brand-800 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <strong class="text-purple-400 uppercase text-[11px] block">2. Personal</strong>
+                        <div><strong class="text-slate-400">Técnico TEC1:</strong> <span class="text-white">${document.getElementById('aliasKairosTec1').value || '-'} (${document.getElementById('nombreTec1').value || '-'})</span></div>
+                        <div><strong class="text-slate-400">Recurso Preventivo:</strong> <span class="text-white">${document.getElementById('aliasRecursoPreventivo').value || '-'} (${document.getElementById('nombreRecursoPreventivo').value || '-'})</span></div>
+                    </div>
+
+                    <!-- Bloque 3: Poste -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 relative">
+                        <button type="button" onclick="goToStep(3)" class="absolute top-2 right-2 px-2 py-1 bg-brand-900/60 text-purple-300 hover:bg-brand-800 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <strong class="text-purple-400 uppercase text-[11px] block">3. Poste y Seguridad</strong>
+                        <div><strong class="text-slate-400">Material:</strong> <span class="text-white">${formData.get('tipoPoste') || '-'}</span></div>
+                        <div><strong class="text-slate-400">Estado Global:</strong> <span class="text-white">${document.getElementById('estadoPoste').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Ascenso:</strong> <span class="text-white">${document.getElementById('paraSubir').value || '-'}</span> | <strong>¿Apto Escalera?:</strong> <span class="text-white">${formData.get('sePuede') || '-'}</span></div>
+                    </div>
+
+                    <!-- Bloque 4: Checklists -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 relative">
+                        <button type="button" onclick="goToStep(4)" class="absolute top-2 right-2 px-2 py-1 bg-brand-900/60 text-purple-300 hover:bg-brand-800 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <strong class="text-purple-400 uppercase text-[11px] block">4. Checklists y EPIs</strong>
+                        <div><strong class="text-slate-400">Checks Escalera:</strong> <span class="text-emerald-400">${ladderChecks.length} marcados</span></div>
+                        <div><strong class="text-slate-400">EPIs Utilizados:</strong> <span class="text-emerald-400">${epis.length} utilizados</span></div>
+                    </div>
+
+                    <!-- Bloque 5: Mapa y Trazado -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 md:col-span-2 relative">
+                        <button type="button" onclick="goToStep(5)" class="absolute top-2 right-2 px-2 py-1 bg-brand-900/60 text-purple-300 hover:bg-brand-800 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <strong class="text-purple-400 uppercase text-[11px] block">5. Trazado FTTH y Ubicaciones</strong>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                            <div>${pointsHTML}</div>
+                            <div>
+                                <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400 font-bold">${document.getElementById('cantidadPostes').value || '0'}</span></div>
+                                <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-200">${document.getElementById('observaciones').value || 'Ninguna'}</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
         }
@@ -1445,7 +1495,6 @@
             }
         }
 
-        // ENVÍO LIGERO Y GARANTIZADO POR FORMSUBMIT
         async function sendPayloadToFormSubmit(item) {
             const sendData = new FormData();
             sendData.append('_subject', item._subject);
@@ -1560,7 +1609,6 @@
                 const pdfWorker = html2pdf().set(opt).from(printArea);
                 const pdfBlob = await pdfWorker.output('blob');
 
-                // Descarga local de seguridad
                 const downloadUrl = URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
