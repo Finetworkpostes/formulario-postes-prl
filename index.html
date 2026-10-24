@@ -42,7 +42,7 @@
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #saved-parts-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #saved-parts-modal, #sent-parts-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -115,18 +115,22 @@
                     <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse">
+            <!-- BOTONES SUPERIORES EN COLUMNA (UNO ENCIMA DE OTRO) -->
+            <div class="flex flex-col items-end space-y-1.5">
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-full justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
-                <button type="button" onclick="openSavedPartsModal()" class="px-3 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-700 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-folder-open"></i> Recuperar (<span id="saved-parts-count">0</span>)
+                <button type="button" onclick="openSavedPartsModal()" class="px-3 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-700 transition flex items-center justify-between gap-2 w-36">
+                    <span><i class="fa-solid fa-folder-open"></i> Recuperar</span> <span class="bg-purple-950 px-1.5 py-0.5 rounded text-[10px]" id="saved-parts-count">0</span>
                 </button>
-                <button type="button" onclick="manualSaveDraft()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-floppy-disk text-purple-400"></i> Borrador
+                <button type="button" onclick="openSentPartsModal()" class="px-3 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-36">
+                    <span><i class="fa-solid fa-paper-plane"></i> Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
                 </button>
-                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-trash-can"></i> Limpiar
+                <button type="button" onclick="manualSaveDraft()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition flex items-center justify-between gap-2 w-36">
+                    <span><i class="fa-solid fa-floppy-disk text-purple-400"></i> Borrador</span>
+                </button>
+                <button type="button" onclick="confirmResetForm()" class="px-3 py-1.5 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-lg border border-rose-800/50 transition flex items-center justify-between gap-2 w-36">
+                    <span><i class="fa-solid fa-trash-can"></i> Limpiar</span>
                 </button>
             </div>
         </div>
@@ -663,7 +667,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE LISTA DE PARTES GUARDADOS (RECUPERAR / ELIMINAR) -->
+    <!-- MODAL DE PARTES GUARDADOS -->
     <div id="saved-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -672,11 +676,26 @@
                 </h3>
                 <button type="button" onclick="closeSavedPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <div id="saved-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs">
-                <!-- Se rellena dinámicamente -->
-            </div>
+            <div id="saved-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
             <div class="pt-2 border-t border-slate-800 flex justify-end">
                 <button type="button" onclick="closeSavedPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PARTES ENVIADOS -->
+    <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-emerald-400"></i> Historial de Partes Enviados
+                </h3>
+                <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div id="sent-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
+                <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
             </div>
         </div>
     </div>
@@ -717,6 +736,7 @@
             updateProgressBar();
             updatePendingBadge();
             updateSavedPartsBadge();
+            updateSentPartsBadge();
 
             document.getElementById('pole-form').addEventListener('input', autoSaveDraft);
             document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
@@ -1099,6 +1119,7 @@
             return valid;
         }
 
+        // MOSTRAR TODOS LOS DATOS EN EL DESGLOSE INCLUYENDO DIRECCIONES DE POSTES
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
@@ -1123,6 +1144,23 @@
             const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
             const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
 
+            const ladderChecks = formData.getAll('ladderCheck');
+            const epis = formData.getAll('epis');
+            const medidasMadera = formData.getAll('medidasMadera');
+
+            let pointsSummaryHTML = '';
+            if (croquisPoints.length > 0) {
+                pointsSummaryHTML = `<div class="mt-2 space-y-1 bg-slate-950 p-2 rounded border border-slate-800">
+                    <strong class="text-purple-300">Desglose de Ubicaciones y Postes:</strong><br>`;
+                croquisPoints.forEach((p, idx) => {
+                    let lbl = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    pointsSummaryHTML += `<div class="text-slate-300">• <strong>${lbl}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
+                });
+                pointsSummaryHTML += `</div>`;
+            } else {
+                pointsSummaryHTML = `<div class="text-slate-500 italic mt-1">Sin puntos marcados en el mapa</div>`;
+            }
+
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
@@ -1132,7 +1170,9 @@
                         </div>
                         <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-semibold">${nOt}</span></div>
                         <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${contrata}</span> | <strong>Tipo:</strong> <span class="text-slate-200">${tipo}</span></div>
+                        <div><strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
                         <div><strong class="text-slate-400">Dirección:</strong> <span class="text-emerald-300">${direccion}</span></div>
+                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${fechaHora}</span></div>
                     </div>
 
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
@@ -1146,20 +1186,32 @@
 
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">3. Poste</span>
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">3. Poste y Seguridad</span>
                             <button type="button" onclick="goToStep(3)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
                         </div>
-                        <div><strong class="text-slate-400">Material:</strong> <span class="text-slate-200">${tipoPoste}</span> | <strong>Estado:</strong> <span class="text-slate-200">${estadoPoste}</span></div>
+                        <div><strong class="text-slate-400">Material:</strong> <span class="text-slate-200">${tipoPoste}</span></div>
+                        <div><strong class="text-slate-400">Estado:</strong> <span class="text-slate-200">${estadoPoste}</span> | <strong>Método:</strong> <span class="text-slate-200">${paraSubir}</span></div>
                         <div><strong class="text-slate-400">Apto Escalera:</strong> <span class="${sePuede === 'SI' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${sePuede}</span></div>
+                        ${medidasMadera.length > 0 ? `<div><strong class="text-amber-400">Medidas Madera:</strong> <span class="text-slate-300">${medidasMadera.join(', ')}</span></div>` : ''}
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">4. Checks & EPIs</span>
+                            <button type="button" onclick="goToStep(4)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
+                        </div>
+                        <div><strong class="text-slate-400">Escalera:</strong> <span class="text-emerald-400 font-bold">${ladderChecks.length} verificaciones</span></div>
+                        <div><strong class="text-slate-400">EPIs:</strong> <span class="text-emerald-400 font-bold">${epis.length} seleccionados</span></div>
                     </div>
 
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">4 & 5. Trazado y Notas</span>
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">5. Trazado, Postes y Evidencias</span>
                             <button type="button" onclick="goToStep(5)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
                         </div>
                         <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400 font-bold">${cantidadPostes}</span></div>
-                        <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${observaciones}</span></div>
+                        ${pointsSummaryHTML}
+                        <div class="mt-1"><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${observaciones}</span></div>
                     </div>
                 </div>`;
         }
@@ -1313,7 +1365,7 @@
             } catch (e) {}
         }
 
-        // FUNCIONES DE GUARDAR PARA MÁS TARDE Y RECUPERAR PARTES
+        // GUARDAR PARA MÁS TARDE Y RECUPERAR
         function saveForLater() {
             const formData = new FormData(document.getElementById('pole-form'));
             const data = {};
@@ -1326,6 +1378,7 @@
             data['firmaData'] = document.getElementById('firmaData').value;
             data['savedAt'] = new Date().toLocaleString();
             data['step'] = currentStep;
+            data['croquisPoints'] = croquisPoints;
 
             let savedList = [];
             try {
@@ -1333,7 +1386,6 @@
             } catch (e) { savedList = []; }
 
             const nOt = data['nOt'] || 'OT-Sin-Numero';
-            // Si ya existe uno con la misma OT, lo actualizamos, si no lo añadimos
             const existingIdx = savedList.findIndex(item => item.nOt === nOt);
             if (existingIdx >= 0) {
                 savedList[existingIdx] = data;
@@ -1343,7 +1395,7 @@
 
             localStorage.setItem('user_saved_pole_parts', JSON.stringify(savedList));
             updateSavedPartsBadge();
-            alert(`💾 Parte de la OT "${nOt}" guardado correctamente para más tarde.`);
+            alert(`💾 Parte de la OT "${nOt}" guardado correctamente.`);
         }
 
         function updateSavedPartsBadge() {
@@ -1398,6 +1450,11 @@
                 if (el && typeof item[k] === 'string') el.value = item[k];
             });
 
+            if (item.croquisPoints) {
+                croquisPoints = item.croquisPoints;
+                setTimeout(renderCroquisMarkersAndPath, 300);
+            }
+
             if (item.contrataPrincipal) {
                 handleContractorChange();
                 if (item.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = item.aliasKairosTec1;
@@ -1416,7 +1473,7 @@
 
             goToStep(item.step || 1);
             closeSavedPartsModal();
-            alert(`✅ Parte OT "${item.nOt}" recuperado con éxito.`);
+            alert(`✅ Parte OT "${item.nOt}" recuperado.`);
         }
 
         function deleteSavedPart(index) {
@@ -1430,6 +1487,65 @@
                 localStorage.setItem('user_saved_pole_parts', JSON.stringify(savedList));
                 updateSavedPartsBadge();
                 openSavedPartsModal();
+            }
+        }
+
+        // HISTORIAL DE PARTES ENVIADOS
+        function saveToSentHistory(nOt) {
+            let sentList = [];
+            try {
+                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) { sentList = []; }
+
+            sentList.unshift({
+                nOt: nOt,
+                sentAt: new Date().toLocaleString()
+            });
+
+            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
+            updateSentPartsBadge();
+        }
+
+        function updateSentPartsBadge() {
+            let sentList = [];
+            try {
+                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) { sentList = []; }
+            document.getElementById('sent-parts-count').innerText = sentList.length;
+        }
+
+        function openSentPartsModal() {
+            let sentList = [];
+            try {
+                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) { sentList = []; }
+
+            const listContainer = document.getElementById('sent-parts-list');
+            if (sentList.length === 0) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
+            } else {
+                listContainer.innerHTML = sentList.map((item, index) => `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
+                        <div>
+                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
+                            <div class="text-[11px] text-slate-400">Enviado el: ${item.sentAt || 'Fecha desconocida'}</div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-lg text-[10px] font-bold">Enviado ✓</span>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('sent-parts-modal').classList.remove('hidden');
+        }
+
+        function closeSentPartsModal() {
+            document.getElementById('sent-parts-modal').classList.add('hidden');
+        }
+
+        function clearSentHistory() {
+            if (confirm('¿Desea vaciar el historial de enviados?')) {
+                localStorage.removeItem('user_sent_pole_parts');
+                updateSentPartsBadge();
+                openSentPartsModal();
             }
         }
 
@@ -1694,6 +1810,7 @@
             for (let item of queue) {
                 try {
                     await sendPayloadToFormSubmit(item);
+                    saveToSentHistory(item.nOt);
                     successCount++;
                 } catch (err) {
                     remaining.push(item);
@@ -1803,6 +1920,7 @@
 
                 try {
                     await sendPayloadToFormSubmit(payloadObj);
+                    saveToSentHistory(nOt);
                     document.getElementById('modal-ot').innerText = nOt;
                     document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                     localStorage.removeItem('pole_form_draft');
