@@ -718,7 +718,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="openWorkersEditor()" class="px-3 py-1.5 bg-brand-700 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-users-gear"></i> Gestionar Trabajadores
+                        <i class="fa-solid fa-code"></i> Editar Lista JSON
                     </button>
                     <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -731,33 +731,30 @@
         </div>
     </div>
 
-    <!-- MODAL GESTIÓN DE TRABAJADORES (EDITAR JSON) -->
+    <!-- MODAL GESTIÓN DE TRABAJADORES (PEGAR JSON COMPLETO) -->
     <div id="admin-workers-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 no-print">
         <div class="bg-slate-900 border border-brand-700 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col p-5 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
                 <div>
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-users-gear text-brand-400"></i> Editor de Plantilla de Trabajadores (JSON)
+                        <i class="fa-solid fa-code text-brand-400"></i> Pegar Lista JSON de Trabajadores
                     </h3>
-                    <p class="text-xs text-slate-400">Añade o edita técnicos y contratas al instante sin tocar GitHub.</p>
+                    <p class="text-xs text-slate-400">Pega aquí tu lista completa en formato JSON y guárdala al instante.</p>
                 </div>
                 <button type="button" onclick="closeWorkersEditor()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="flex justify-between items-center shrink-0">
-                <button type="button" onclick="addNewWorkerRow()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1">
-                    <i class="fa-solid fa-plus"></i> Añadir Trabajador
-                </button>
-                <span class="text-[11px] text-slate-400">Los cambios se aplican de inmediato en la app.</span>
+            <div class="flex-grow flex flex-col space-y-2">
+                <label for="workers-json-textarea" class="block text-xs font-medium text-slate-300">Código JSON:</label>
+                <textarea id="workers-json-textarea" rows="12" class="w-full flex-grow bg-slate-950 border border-slate-700 focus:border-brand-500 rounded-xl p-3 font-mono text-xs text-emerald-400 outline-none resize-none" placeholder='[&#10;  { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki" }&#10;]'></textarea>
+                <span class="text-[10px] text-slate-400">Asegúrate de que la estructura tenga los campos: <code>Contrata</code>, <code>Alias</code> y <code>NombreCompleto</code>.</span>
             </div>
-
-            <div id="workers-editor-list" class="flex-grow overflow-y-auto space-y-2 text-xs pr-1"></div>
 
             <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
                 <button type="button" onclick="resetWorkersToDefault()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs">Restaurar Originales</button>
                 <div class="flex gap-2">
                     <button type="button" onclick="closeWorkersEditor()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
-                    <button type="button" onclick="saveWorkersChanges()" class="px-5 py-2 bg-safety-600 hover:bg-safety-500 text-white font-bold rounded-xl text-xs">Guardar Cambios</button>
+                    <button type="button" onclick="saveWorkersJson()" class="px-5 py-2 bg-safety-600 hover:bg-safety-500 text-white font-bold rounded-xl text-xs">Guardar JSON</button>
                 </div>
             </div>
         </div>
@@ -843,7 +840,6 @@
         async function cargarListaUsuarios() {
             let rawData = null;
             
-            // Comprobar primero si hay una versión editada desde el panel admin en localStorage
             const localStoredWorkers = localStorage.getItem('master_admin_workers_json');
             if (localStoredWorkers) {
                 try {
@@ -1662,7 +1658,7 @@
             document.getElementById('admin-dashboard-modal').classList.add('hidden');
         }
 
-        // EDITOR DE TRABAJADORES (JSON DESDE ADMIN)
+        // EDITOR DE TRABAJADORES (PEGAR JSON COMPLETO)
         async function openWorkersEditor() {
             closeAdminDashboard();
             let currentWorkers = [];
@@ -1673,7 +1669,7 @@
             if (!currentWorkers || currentWorkers.length === 0) {
                 currentWorkers = DEFAULT_USUARIOS;
             }
-            renderWorkersEditorList(currentWorkers);
+            document.getElementById('workers-json-textarea').value = JSON.stringify(currentWorkers, null, 2);
             document.getElementById('admin-workers-modal').classList.remove('hidden');
         }
 
@@ -1681,52 +1677,29 @@
             document.getElementById('admin-workers-modal').classList.add('hidden');
         }
 
-        function renderWorkersEditorList(workers) {
-            const container = document.getElementById('workers-editor-list');
-            container.innerHTML = workers.map((w, index) => `
-                <div class="worker-row bg-slate-800 border border-slate-700 rounded-xl p-2.5 flex items-center gap-2" data-index="${index}">
-                    <input type="text" placeholder="Contrata (ej. INSTELCA)" value="${w.Contrata || ''}" class="worker-contrata w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
-                    <input type="text" placeholder="Alias (ej. IN002)" value="${w.Alias || ''}" class="worker-alias w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
-                    <input type="text" placeholder="Nombre y Apellidos" value="${w.NombreCompleto || ''}" class="worker-nombre flex-grow bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white outline-none">
-                    <button type="button" onclick="this.closest('.worker-row').remove()" class="px-2 py-1 bg-rose-950/60 text-rose-300 rounded-lg text-xs hover:bg-rose-900"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-            `).join('');
-        }
-
-        function addNewWorkerRow() {
-            const container = document.getElementById('workers-editor-list');
-            const div = document.createElement('div');
-            div.className = 'worker-row bg-slate-800 border border-slate-700 rounded-xl p-2.5 flex items-center gap-2';
-            div.innerHTML = `
-                <input type="text" placeholder="Contrata" value="" class="worker-contrata w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
-                <input type="text" placeholder="Alias" value="" class="worker-alias w-1/4 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white uppercase outline-none">
-                <input type="text" placeholder="Nombre y Apellidos" value="" class="worker-nombre flex-grow bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white outline-none">
-                <button type="button" onclick="this.closest('.worker-row').remove()" class="px-2 py-1 bg-rose-950/60 text-rose-300 rounded-lg text-xs hover:bg-rose-900"><i class="fa-solid fa-trash-can"></i></button>
-            `;
-            container.appendChild(div);
-        }
-
-        function saveWorkersChanges() {
-            const rows = document.querySelectorAll('.worker-row');
-            let newWorkers = [];
-            rows.forEach(r => {
-                const contrata = r.querySelector('.worker-contrata').value.trim().toUpperCase();
-                const alias = r.querySelector('.worker-alias').value.trim().toUpperCase();
-                const nombre = r.querySelector('.worker-nombre').value.trim();
-                if (contrata && alias && nombre) {
-                    newWorkers.push({ Contrata: contrata, Alias: alias, NombreCompleto: nombre });
+        function saveWorkersJson() {
+            const rawText = document.getElementById('workers-json-textarea').value.trim();
+            try {
+                const parsed = JSON.parse(rawText);
+                if (!Array.isArray(parsed)) {
+                    alert('⚠️ El JSON debe ser una lista (array) de objetos.');
+                    return;
                 }
-            });
+                // Validar estructura mínima
+                for (let item of parsed) {
+                    if (!item.Contrata || !item.Alias || !item.NombreCompleto) {
+                        alert('⚠️ Cada objeto debe contener: "Contrata", "Alias" y "NombreCompleto".');
+                        return;
+                    }
+                }
 
-            if (newWorkers.length === 0) {
-                alert('⚠️ Debe haber al menos un trabajador válido.');
-                return;
+                localStorage.setItem('master_admin_workers_json', JSON.stringify(parsed));
+                cargarListaUsuarios();
+                closeWorkersEditor();
+                alert('✅ ¡Lista de trabajadores actualizada con éxito pegando el JSON!');
+            } catch (e) {
+                alert('❌ Error: El formato JSON no es válido. Revisa las comillas o corchetes.');
             }
-
-            localStorage.setItem('master_admin_workers_json', JSON.stringify(newWorkers));
-            cargarListaUsuarios();
-            closeWorkersEditor();
-            alert('✅ Plantilla de trabajadores actualizada con éxito en la aplicación.');
         }
 
         function resetWorkersToDefault() {
