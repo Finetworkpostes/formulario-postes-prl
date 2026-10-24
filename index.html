@@ -48,55 +48,12 @@
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
         }
 
-        .pdf-page {
-            width: 100%;
-            box-sizing: border-box;
-            background: #ffffff;
-            color: #0f172a;
-            font-family: Arial, sans-serif;
-            padding: 12px;
-            page-break-after: always;
-            break-after: page;
-        }
-
-        .pdf-page-last {
-            page-break-after: avoid;
-            break-after: avoid;
-        }
-
-        .print-section {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 6px 8px;
-            margin-bottom: 8px;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        .print-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px;
-        }
-
-        .print-img-box {
-            text-align: center;
-            font-size: 8px;
-            font-weight: bold;
-            color: #334155;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            padding: 3px;
-            background: #f8fafc;
-        }
-
-        .print-img {
-            max-height: 110px;
-            width: 100%;
-            object-fit: contain;
-            border-radius: 2px;
-            margin-top: 2px;
-        }
+        .pdf-page { width: 100%; box-sizing: border-box; background: #ffffff; color: #0f172a; font-family: Arial, sans-serif; padding: 12px; page-break-after: always; break-after: page; }
+        .pdf-page-last { page-break-after: avoid; break-after: avoid; }
+        .print-section { border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
+        .print-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+        .print-img-box { text-align: center; font-size: 8px; font-weight: bold; color: #334155; border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px; background: #f8fafc; }
+        .print-img { max-height: 110px; width: 100%; object-fit: contain; border-radius: 2px; margin-top: 2px; }
     </style>
 </head>
 <body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
@@ -115,7 +72,6 @@
                     <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES -->
             <div class="flex flex-col items-end space-y-1.5">
                 <button type="button" onclick="openSentPartsModal()" class="px-3 py-1.5 text-xs bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200 rounded-lg border border-emerald-700 transition flex items-center justify-between gap-2 w-36">
                     <span><i class="fa-solid fa-paper-plane"></i> Enviados</span> <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-[10px]" id="sent-parts-count">0</span>
@@ -138,8 +94,6 @@
 
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 no-print">
-
-        <!-- Navigation Tabs -->
         <div class="mb-6 overflow-x-auto pb-2 border-b border-slate-800">
             <nav class="flex space-x-2 min-w-max">
                 <button type="button" onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">1. Datos OT</button>
@@ -152,11 +106,10 @@
         </div>
 
         <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
-
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
 
-            <!-- SECCIÓN 1: DATOS OT -->
+            <!-- SECCIÓN 1 -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,237 +134,96 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-medium text-slate-300">Tipo de Actuación <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="INSTALACIÓN" required class="accent-purple-600">
-                                <span class="text-xs text-slate-200">INSTALACIÓN</span>
-                            </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="AVERÍA" required class="accent-purple-600">
-                                <span class="text-xs text-slate-200">AVERÍA</span>
-                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="tipo" value="INSTALACIÓN" required class="accent-purple-600"><span class="text-xs text-slate-200">INSTALACIÓN</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="tipo" value="AVERÍA" required class="accent-purple-600"><span class="text-xs text-slate-200">AVERÍA</span></label>
                         </div>
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-medium text-slate-300">Estado Infraestructura <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="estado" value="REUTILIZADA" required class="accent-purple-600">
-                                <span class="text-xs text-slate-200">REUTILIZADA</span>
-                            </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="estado" value="NUEVA" required class="accent-purple-600">
-                                <span class="text-xs text-slate-200">NUEVA</span>
-                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="estado" value="REUTILIZADA" required class="accent-purple-600"><span class="text-xs text-slate-200">REUTILIZADA</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="estado" value="NUEVA" required class="accent-purple-600"><span class="text-xs text-slate-200">NUEVA</span></label>
                         </div>
                     </div>
                 </div>
-                <!-- BOTONERA -->
                 <div class="flex justify-end pt-3 border-t border-slate-800">
-                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: PERSONAL -->
+            <!-- SECCIÓN 2 -->
             <div id="step-2" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal (Auto-completado)</h2>
-                
-                <div id="contractor-warning" class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
-                    <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal en la Sección 1 para desplegar la lista de técnicos actualizada.
-                </div>
-
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal</h2>
+                <div id="contractor-warning" class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200"><i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal en la Sección 1.</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300">Técnico Principal (TEC1)</h3>
-                        <div class="space-y-1.5">
-                            <label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias / Usuario KAIROS TEC1 <span class="text-rose-500">*</span></label>
-                            <select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione Usuario...</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label for="nombreTec1" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (TEC1) <span class="text-rose-500">*</span></label>
-                            <input type="text" id="nombreTec1" name="nombreTec1" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
-                        </div>
+                        <div class="space-y-1.5"><label for="aliasKairosTec1" class="block text-xs font-medium text-slate-300">Alias TEC1 <span class="text-rose-500">*</span></label><select id="aliasKairosTec1" name="aliasKairosTec1" required onchange="handleAliasTec1Change(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"><option value="">Seleccione...</option></select></div>
+                        <div class="space-y-1.5"><label for="nombreTec1" class="block text-xs font-medium text-slate-300">Nombre TEC1 <span class="text-rose-500">*</span></label><input type="text" id="nombreTec1" name="nombreTec1" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none"></div>
                     </div>
-
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Recurso Preventivo Habilitado</h3>
-                        <div class="space-y-1.5">
-                            <label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias / Usuario Recurso Preventivo <span class="text-rose-500">*</span></label>
-                            <select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                                <option value="">Seleccione Usuario...</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label for="nombreRecursoPreventivo" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (Recurso Preventivo) <span class="text-rose-500">*</span></label>
-                            <input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
-                        </div>
+                        <div class="space-y-1.5"><label for="aliasRecursoPreventivo" class="block text-xs font-medium text-slate-300">Alias Recurso <span class="text-rose-500">*</span></label><select id="aliasRecursoPreventivo" name="aliasRecursoPreventivo" required onchange="handleAliasRecursoChange(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"><option value="">Seleccione...</option></select></div>
+                        <div class="space-y-1.5"><label for="nombreRecursoPreventivo" class="block text-xs font-medium text-slate-300">Nombre Recurso <span class="text-rose-500">*</span></label><input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none"></div>
                     </div>
                 </div>
-
-                <!-- BOTONERA -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 3: POSTE & SEGURIDAD -->
+            <!-- SECCIÓN 3 -->
             <div id="step-3" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 3: Evaluación Técnica del Poste</h2>
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1.5 md:col-span-3">
                         <label class="block text-xs font-medium text-slate-300">Material del Poste <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="tipoPoste" value="POSTE DE MADERA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
-                                <span class="text-xs font-semibold text-slate-200">POSTE DE MADERA</span>
-                            </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="tipoPoste" value="POSTE DE HORMIGÓN" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
-                                <span class="text-xs font-semibold text-slate-200">POSTE DE HORMIGÓN</span>
-                            </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="tipoPoste" value="POSTE DE FIBRA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600">
-                                <span class="text-xs font-semibold text-slate-200">POSTE DE FIBRA</span>
-                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer"><input type="radio" name="tipoPoste" value="POSTE DE MADERA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600"><span class="text-xs font-semibold text-slate-200">POSTE DE MADERA</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer"><input type="radio" name="tipoPoste" value="POSTE DE HORMIGÓN" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600"><span class="text-xs font-semibold text-slate-200">POSTE DE HORMIGÓN</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3 cursor-pointer"><input type="radio" name="tipoPoste" value="POSTE DE FIBRA" required onchange="toggleWoodPoleMeasures()" class="accent-purple-600"><span class="text-xs font-semibold text-slate-200">POSTE DE FIBRA</span></label>
                         </div>
                     </div>
-
                     <div id="wood-pole-block" class="hidden md:col-span-3 bg-amber-950/30 border border-amber-600/40 rounded-2xl p-4 space-y-3">
-                        <div class="text-amber-400 font-semibold text-xs flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Medidas Preventivas Obligatorias antes del Ascenso a POSTE DE MADERA:
-                        </div>
+                        <div class="text-amber-400 font-semibold text-xs flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Medidas Preventivas Obligatorias en POSTE DE MADERA:</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">1. Verificar cable, tirante, soportes, herrajes y tubos de protección.</span>
-                            </label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">2. Revisar longitud enterrada conforme al botón/placa identificativa.</span>
-                            </label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">3. Escarbar base (~3cm) y realizar inspección visual.</span>
-                            </label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">4. Empujar fuerte y repetidamente perpendicular a la línea.</span>
-                            </label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Inspección por percusión martillo" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">5. Percusión con martillo desde el suelo hasta 2m de altura.</span>
-                            </label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
-                                <input type="checkbox" name="medidasMadera" value="Prueba con herramienta punzante" class="mt-0.5 accent-amber-500">
-                                <span class="text-slate-300">6. Punzar oblicuamente (3-4 veces) la base del poste.</span>
-                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500"><span class="text-slate-300">1. Verificar cable, herrajes y tubos.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500"><span class="text-slate-300">2. Revisar longitud enterrada.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500"><span class="text-slate-300">3. Escarbar base (~3cm) y revisar.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500"><span class="text-slate-300">4. Empujar repetidamente.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Inspección por percusión martillo" class="mt-0.5 accent-amber-500"><span class="text-slate-300">5. Percusión con martillo.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba con herramienta punzante" class="mt-0.5 accent-amber-500"><span class="text-slate-300">6. Punzar base del poste.</span></label>
                         </div>
                     </div>
-
-                    <div class="space-y-1.5">
-                        <label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global del Poste <span class="text-rose-500">*</span></label>
-                        <select id="estadoPoste" name="estadoPoste" required onchange="handlePoleStatusChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                            <option value="">Seleccione Estado...</option>
-                            <option value="BUENO/ADECUADO">BUENO / ADECUADO</option>
-                            <option value="MALO/DEFECTUOSO">MALO / DEFECTUOSO</option>
-                            <option value="NO SUBIR">NO SUBIR (Peligro Crítico)</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label for="paraSubir" class="block text-xs font-medium text-slate-300">Método para Subir al Poste <span class="text-rose-500">*</span></label>
-                        <select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                            <option value="">Seleccione Método...</option>
-                            <option value="PLATAFORMA ELEVADORA">PLATAFORMA ELEVADORA</option>
-                            <option value="ESCALERA (con patas extensibles)">ESCALERA (con patas extensibles)</option>
-                            <option value="NO PROCEDE">NO PROCEDE</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-medium text-slate-300">¿Apto para Escalera con Seguridad? <span class="text-rose-500">*</span></label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="sePuede" value="SI" required class="accent-emerald-500">
-                                <span class="text-xs font-semibold text-emerald-400">SÍ</span>
-                            </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="sePuede" value="NO" required class="accent-rose-500">
-                                <span class="text-xs font-semibold text-rose-400">NO</span>
-                            </label>
-                        </div>
-                    </div>
+                    <div class="space-y-1.5"><label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global <span class="text-rose-500">*</span></label><select id="estadoPoste" name="estadoPoste" required onchange="handlePoleStatusChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"><option value="">Seleccione...</option><option value="BUENO/ADECUADO">BUENO / ADECUADO</option><option value="MALO/DEFECTUOSO">MALO / DEFECTUOSO</option><option value="NO SUBIR">NO SUBIR (Peligro)</option></select></div>
+                    <div class="space-y-1.5"><label for="paraSubir" class="block text-xs font-medium text-slate-300">Método Subir <span class="text-rose-500">*</span></label><select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"><option value="">Seleccione...</option><option value="PLATAFORMA ELEVADORA">PLATAFORMA ELEVADORA</option><option value="ESCALERA">ESCALERA</option><option value="NO PROCEDE">NO PROCEDE</option></select></div>
+                    <div class="space-y-1.5"><label class="block text-xs font-medium text-slate-300">¿Apto para Escalera? <span class="text-rose-500">*</span></label><div class="grid grid-cols-2 gap-2"><label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="SI" required class="accent-emerald-500"><span class="text-xs font-semibold text-emerald-400">SÍ</span></label><label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="NO" required class="accent-rose-500"><span class="text-xs font-semibold text-rose-400">NO</span></label></div></div>
                 </div>
-
-                <!-- ALERTA DE SEGURIDAD -->
-                <div id="no-climb-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-2xl p-4 text-center space-y-1 animate-pulse">
-                    <i class="fa-solid fa-octagon-exclamation text-rose-400 text-2xl"></i>
-                    <h4 class="text-sm font-bold text-rose-200">¡ALERTA DE SEGURIDAD CRÍTICA!</h4>
-                    <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
-                </div>
-
-                <!-- BOTONERA -->
+                <div id="no-climb-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-2xl p-4 text-center space-y-1 animate-pulse"><i class="fa-solid fa-octagon-exclamation text-rose-400 text-2xl"></i><h4 class="text-sm font-bold text-rose-200">¡ALERTA DE SEGURIDAD! Prohibido el ascenso.</h4></div>
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 4: CHECKLISTS & EPIs -->
+            <!-- SECCIÓN 4 -->
             <div id="step-4" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists de Seguridad y EPIs</h2>
-                
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists y EPIs</h2>
                 <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
-                        <h3 class="text-xs font-bold uppercase text-purple-300">Check Verificación de Escalera</h3>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
-                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
-                        </div>
-                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50"><h3 class="text-xs font-bold uppercase text-purple-300">Check Verificación de Escalera</h3><div class="flex gap-2"><button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button><button type="button" onclick="toggleAllCheckboxes('ladder-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button></div></div>
                     <div class="grid grid-cols-1 gap-2 text-xs">
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Suelo despejado y apoyo firme" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">4. Suelo despejado que permite un apoyo firme.</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Inclinación correcta (~75º)" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">5. Inclinación correcta (~75º respecto al suelo).</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Longitud adecuada" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">6. Longitud de la escalera adecuada para la altura.</span>
-                        </label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
-                            <input type="checkbox" name="ladderCheck" value="Zona de trabajo señalizada" class="ladder-check accent-purple-600">
-                            <span class="text-slate-200">7. Zona de trabajo señalizada previamente.</span>
-                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600"><span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600"><span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600"><span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Suelo despejado y apoyo firme" class="ladder-check accent-purple-600"><span class="text-slate-200">4. Suelo despejado que permite un apoyo firme.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Inclinación correcta (~75º)" class="ladder-check accent-purple-600"><span class="text-slate-200">5. Inclinación correcta (~75º respecto al suelo).</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Longitud adecuada" class="ladder-check accent-purple-600"><span class="text-slate-200">6. Longitud de la escalera adecuada para la altura.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Zona de trabajo señalizada" class="ladder-check accent-purple-600"><span class="text-slate-200">7. Zona de trabajo señalizada previamente.</span></label>
                     </div>
                 </div>
-
                 <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
-                        <h3 class="text-xs font-bold uppercase text-emerald-300">EPIs Utilizados</h3>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
-                            <button type="button" onclick="toggleAllCheckboxes('epi-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
-                        </div>
-                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-700/50"><h3 class="text-xs font-bold uppercase text-emerald-300">EPIs Utilizados</h3><div class="flex gap-2"><button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button><button type="button" onclick="toggleAllCheckboxes('epi-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button></div></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CASCO CON BARBUQUEJO" class="epi-check accent-emerald-500"><span class="text-slate-200">CASCO CON BARBUQUEJO</span></label>
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="ARNÉS ANTICAÍDAS" class="epi-check accent-emerald-500"><span class="text-slate-200">ARNÉS ANTICAÍDAS</span></label>
@@ -424,254 +236,129 @@
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="DOBLE CABO ANCLAJE" class="epi-check accent-emerald-500"><span class="text-slate-200">DOBLE CABO ANCLAJE</span></label>
                     </div>
                 </div>
-
-                <!-- BOTONERA -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 5: CROQUIS FTTH EVIDENCIAS FOTOGRÁFICAS -->
+            <!-- SECCIÓN 5 -->
             <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis FTTH Satelital y Evidencias Fotográficas</h2>
-
-                <div id="croquis-tool-container" class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-4 space-y-4 shadow-2xl">
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis Satelital y Fotos</h2>
+                <div class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-4 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-earth-americas text-brand-400"></i>
-                                Croquis Satelital de Tendido FTTH
-                            </h3>
-                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y el último la Casa (🏠).</p>
-                        </div>
-                        <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-medium transition shrink-0">
-                            <i class="fa-solid fa-trash-can"></i> Borrar Mapa
-                        </button>
+                        <div><h3 class="text-sm font-bold text-white"><i class="fa-solid fa-earth-americas text-brand-400"></i> Croquis Satelital FTTH</h3><p class="text-xs text-slate-400">Haz clic: 1º CTO (🔌), intermedios Postes (🪵), última Casa (🏠).</p></div>
+                        <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs"><i class="fa-solid fa-trash-can"></i> Borrar</button>
                     </div>
-
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <div class="relative flex-grow">
-                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio para centrar el mapa satelital..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
-                        </div>
-                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
-                            <i class="fa-solid fa-magnifying-glass"></i> Buscar
-                        </button>
-                        <button type="button" onclick="geolocateOnMap()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
-                            <i class="fa-solid fa-location-crosshairs"></i> Mi Ubicación
-                        </button>
+                        <input type="text" id="map-search-input" placeholder="Buscar dirección..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs rounded-xl"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+                        <button type="button" onclick="geolocateOnMap()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs rounded-xl"><i class="fa-solid fa-location-crosshairs"></i> Ubicación</button>
                     </div>
-
-                    <div id="croquis-capture-area" class="bg-slate-950 border border-slate-800 rounded-xl p-2 shadow-inner">
-                        <div id="croquis-map"></div>
-                    </div>
-
-                    <div>
-                        <button type="button" onclick="captureAndAttachCroquis()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-brand-600 hover:from-purple-500 hover:to-brand-500 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-camera text-base"></i> 📸 Capturar Foto del Mapa y Adjuntar
-                        </button>
-                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-2"><div id="croquis-map"></div></div>
+                    <button type="button" onclick="captureAndAttachCroquis()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-brand-600 text-white font-bold text-sm rounded-xl shadow-lg"><i class="fa-solid fa-camera"></i> 📸 Capturar Foto del Mapa y Adjuntar</button>
                 </div>
-
                 <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-4 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-brand-400"></i>
-                            Registro Estructurado de Ubicaciones y Coordenadas
-                        </h3>
-                        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1">
-                            <span class="text-xs text-slate-300 font-semibold">Total Postes:</span>
-                            <input type="number" id="cantidadPostes" name="cantidadPostes" readonly min="0" placeholder="0" class="w-12 bg-transparent text-emerald-400 font-bold text-center text-sm outline-none">
-                        </div>
-                    </div>
-
-                    <div id="croquis-points-breakdown" class="space-y-2 text-xs">
-                        <em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>
-                    </div>
+                    <div class="flex justify-between items-center"><span class="text-xs font-bold uppercase text-purple-300">Total Postes:</span><input type="number" id="cantidadPostes" name="cantidadPostes" readonly min="0" value="0" class="w-12 bg-transparent text-emerald-400 font-bold text-center text-sm outline-none"></div>
+                    <div id="croquis-points-breakdown" class="space-y-2 text-xs"><em class="text-slate-500">Sin puntos marcados aún.</em></div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    
-                    <!-- DROPZONE 1: Croquis Alta FTTH -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-map text-brand-400"></i>
-                            1. Croquis Alta FTTH <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Se genera automáticamente capturando el mapa interactivo superior.</p>
-                        
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center transition bg-slate-900/50">
-                            <div id="preview-croquis" class="space-y-2">
-                                <i class="fa-solid fa-lock text-3xl text-purple-400/60"></i>
-                                <div class="text-xs text-slate-400 font-medium">Capture el mapa usando el botón morado de arriba</div>
-                            </div>
-                        </div>
+                        <label class="block text-xs font-semibold text-slate-200">1. Croquis Alta FTTH <span class="text-rose-500">*</span></label>
+                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-5 text-center bg-slate-900/50" id="preview-croquis"><i class="fa-solid fa-lock text-3xl text-purple-400/60"></i><div class="text-xs text-slate-400 mt-2">Usa el botón superior para capturar</div></div>
                     </div>
-
-                    <!-- DROPZONE 2: Foto Escalera -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-camera text-brand-400"></i>
-                            2. Foto Escalera en Poste <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Escalera, Línea de vida, Patas extensibles, EPIs y Señalización.</p>
-                        
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
+                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste <span class="text-rose-500">*</span></label>
+                        <div class="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
                             <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
-                            <div id="preview-escalera" class="space-y-2">
-                                <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
-                            </div>
+                            <div id="preview-escalera" class="space-y-2"><i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i><div class="text-xs text-slate-300">Hacer foto o elegir archivo</div></div>
                         </div>
                     </div>
-
-                    <!-- DROPZONE 3: Foto 1 (Entorno) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-image text-brand-400"></i>
-                            3. Foto 1 (Estado/Entorno) <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Perspectiva general del poste y pie de vía pública.</p>
-                        
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto1')">
+                        <label class="block text-xs font-semibold text-slate-200">3. Foto Entorno / Estado <span class="text-rose-500">*</span></label>
+                        <div class="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer bg-slate-900/50" onclick="triggerFileInput('file-foto1')">
                             <input type="file" id="file-foto1" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto1')">
-                            <div id="preview-foto1" class="space-y-2">
-                                <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
-                            </div>
+                            <div id="preview-foto1" class="space-y-2"><i class="fa-solid fa-camera text-3xl text-slate-500"></i><div class="text-xs text-slate-300">Hacer foto o elegir archivo</div></div>
                         </div>
                     </div>
-
-                    <!-- DROPZONE 4: Foto 2 (Detalle) -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-image text-brand-400"></i>
-                            4. Foto 2 (Detalle / Incidencia) <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Detalle de herrajes, caja CTO o zona defectuosa si procede.</p>
-                        
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-foto2')">
+                        <label class="block text-xs font-semibold text-slate-200">4. Foto Detalle / Incidencia <span class="text-rose-500">*</span></label>
+                        <div class="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer bg-slate-900/50" onclick="triggerFileInput('file-foto2')">
                             <input type="file" id="file-foto2" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-foto2')">
-                            <div id="preview-foto2" class="space-y-2">
-                                <i class="fa-solid fa-camera text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
-                            </div>
+                            <div id="preview-foto2" class="space-y-2"><i class="fa-solid fa-camera text-3xl text-slate-500"></i><div class="text-xs text-slate-300">Hacer foto o elegir archivo</div></div>
                         </div>
                     </div>
-
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="observaciones" class="block text-xs font-medium text-slate-300">Observaciones e Incidencias Técnicas</label>
-                        <textarea id="observaciones" name="observaciones" rows="3" placeholder="Notas adicionales sobre la actuación..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl p-3 text-sm text-white outline-none"></textarea>
+                        <textarea id="observaciones" name="observaciones" rows="3" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl p-3 text-sm text-white outline-none"></textarea>
                     </div>
                 </div>
-
-                <!-- BOTONERA -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 6: CONFIRMACIÓN Y FIRMA -->
+            <!-- SECCIÓN 6 -->
             <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <span>Sección 6: Resumen, DNI y Firma Digital</span>
-                    <span class="text-xs font-normal text-slate-400">Verifique los datos antes de enviar</span>
-                </h2>
-
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 6: Resumen y Firma</h2>
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check text-brand-400"></i>
-                            Desglose Completo de la Actuación
-                        </h3>
-                        <span class="text-[11px] text-slate-400">Pulse en "Editar" para modificar datos</span>
-                    </div>
-                    
+                    <h3 class="text-xs font-bold uppercase text-purple-300"><i class="fa-solid fa-clipboard-check"></i> Desglose Completo</h3>
                     <div id="summary-breakdown-container" class="space-y-4 text-xs"></div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     <div class="space-y-4">
                         <div class="space-y-1.5">
                             <label for="dniRecurso" class="block text-xs font-medium text-slate-300">DNI / NIE Recurso Preventivo <span class="text-rose-500">*</span></label>
-                            <input type="text" id="dniRecurso" name="dniRecurso" required placeholder="12345678X" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none uppercase">
+                            <input type="text" id="dniRecurso" name="dniRecurso" required placeholder="12345678X" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white uppercase outline-none">
                         </div>
-                        <div class="bg-purple-950/30 border border-purple-800/40 rounded-xl p-3 text-xs text-purple-100">
-                            <strong>Declaración Responsable:</strong> Certifico que las verificaciones registradas corresponden con la realidad de los trabajos en altura.
-                        </div>
+                        <div class="bg-purple-950/30 border border-purple-800/40 rounded-xl p-3 text-xs text-purple-100"><strong>Declaración Responsable:</strong> Certifico veracidad de los datos.</div>
                     </div>
-
                     <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-xs font-medium text-slate-300">Firma Táctil <span class="text-rose-500">*</span></label>
-                            <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-rose-400">Limpiar Firma</button>
-                        </div>
-                        <div class="border-2 border-slate-700 rounded-xl overflow-hidden bg-white relative">
-                            <canvas id="signature-canvas" class="signature-canvas w-full h-40"></canvas>
-                            <div id="signature-placeholder" class="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-400 text-xs">Firme aquí con el dedo</div>
-                        </div>
+                        <div class="flex justify-between items-center"><label class="block text-xs font-medium text-slate-300">Firma Táctil <span class="text-rose-500">*</span></label><button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-rose-400">Limpiar</button></div>
+                        <div class="border-2 border-slate-700 rounded-xl overflow-hidden bg-white relative"><canvas id="signature-canvas" class="signature-canvas w-full h-40"></canvas><div id="signature-placeholder" class="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-400 text-xs">Firme aquí</div></div>
                         <input type="hidden" id="firmaData" name="firmaData" required>
                     </div>
                 </div>
-
-                <!-- BOTONERA INFERIOR -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
                     <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm text-center flex-grow sm:flex-grow-0"><i class="fa-solid fa-print"></i> Vista Previa</button>
-                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 w-full sm:w-auto">
+                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm"><i class="fa-solid fa-print"></i> Vista Previa PDF</button>
+                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar Correo</span>
                         </button>
                     </div>
                 </div>
             </div>
-
         </form>
     </main>
 
     <!-- Modal Éxito -->
     <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
-            <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
-                <i class="fa-solid fa-check"></i>
-            </div>
+            <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl"><i class="fa-solid fa-check"></i></div>
             <h3 class="text-lg font-bold text-white">¡Parte Enviado y Registrado!</h3>
-            <p class="text-xs text-slate-400">El correo electrónico se ha enviado correctamente. Además, puedes ver o descargar el PDF completo con fotos en cualquier momento desde "Enviados".</p>
-            <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
-                <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
-                <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
-            </div>
+            <p class="text-xs text-slate-400">El correo con todos los campos y enlaces se ha enviado. Puedes descargar tu PDF oficial abajo.</p>
             <div class="space-y-2 pt-2">
-                <button type="button" onclick="generatePrintPreview()" class="w-full py-3 bg-gradient-to-r from-purple-700 to-brand-600 hover:from-purple-600 hover:to-brand-500 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-file-pdf text-base"></i> 📥 Ver / Descargar PDF Oficial
-                </button>
-                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Realizar Nueva Actuación</button>
+                <button type="button" onclick="generatePrintPreview()" class="w-full py-3 bg-gradient-to-r from-purple-700 to-brand-600 text-white font-bold rounded-xl text-sm shadow-lg"><i class="fa-solid fa-file-pdf"></i> 📥 Ver / Descargar PDF Oficial</button>
+                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 text-slate-200 rounded-xl text-sm">Cerrar y Realizar Nuevo</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE PARTES ENVIADOS -->
+    <!-- Modal Historial -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane text-emerald-400"></i> Historial de Partes Registrados
-                </h3>
-                <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3"><h3 class="text-sm font-bold text-white"><i class="fa-solid fa-paper-plane text-emerald-400"></i> Historial de Partes</h3><button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button></div>
             <div id="sent-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
-            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
-                <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
-            </div>
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center"><button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar</button><button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button></div>
         </div>
     </div>
 
-    <!-- ÁREA OCULTA PARA IMPRESIÓN Y PDF -->
+    <!-- ÁREA OCULTA PARA PDF -->
     <div id="print-area" class="hidden print-only"></div>
 
-    <!-- LOGICA JAVASCRIPT -->
+    <!-- SCRIPT DEFINITIVO -->
     <script>
         const DESTINATION_EMAIL = '3c3ed56317dff2dfe09029463b2b7c01';
         let USUARIOS_DB = {};
@@ -713,88 +400,52 @@
                         let width = img.width;
                         let height = img.height;
                         if (width > maxWidth || height > maxHeight) {
-                            if (width > height) {
-                                height = Math.round((height * maxWidth) / width);
-                                width = maxWidth;
-                            } else {
-                                width = Math.round((width * maxHeight) / height);
-                                height = maxHeight;
-                            }
+                            if (width > height) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                            else { width = Math.round((width * maxHeight) / height); height = maxHeight; }
                         }
                         const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
+                        canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
-                    img.onerror = reject;
-                    img.src = e.target.result;
+                    img.onerror = reject; img.src = e.target.result;
                 };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
+                reader.onerror = reject; reader.readAsDataURL(file);
             });
         }
 
         async function cargarListaUsuarios() {
-            let rawData = null;
-            try {
-                const res = await fetch('usuarios.json?v=' + new Date().getTime());
-                if (res.ok) rawData = await res.json();
-            } catch (err) {}
-
-            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
-                rawData = DEFAULT_USUARIOS;
-            }
-
+            let rawData = DEFAULT_USUARIOS;
+            try { const res = await fetch('usuarios.json?v=' + new Date().getTime()); if (res.ok) rawData = await res.json(); } catch (err) {}
             USUARIOS_DB = rawData.reduce((acc, item) => {
                 if (item && item.Contrata) {
                     const key = item.Contrata.trim().toUpperCase();
-                    if (!acc[key]) acc[key] = [];
-                    acc[key].push(item);
+                    if (!acc[key]) acc[key] = []; acc[key].push(item);
                 }
                 return acc;
             }, {});
-
             handleContractorChange();
         }
 
         function handleContractorChange() {
             const selectContrata = document.getElementById('contrataPrincipal');
             if (!selectContrata) return;
-
             const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             const warning = document.getElementById('contractor-warning');
 
-            if (!selectTec1 || !selectRecurso) return;
+            selectTec1.innerHTML = '<option value="">Seleccione...</option>';
+            selectRecurso.innerHTML = '<option value="">Seleccione...</option>';
 
-            const prevTec1Val = selectTec1.value;
-            const prevRecursoVal = selectRecurso.value;
-
-            selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
-            selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
-
-            if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
+            if (contrata && USUARIOS_DB[contrata]) {
                 if (warning) warning.classList.add('hidden');
                 USUARIOS_DB[contrata].forEach(u => {
-                    const opt1 = document.createElement('option');
-                    opt1.value = u.Alias;
-                    opt1.textContent = u.Alias;
-                    selectTec1.appendChild(opt1);
-
-                    const opt2 = document.createElement('option');
-                    opt2.value = u.Alias;
-                    opt2.textContent = u.Alias;
-                    selectRecurso.appendChild(opt2);
+                    selectTec1.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
+                    selectRecurso.innerHTML += `<option value="${u.Alias}">${u.Alias}</option>`;
                 });
-
-                if (prevTec1Val) selectTec1.value = prevTec1Val;
-                if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
-            } else {
-                if (warning) warning.classList.remove('hidden');
-            }
+            } else if (warning) warning.classList.remove('hidden');
         }
 
         function handleAliasTec1Change(alias) {
@@ -813,62 +464,26 @@
             }
         }
 
-        function triggerFileInput(id) {
-            document.getElementById(id).click();
-        }
+        function triggerFileInput(id) { document.getElementById(id).click(); }
 
         async function handleFileSelect(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
             if (!file) return;
 
-            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Optimizando foto...</div>`;
-
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 py-2"><i class="fa-solid fa-spinner fa-spin"></i> Optimizando...</div>`;
             try {
-                let compressedDataUrl;
-                if (file.type.startsWith('image/')) {
-                    compressedDataUrl = await compressImage(file, 800, 800, 0.6);
-                } else {
-                    const reader = new FileReader();
-                    compressedDataUrl = await new Promise((res) => {
-                        reader.onload = (e) => res(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                }
+                let compressedDataUrl = await compressImage(file, 800, 800, 0.6);
                 uploadedFiles[input.id] = compressedDataUrl;
-
-                if (file.type.startsWith('image/')) {
-                    previewContainer.innerHTML = `
-                        <div class="relative group">
-                            <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                            <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-check-circle"></i> ${file.name}
-                            </div>
-                        </div>`;
-                }
-            } catch (err) {
-                console.error("Error procesando imagen:", err);
-                alert("Error al optimizar la imagen seleccionada.");
-            }
+                previewContainer.innerHTML = `<img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Adjuntado</div>`;
+            } catch (err) { alert("Error al procesar imagen."); }
         }
 
         function initCroquisMap() {
-            if (croquisMap) {
-                setTimeout(() => croquisMap.invalidateSize(), 200);
-                return;
-            }
-
+            if (croquisMap) { setTimeout(() => croquisMap.invalidateSize(), 200); return; }
             croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 15);
-
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri World Imagery',
-                maxZoom: 19,
-                crossOrigin: 'anonymous'
-            }).addTo(croquisMap);
-
-            croquisMap.on('click', async (e) => {
-                await addCroquisPoint(e.latlng.lat, e.latlng.lng);
-            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, crossOrigin: 'anonymous' }).addTo(croquisMap);
+            croquisMap.on('click', async (e) => { await addCroquisPoint(e.latlng.lat, e.latlng.lng); });
         }
 
         async function addCroquisPoint(lat, lng) {
@@ -881,57 +496,31 @@
             mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
             mapMarkers = [];
-
             const total = croquisPoints.length;
 
             croquisPoints.forEach((p, idx) => {
-                let type = '';
-                let iconHtml = '';
-
-                if (idx === 0) {
-                    type = 'cto';
-                    iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🔌</div>`;
-                } else if (idx === total - 1) {
-                    type = 'casa';
-                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
-                    if (p.address) {
-                        const dirInput = document.getElementById('direccion');
-                        const cpInput = document.getElementById('codigoPostal');
-                        if (dirInput) dirInput.value = p.address;
-                        if (cpInput) cpInput.value = p.postcode || '';
-                    }
-                } else {
-                    type = 'poste';
-                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`;
-                }
-
+                let type = ''; let iconHtml = '';
+                if (idx === 0) { type = 'cto'; iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🔌</div>`; }
+                else if (idx === total - 1) { 
+                    type = 'casa'; iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
+                    if (p.address) { document.getElementById('direccion').value = p.address; document.getElementById('codigoPostal').value = p.postcode || ''; }
+                } 
+                else { type = 'poste'; iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`; }
                 p.type = type;
-
-                const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: '',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-
-                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
+                const marker = L.marker([p.lat, p.lng], { icon: L.divIcon({ html: iconHtml, className: '', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(croquisMap);
                 mapMarkers.push(marker);
             });
 
             if (total > 1) {
-                const latLngs = croquisPoints.map(p => [p.lat, p.lng]);
-                croquisPolyline = L.polyline(latLngs, { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
+                croquisPolyline = L.polyline(croquisPoints.map(p => [p.lat, p.lng]), { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
             }
-
             updateCroquisSummary();
         }
 
         function calculateTotalMeters() {
             let totalMeters = 0;
             for (let i = 0; i < croquisPoints.length - 1; i++) {
-                const p1 = L.latLng(croquisPoints[i].lat, croquisPoints[i].lng);
-                const p2 = L.latLng(croquisPoints[i + 1].lat, croquisPoints[i + 1].lng);
-                totalMeters += p1.distanceTo(p2);
+                totalMeters += L.latLng(croquisPoints[i].lat, croquisPoints[i].lng).distanceTo(L.latLng(croquisPoints[i+1].lat, croquisPoints[i+1].lng));
             }
             return Math.round(totalMeters);
         }
@@ -940,218 +529,91 @@
             const totalMeters = calculateTotalMeters();
             const poleCount = Math.max(0, croquisPoints.length - 2);
             document.getElementById('cantidadPostes').value = poleCount;
-
             const listContainer = document.getElementById('croquis-points-breakdown');
-            if (croquisPoints.length === 0) {
-                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>`;
-                return;
-            }
-
-            listContainer.innerHTML = `
-                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2">
-                    ${croquisPoints.map((p, idx) => {
-                        let title = p.type === 'cto' ? '🔌 CTO Principal' : (p.type === 'poste' ? `🪵 Poste P${idx}` : '🏠 Casa del Cliente');
-                        return `
-                        <div class="border rounded-xl p-2 bg-slate-800/60 border-slate-700 flex justify-between items-center text-xs">
-                            <div><strong class="text-purple-300">${title}:</strong> <span class="text-slate-200">${p.address}</span></div>
-                            <div class="text-[10px] text-slate-400 font-mono">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
-                        </div>`;
-                    }).join('')}
-                    <div class="flex justify-between items-center pt-1 text-xs text-slate-300">
-                        <span><strong>Trazado Total:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></span>
-                        <span><strong>Postes:</strong> <span class="text-emerald-400 font-bold">${poleCount}</span></span>
-                    </div>
-                </div>`;
+            if (croquisPoints.length === 0) { listContainer.innerHTML = `<em class="text-slate-500">Sin puntos marcados aún.</em>`; return; }
+            listContainer.innerHTML = croquisPoints.map((p, idx) => `<div class="border rounded-xl p-2 bg-slate-800/60 border-slate-700 flex justify-between items-center text-xs"><div><strong class="text-purple-300">${p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : '🪵 Poste P' + idx)}:</strong> <span class="text-slate-200">${p.address}</span></div></div>`).join('') + `<div class="text-xs text-emerald-400 font-bold pt-1">Total: ${totalMeters}m | ${poleCount} postes</div>`;
         }
 
         function clearCroquisMap() {
-            mapMarkers.forEach(m => croquisMap.removeLayer(m));
-            if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
-            mapMarkers = [];
-            croquisPoints = [];
-            croquisPolyline = null;
-            document.getElementById('direccion').value = '';
-            document.getElementById('codigoPostal').value = '';
+            mapMarkers.forEach(m => croquisMap.removeLayer(m)); if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
+            mapMarkers = []; croquisPoints = []; croquisPolyline = null;
+            document.getElementById('direccion').value = ''; document.getElementById('codigoPostal').value = '';
             updateCroquisSummary();
         }
 
         async function reverseGeocode(lat, lng) {
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const addressObj = data.address || {};
-                    const road = addressObj.road || addressObj.pedestrian || addressObj.suburb || '';
-                    const houseNumber = addressObj.house_number ? ' ' + addressObj.house_number : '';
-                    const town = addressObj.city || addressObj.town || addressObj.village || addressObj.municipality || '';
-                    const postcode = addressObj.postcode || '';
-                    let cleanAddress = road ? road + houseNumber + (town ? ', ' + town : '') : data.display_name.split(',').slice(0, 3).join(',');
-                    return { address: cleanAddress.trim(), postcode: postcode.trim() };
+            try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                if (res.ok) { const data = await res.json(); const a = data.address || {};
+                    return { address: `${a.road || ''} ${a.house_number || ''}, ${a.city || a.town || a.village || ''}`.trim(), postcode: a.postcode || '' };
                 }
             } catch (e) {}
-            return { address: `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`, postcode: '' };
+            return { address: `Coord (${lat.toFixed(4)}, ${lng.toFixed(4)})`, postcode: '' };
         }
 
         async function searchAddressOnMap() {
-            const query = document.getElementById('map-search-input').value;
-            if (!query) return;
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.length > 0) {
-                        croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18);
-                    } else alert('Sin resultados.');
-                }
-            } catch (e) { alert('Error al buscar.'); }
+            const q = document.getElementById('map-search-input').value; if (!q) return;
+            try { const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+                if (res.ok) { const data = await res.json(); if (data.length > 0) croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18); }
+            } catch (e) {}
         }
 
-        function geolocateOnMap() {
-            if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(
-                (pos) => croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18),
-                () => alert('No se pudo acceder a la geolocalización.')
-            );
-        }
+        function geolocateOnMap() { if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => croquisMap.setView([p.coords.latitude, p.coords.longitude], 18)); }
 
         async function captureAndAttachCroquis() {
-            if (croquisPoints.length < 2) {
-                alert('⚠️ Debe marcar al menos CTO y Vivienda.');
-                return;
-            }
-
+            if (croquisPoints.length < 2) { alert('⚠️ Marque al menos CTO y Casa.'); return; }
             const mapBox = document.getElementById('croquis-map');
             const controls = mapBox.querySelectorAll('.leaflet-control-container');
-
             try {
                 controls.forEach(c => c.style.display = 'none');
-                const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: false, scale: 1.2, logging: false });
+                const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: false, scale: 1.2 });
                 controls.forEach(c => c.style.display = '');
-
                 const imgData = canvas.toDataURL('image/jpeg', 0.6);
                 uploadedFiles['file-croquis'] = imgData;
-
-                document.getElementById('preview-croquis').innerHTML = `
-                    <img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                    <div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
-
-                alert('✅ Foto del mapa capturada con éxito.');
-            } catch (e) {
-                controls.forEach(c => c.style.display = '');
-                alert('Error al capturar mapa.');
-            }
+                document.getElementById('preview-croquis').innerHTML = `<img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
+                alert('✅ Mapa capturado.');
+            } catch (e) { controls.forEach(c => c.style.display = ''); alert('Error al capturar.'); }
         }
 
         function validateCurrentStep(step) {
-            const stepContainer = document.getElementById(`step-${step}`);
-            if (!stepContainer) return true;
-
+            const container = document.getElementById(`step-${step}`); if (!container) return true;
             let valid = true;
-            const requiredInputs = stepContainer.querySelectorAll('[required]');
-            const processedRadioNames = new Set();
-
-            requiredInputs.forEach(input => {
-                if (input.type === 'radio') {
-                    if (!processedRadioNames.has(input.name)) {
-                        processedRadioNames.add(input.name);
-                        const checked = stepContainer.querySelector(`input[name="${input.name}"]:checked`);
-                        if (!checked) valid = false;
-                    }
-                } else if (input.type === 'file') {
-                    if (!uploadedFiles[input.id] && input.files.length === 0) valid = false;
-                } else {
-                    if (!input.value || !input.value.trim()) valid = false;
-                }
+            container.querySelectorAll('[required]').forEach(input => {
+                if (input.type === 'radio') { if (!container.querySelector(`input[name="${input.name}"]:checked`)) valid = false; }
+                else if (input.type === 'file') { if (!uploadedFiles[input.id] && input.files.length === 0) valid = false; }
+                else { if (!input.value.trim()) valid = false; }
             });
-
-            if (step === 5 && !uploadedFiles['file-croquis']) {
-                alert('⚠️ Es obligatorio pulsar "📸 Capturar Foto del Mapa y Adjuntar".');
-                return false;
-            }
-
-            if (!valid) alert('⚠️ Complete todos los campos obligatorios (*).');
+            if (step === 5 && !uploadedFiles['file-croquis']) { alert('⚠️ Debe capturar el mapa.'); return false; }
+            if (!valid) alert('⚠️ Complete los campos obligatorios (*).');
             return valid;
         }
 
         function renderReviewSummary() {
-            const container = document.getElementById('summary-breakdown-container');
-            if (!container) return;
-
-            const formData = new FormData(document.getElementById('pole-form'));
-            const nOt = formData.get('nOt') || '-';
-            const contrata = formData.get('contrataPrincipal') || '-';
-            const tipo = formData.get('tipo') || '-';
-            const estadoInfra = formData.get('estado') || '-';
-            const fechaHora = formData.get('fechaHora') || '-';
-            const direccion = document.getElementById('direccion').value || '-';
-            
-            const aliasTec1 = formData.get('aliasKairosTec1') || '-';
-            const nomTec1 = formData.get('nombreTec1') || '-';
-            const aliasRecurso = formData.get('aliasRecursoPreventivo') || '-';
-            const nomRecurso = formData.get('nombreRecursoPreventivo') || '-';
-
-            const tipoPoste = formData.get('tipoPoste') || '-';
-            const estadoPoste = formData.get('estadoPoste') || '-';
-            const paraSubir = formData.get('paraSubir') || '-';
-            const sePuede = formData.get('sePuede') || '-';
-            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
-            const totalMeters = calculateTotalMeters();
-            const observaciones = formData.get('observaciones') || 'Sin observaciones';
-
-            const ladderChecks = formData.getAll('ladderCheck');
-            const epis = formData.getAll('epis');
-            const medidasMadera = formData.getAll('medidasMadera');
-
+            const container = document.getElementById('summary-breakdown-container'); if (!container) return;
+            const f = new FormData(document.getElementById('pole-form'));
             container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">1. Datos OT</span>
-                            <button type="button" onclick="goToStep(1)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-semibold">${nOt}</span></div>
-                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${contrata}</span> | <strong>Tipo:</strong> <span class="text-slate-200">${tipo}</span></div>
-                        <div><strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
-                        <div><strong class="text-slate-400">Dirección:</strong> <span class="text-emerald-300">${direccion}</span></div>
-                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${fechaHora}</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <strong class="text-purple-400 block mb-1">1. Datos OT</strong>
+                        <div><strong>OT:</strong> ${f.get('nOt')} | <strong>Contrata:</strong> ${f.get('contrataPrincipal')}</div>
+                        <div><strong>Tipo:</strong> ${f.get('tipo')} | <strong>Estado:</strong> ${f.get('estado')}</div>
+                        <div><strong>Dirección:</strong> <span class="text-emerald-300">${document.getElementById('direccion').value}</span></div>
                     </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">2. Personal</span>
-                            <button type="button" onclick="goToStep(2)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">TEC1:</strong> <span class="text-white font-semibold">${aliasTec1} (${nomTec1})</span></div>
-                        <div><strong class="text-slate-400">Recurso:</strong> <span class="text-white font-semibold">${aliasRecurso} (${nomRecurso})</span></div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <strong class="text-purple-400 block mb-1">2. Personal</strong>
+                        <div><strong>TEC1:</strong> ${f.get('aliasKairosTec1')} (${document.getElementById('nombreTec1').value})</div>
+                        <div><strong>Recurso:</strong> ${f.get('aliasRecursoPreventivo')} (${document.getElementById('nombreRecursoPreventivo').value})</div>
                     </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">3. Poste y Seguridad</span>
-                            <button type="button" onclick="goToStep(3)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Material:</strong> <span class="text-slate-200">${tipoPoste}</span></div>
-                        <div><strong class="text-slate-400">Estado:</strong> <span class="text-slate-200">${estadoPoste}</span> | <strong>Método:</strong> <span class="text-slate-200">${paraSubir}</span></div>
-                        <div><strong class="text-slate-400">Apto Escalera:</strong> <span class="${sePuede === 'SI' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${sePuede}</span></div>
-                        ${medidasMadera.length > 0 ? `<div><strong class="text-amber-400">Medidas Madera:</strong> <span class="text-slate-300">${medidasMadera.join(', ')}</span></div>` : ''}
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <strong class="text-purple-400 block mb-1">3. Poste y Seguridad</strong>
+                        <div><strong>Material:</strong> ${f.get('tipoPoste')} | <strong>Estado:</strong> ${f.get('estadoPoste')}</div>
+                        <div><strong>Método:</strong> ${f.get('paraSubir')} | <strong>Apto:</strong> ${f.get('sePuede')}</div>
+                        <div><strong>Postes:</strong> ${document.getElementById('cantidadPostes').value} | <strong>Metros:</strong> ${calculateTotalMeters()}m</div>
                     </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">4. Checks & EPIs</span>
-                            <button type="button" onclick="goToStep(4)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Escalera:</strong> <span class="text-emerald-400 font-bold">${ladderChecks.length} verificaciones</span></div>
-                        <div><strong class="text-slate-400">EPIs:</strong> <span class="text-emerald-400 font-bold">${epis.length} seleccionados</span></div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">5. Trazado, Postes y Evidencias</span>
-                            <button type="button" onclick="goToStep(5)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400 font-bold">${cantidadPostes}</span> | <strong class="text-slate-400">Metros de Tendido:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></div>
-                        <div class="mt-1"><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${observaciones}</span></div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                        <strong class="text-purple-400 block mb-1">4. Checks y Observaciones</strong>
+                        <div><strong>Escalera:</strong> ${f.getAll('ladderCheck').length} verificaciones</div>
+                        <div><strong>EPIs:</strong> ${f.getAll('epis').length} seleccionados</div>
+                        <div><strong>Obs:</strong> ${f.get('observaciones') || 'Ninguna'}</div>
                     </div>
                 </div>`;
         }
@@ -1159,365 +621,110 @@
         function goToStep(step) {
             if (step < 1 || step > 6) return;
             if (step > currentStep && !validateCurrentStep(currentStep)) return;
-
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById(`step-${i}`).classList.add('hidden');
-                document.getElementById(`tab-btn-${i}`)?.classList.remove('tab-active');
-            }
-            document.getElementById(`step-${step}`).classList.remove('hidden');
-            document.getElementById(`tab-btn-${step}`)?.classList.add('tab-active');
-            currentStep = step;
-            updateProgressBar();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
+            for (let i = 1; i <= 6; i++) { document.getElementById(`step-${i}`).classList.add('hidden'); document.getElementById(`tab-btn-${i}`)?.classList.remove('tab-active'); }
+            document.getElementById(`step-${step}`).classList.remove('hidden'); document.getElementById(`tab-btn-${step}`)?.classList.add('tab-active');
+            currentStep = step; updateProgressBar(); window.scrollTo({ top: 0, behavior: 'smooth' });
             if (step === 5) setTimeout(initCroquisMap, 150);
             if (step === 6) { renderReviewSummary(); setTimeout(resizeCanvas, 100); }
         }
 
-        function nextStep(s) { goToStep(s); }
-        function prevStep(s) { goToStep(s); }
-
-        function updateProgressBar() {
-            const percent = Math.round((currentStep / 6) * 100);
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
-            document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
-        }
-
-        function setNowDateTime() {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('fechaHora').value = now.toISOString().slice(0, 16);
-        }
-
-        function toggleWoodPoleMeasures() {
-            const selected = document.querySelector('input[name="tipoPoste"]:checked');
-            const block = document.getElementById('wood-pole-block');
-            if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
-            else block.classList.add('hidden');
-        }
-
-        function handlePoleStatusChange() {
-            const val = document.getElementById('estadoPoste').value;
-            const alertBox = document.getElementById('no-climb-alert');
-            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
-            else alertBox.classList.add('hidden');
-        }
-
-        function toggleAllCheckboxes(cls, state) {
-            document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
-        }
+        function nextStep(s) { goToStep(s); } function prevStep(s) { goToStep(s); }
+        function updateProgressBar() { const p = Math.round((currentStep / 6) * 100); document.getElementById('progress-bar').style.width = `${p}%`; document.getElementById('progress-text').innerText = `Progreso: ${p}%`; document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`; }
+        function setNowDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); document.getElementById('fechaHora').value = now.toISOString().slice(0, 16); }
+        function toggleWoodPoleMeasures() { const sel = document.querySelector('input[name="tipoPoste"]:checked'); document.getElementById('wood-pole-block').classList.toggle('hidden', !sel || sel.value !== 'POSTE DE MADERA'); }
+        function handlePoleStatusChange() { const val = document.getElementById('estadoPoste').value; document.getElementById('no-climb-alert').classList.toggle('hidden', val !== 'NO SUBIR' && val !== 'MALO/DEFECTUOSO'); }
+        function toggleAllCheckboxes(cls, state) { document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state); }
 
         function initSignatureCanvas() {
-            signatureCanvas = document.getElementById('signature-canvas');
-            signatureCtx = signatureCanvas.getContext('2d');
-            resizeCanvas();
-
-            signatureCanvas.addEventListener('mousedown', startSigning);
-            signatureCanvas.addEventListener('mousemove', drawSigning);
-            signatureCanvas.addEventListener('mouseup', stopSigning);
-
-            signatureCanvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const t = e.touches[0];
-                startSigning({ clientX: t.clientX, clientY: t.clientY });
-            });
-            signatureCanvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const t = e.touches[0];
-                drawSigning({ clientX: t.clientX, clientY: t.clientY });
-            });
-            signatureCanvas.addEventListener('touchend', stopSigning);
+            signatureCanvas = document.getElementById('signature-canvas'); signatureCtx = signatureCanvas.getContext('2d'); resizeCanvas();
+            const start = (e) => { e.preventDefault(); isSigning = true; document.getElementById('signature-placeholder').classList.add('hidden'); const r = signatureCanvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; signatureCtx.beginPath(); signatureCtx.moveTo(t.clientX - r.left, t.clientY - r.top); };
+            const move = (e) => { e.preventDefault(); if (!isSigning) return; const r = signatureCanvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; signatureCtx.lineTo(t.clientX - r.left, t.clientY - r.top); signatureCtx.stroke(); };
+            const end = () => { if (isSigning) { isSigning = false; document.getElementById('firmaData').value = signatureCanvas.toDataURL(); } };
+            signatureCanvas.addEventListener('mousedown', start); signatureCanvas.addEventListener('mousemove', move); signatureCanvas.addEventListener('mouseup', end);
+            signatureCanvas.addEventListener('touchstart', start, {passive: false}); signatureCanvas.addEventListener('touchmove', move, {passive: false}); signatureCanvas.addEventListener('touchend', end);
         }
+        function resizeCanvas() { if (!signatureCanvas) return; const r = signatureCanvas.getBoundingClientRect(); signatureCanvas.width = r.width; signatureCanvas.height = r.height; signatureCtx.lineWidth = 2; signatureCtx.strokeStyle = '#0f172a'; }
+        function clearSignatureCanvas() { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); document.getElementById('signature-placeholder').classList.remove('hidden'); document.getElementById('firmaData').value = ''; }
 
-        function resizeCanvas() {
-            if (!signatureCanvas) return;
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCanvas.width = rect.width;
-            signatureCanvas.height = rect.height;
-            signatureCtx.lineWidth = 2;
-            signatureCtx.strokeStyle = '#0f172a';
-        }
-
-        function startSigning(e) {
-            isSigning = true;
-            document.getElementById('signature-placeholder').classList.add('hidden');
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.beginPath();
-            signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        }
-
-        function drawSigning(e) {
-            if (!isSigning) return;
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            signatureCtx.stroke();
-        }
-
-        function stopSigning() {
-            if (isSigning) {
-                isSigning = false;
-                document.getElementById('firmaData').value = signatureCanvas.toDataURL();
-            }
-        }
-
-        function clearSignatureCanvas() {
-            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-            document.getElementById('signature-placeholder').classList.remove('hidden');
-            document.getElementById('firmaData').value = '';
-        }
-
-        // HISTORIAL LOCAL
-        function saveToSentHistoryCompletely(nOt) {
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-            const data = {};
-
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) data[key] = [data[key]];
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            });
-
-            const checkboxesStates = {};
-            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb.name) {
-                    if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = [];
-                    if (cb.checked) checkboxesStates[cb.name].push(cb.value);
-                }
-            });
-
-            data['checkboxesStates'] = checkboxesStates;
-            data['firmaData'] = document.getElementById('firmaData').value;
-            data['sentAt'] = new Date().toLocaleString();
-            data['croquisPoints'] = croquisPoints;
-            data['uploadedFiles'] = { ...uploadedFiles };
-            data['nOt'] = nOt;
-
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-
-            sentList.unshift(data);
-            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
-            updateSentPartsBadge();
-        }
-
-        function updateSentPartsBadge() {
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-            document.getElementById('sent-parts-count').innerText = sentList.length;
-        }
-
-        function openSentPartsModal() {
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-
-            const listContainer = document.getElementById('sent-parts-list');
-            if (sentList.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes registrados todavía.</p>`;
-            } else {
-                listContainer.innerHTML = sentList.map((item, index) => `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
-                        <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
-                            <div class="text-[11px] text-slate-400">Registrado: ${item.sentAt || 'Fecha desconocida'}</div>
-                        </div>
-                        <div>
-                            <button type="button" onclick="previewSentPdf(${index})" class="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-xs"><i class="fa-solid fa-file-pdf"></i> Ver / Descargar PDF</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('sent-parts-modal').classList.remove('hidden');
-        }
-
-        function loadSentPartToTempDOM(index) {
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { return false; }
-
-            const item = sentList[index];
-            if (!item) return false;
-
-            document.getElementById('pole-form').reset();
-            Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
-
-            Object.keys(item).forEach(k => {
-                if (k === 'checkboxesStates' || k === 'uploadedFiles' || k === 'croquisPoints' || k === 'firmaData' || k === 'sentAt') return;
-                const elements = document.getElementsByName(k);
-                if (elements.length > 0) {
-                    const el = elements[0];
-                    if (el.type === 'radio') {
-                        elements.forEach(r => { if (r.value === item[k]) r.checked = true; });
-                    } else if (el.type !== 'checkbox' && el.type !== 'file') {
-                        el.value = item[k];
-                    }
-                } else {
-                    const singleEl = document.getElementById(k);
-                    if (singleEl) singleEl.value = item[k];
-                }
-            });
-
-            if (item.checkboxesStates) {
-                Object.keys(item.checkboxesStates).forEach(name => {
-                    const values = item.checkboxesStates[name];
-                    document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
-                        cb.checked = values.includes(cb.value);
-                    });
-                });
-            }
-
-            if (item.croquisPoints) croquisPoints = item.croquisPoints;
-            if (item.uploadedFiles) {
-                Object.keys(item.uploadedFiles).forEach(fileKey => {
-                    uploadedFiles[fileKey] = item.uploadedFiles[fileKey];
-                });
-            }
-
-            if (item.contrataPrincipal) {
-                handleContractorChange();
-                if (item.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = item.aliasKairosTec1;
-                if (item.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = item.aliasRecursoPreventivo;
-            }
-
-            if (item.firmaData) document.getElementById('firmaData').value = item.firmaData;
-            return true;
-        }
-
-        function previewSentPdf(index) {
-            if (loadSentPartToTempDOM(index)) {
-                closeSentPartsModal();
-                setTimeout(() => { generatePrintPreview(); }, 200);
-            }
-        }
-
-        function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
-        function clearSentHistory() {
-            if (confirm('¿Desea vaciar el historial de partes registrados?')) {
-                localStorage.removeItem('user_sent_pole_parts');
-                updateSentPartsBadge();
-                openSentPartsModal();
-            }
-        }
-
-        function confirmResetForm() {
-            if (confirm('¿Limpiar todo el formulario?')) {
-                document.getElementById('pole-form').reset();
-                clearCroquisMap();
-                clearSignatureCanvas();
-                Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
-                goToStep(1);
-            }
-        }
-
-        // GENERACIÓN DEL PDF
+        // GENERACIÓN DE PDF ROBUSTA CON LAS FOTOS INYECTADAS
         function buildPrintHTML() {
             const printArea = document.getElementById('print-area');
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
+            const f = new FormData(document.getElementById('pole-form'));
 
-            let pointsPrintHTML = '';
+            let pointsHTML = '';
             if (croquisPoints.length > 0) {
-                pointsPrintHTML = `<div style="margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 8.5px; background:#f8fafc;">
-                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO (${calculateTotalMeters()} metros):</strong><br>`;
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
-                });
-                pointsPrintHTML += `</div>`;
-            }
-
-            const ladderChecks = formData.getAll('ladderCheck');
-            const epis = formData.getAll('epis');
-            const medidasMadera = formData.getAll('medidasMadera');
-            let medidasMaderaHTML = '';
-            if (medidasMadera.length > 0) {
-                medidasMaderaHTML = `<div style="grid-column: span 2; margin-top: 3px; background: #fffbe0; padding: 3px; border-radius: 4px; border: 1px solid #fef08a;"><strong>Medidas Madera:</strong> ${medidasMadera.join(' | ')}</div>`;
+                pointsHTML = `<div style="margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 8.5px; background:#f8fafc;"><strong>TRAZADO (${calculateTotalMeters()}m):</strong><br>` + 
+                croquisPoints.map((p, idx) => `• ${p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : '🪵 Poste P' + idx)}: ${p.address}`).join('<br>') + `</div>`;
             }
 
             printArea.innerHTML = `
-                <!-- PÁGINA 1 -->
                 <div class="pdf-page">
-                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div><h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1></div>
-                        <div style="text-align: right; font-size: 8.5px;"><strong>Nº OT:</strong> ${formData.get('nOt') || '-'}<br><strong>Fecha:</strong> ${formData.get('fechaHora') || '-'}</div>
+                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+                        <h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                        <div style="font-size: 8.5px;"><strong>OT:</strong> ${f.get('nOt')}<br><strong>Fecha:</strong> ${f.get('fechaHora')}</div>
                     </div>
                     <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">1. DATOS DE LA ACTUACIÓN</h3>
+                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">1. DATOS GENERALES Y PERSONAL</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Nº OT:</strong> ${formData.get('nOt') || '-'}</div><div><strong>Contrata:</strong> ${formData.get('contrataPrincipal') || '-'}</div>
-                            <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div><div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
-                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'}</div>
+                            <div><strong>Nº OT:</strong> ${f.get('nOt')}</div><div><strong>Contrata:</strong> ${f.get('contrataPrincipal')}</div>
+                            <div><strong>Tipo:</strong> ${f.get('tipo')}</div><div><strong>Estado Infraestructura:</strong> ${f.get('estado')}</div>
+                            <div><strong>Técnico TEC1:</strong> ${f.get('aliasKairosTec1')} - ${document.getElementById('nombreTec1').value}</div>
+                            <div><strong>Recurso Preventivo:</strong> ${f.get('aliasRecursoPreventivo')} - ${document.getElementById('nombreRecursoPreventivo').value}</div>
+                            <div style="grid-column: span 2;"><strong>Dirección:</strong> ${document.getElementById('direccion').value}</div>
                         </div>
                     </div>
                     <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. EVALUACIÓN TÉCNICA Y SEGURIDAD</h3>
+                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. EVALUACIÓN TÉCNICA DEL POSTE</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Material del Poste:</strong> ${formData.get('tipoPoste') || '-'}</div><div><strong>Estado Global:</strong> ${formData.get('estadoPoste') || '-'}</div>
-                            <div><strong>Método Ascenso:</strong> ${formData.get('paraSubir') || '-'}</div><div><strong>Apto Escalera:</strong> ${formData.get('sePuede') || '-'}</div>
-                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'}</div><div><strong>Metros Tendido:</strong> ${calculateTotalMeters()} m</div>
-                            ${medidasMaderaHTML}
+                            <div><strong>Material:</strong> ${f.get('tipoPoste')}</div><div><strong>Estado Global:</strong> ${f.get('estadoPoste')}</div>
+                            <div><strong>Método Subir:</strong> ${f.get('paraSubir')}</div><div><strong>Apto Escalera:</strong> ${f.get('sePuede')}</div>
+                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value}</div><div><strong>Metros Tendido:</strong> ${calculateTotalMeters()} m</div>
                         </div>
                     </div>
                     <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">3. CHECKLISTS DE SEGURIDAD Y EPIS</h3>
+                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">3. CHECKLISTS Y EPIS</h3>
                         <div style="font-size: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                            <div><strong>Verificaciones Escalera:</strong><ul style="margin: 2px 0 0 10px; padding: 0;">${ladderChecks.map(c => `<li>${c}</li>`).join('') || '<em>Ninguna</em>'}</ul></div>
-                            <div><strong>EPIs Utilizados:</strong><ul style="margin: 2px 0 0 10px; padding: 0;">${epis.map(e => `<li>${e}</li>`).join('') || '<em>Ninguno</em>'}</ul></div>
+                            <div><strong>Escalera:</strong><ul>${f.getAll('ladderCheck').map(c => `<li>${c}</li>`).join('')}</ul></div>
+                            <div><strong>EPIs:</strong><ul>${f.getAll('epis').map(e => `<li>${e}</li>`).join('')}</ul></div>
                         </div>
                     </div>
                 </div>
-                <!-- PÁGINA 2 -->
                 <div class="pdf-page pdf-page-last">
                     <div class="print-section">
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">4. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
-                            ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>Foto Escalera en Poste</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-foto1'] ? `<div class="print-img-box"><span>Foto 1 (Entorno)</span><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-foto2'] ? `<div class="print-img-box"><span>Foto 2 (Detalle / Incidencia)</span><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Croquis Mapa</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>Foto Escalera</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto1'] ? `<div class="print-img-box"><span>Foto Entorno</span><br><img src="${uploadedFiles['file-foto1']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-foto2'] ? `<div class="print-img-box"><span>Foto Detalle</span><br><img src="${uploadedFiles['file-foto2']}" class="print-img"></div>` : ''}
                         </div>
-                        ${pointsPrintHTML}
-                        ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
+                        ${pointsHTML}
+                        ${f.get('observaciones') ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${f.get('observaciones')}</div>` : ''}
                     </div>
                     <div class="print-section" style="margin-top: 4px;">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">5. FIRMA Y DECLARACIÓN RESPONSABLE</h3>
+                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">5. FIRMA Y DNI</h3>
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 8.5px;">
-                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}<br><strong>DNI / NIE:</strong> ${formData.get('dniRecurso') || '-'}</div>
-                            <div style="text-align: center;">${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 35px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}</div>
+                            <div><strong>Recurso:</strong> ${document.getElementById('nombreRecursoPreventivo').value}<br><strong>DNI:</strong> ${f.get('dniRecurso')}</div>
+                            <div>${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 35px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin firma</em>'}</div>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         function generatePrintPreview() {
             buildPrintHTML();
             const printArea = document.getElementById('print-area');
             printArea.classList.remove('hidden');
-            const opt = { margin: 0, filename: `OT_${document.getElementById('nOt').value || 'Parte'}_PRL.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().from(printArea).set(opt).save().then(() => { printArea.classList.add('hidden'); });
+            html2pdf().from(printArea).set({ margin: 0, filename: `OT_${document.getElementById('nOt').value || 'Parte'}_PRL.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4' } }).save().then(() => printArea.classList.add('hidden'));
         }
 
-        // MOTOR BLOB PARA SUBIDA A IMGBB
+        // MOTOR BLOB FIABLE PARA IMGBB
         function dataURItoBlob(dataURI) {
             let byteString = atob(dataURI.split(',')[1]);
             let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
             let ab = new ArrayBuffer(byteString.length);
             let ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
             return new Blob([ab], {type: mimeString});
         }
 
@@ -1525,49 +732,35 @@
             if (!base64Data || base64Data.length < 100) return 'Sin Foto';
             try {
                 const blob = dataURItoBlob(base64Data);
-                const formData = new FormData();
-                formData.append('key', '6d207e02194a847aa98d0a9a9e04bc8a');
-                formData.append('image', blob, 'foto_prl.jpg');
-
-                const res = await fetch('https://api.imgbb.com/1/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await res.json();
-                if (data && data.success) {
-                    return data.data.url;
-                }
-            } catch (err) {
-                console.error("ImgBB falló:", err);
-            }
-            return 'Adjunto en PDF (Historial)';
+                const fd = new FormData();
+                fd.append('key', '6d207e02194a847aa98d0a9a9e04bc8a');
+                fd.append('image', blob, 'foto.jpg');
+                const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+                const json = await res.json();
+                if (json && json.success) return json.data.url;
+            } catch (e) {}
+            return 'Error en subida';
         }
 
-        // ENVÍO DE CORREO CON TODOS LOS CAMPOS RESTAURADOS
+        // ENVÍO DE CORREO CON ABSOLUTAMENTE TODOS LOS DATOS
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!validateCurrentStep(6)) return;
             const firma = document.getElementById('firmaData').value;
-            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
+            if (!firma) { alert('⚠️ Firma requerida.'); return; }
 
             const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const submitIcon = document.getElementById('submit-icon');
-            
             submitBtn.disabled = true;
-            submitText.innerText = 'Subiendo fotos y enviando correo...';
-            submitIcon.className = 'fa-solid fa-spinner fa-spin';
+            document.getElementById('submit-text').innerText = 'Subiendo fotos y enviando...';
+            document.getElementById('submit-icon').className = 'fa-solid fa-spinner fa-spin';
 
             try {
                 const nOt = document.getElementById('nOt').value || 'Sin_OT';
-                const form = document.getElementById('pole-form');
-                const rawFormData = new FormData(form);
+                const f = new FormData(document.getElementById('pole-form'));
 
-                // Guardar en historial antes de enviar
                 saveToSentHistoryCompletely(nOt);
 
-                // Subida de imágenes
+                // Subir fotos a ImgBB para obtener enlaces directos reales
                 const uCroquis = await uploadImageToImgBB(uploadedFiles['file-croquis']);
                 const uEsc = await uploadImageToImgBB(uploadedFiles['file-escalera']);
                 const uF1 = await uploadImageToImgBB(uploadedFiles['file-foto1']);
@@ -1577,52 +770,98 @@
                 sendData.append('_subject', `POSTE OT ${nOt} - PRL FTTH`);
                 sendData.append('_template', 'table');
                 
-                // TODOS LOS CAMPOS COMPLETOS PARA EL CORREO:
+                // INCLUIR ABSOLUTAMENTE TODOS LOS CAMPOS DEL FORMULARIO
                 sendData.append('N_OT', nOt);
-                sendData.append('CONTRATA', document.getElementById('contrataPrincipal').value);
-                sendData.append('TECNICO', document.getElementById('nombreTec1').value);
-                sendData.append('RECURSO_PREVENTIVO', document.getElementById('nombreRecursoPreventivo').value);
-                sendData.append('DNI_RECURSO', document.getElementById('dniRecurso').value);
-                sendData.append('DIRECCION', document.getElementById('direccion').value);
+                sendData.append('CONTRATA_PRINCIPAL', f.get('contrataPrincipal'));
+                sendData.append('FECHA_HORA', f.get('fechaHora'));
+                sendData.append('TIPO_ACTUACION', f.get('tipo'));
+                sendData.append('ESTADO_INFRAESTRUCTURA', f.get('estado'));
+                sendData.append('ALIAS_TEC1', f.get('aliasKairosTec1'));
+                sendData.append('NOMBRE_TECNICO_TEC1', document.getElementById('nombreTec1').value);
+                sendData.append('ALIAS_RECURSO_PREVENTIVO', f.get('aliasRecursoPreventivo'));
+                sendData.append('NOMBRE_RECURSO_PREVENTIVO', document.getElementById('nombreRecursoPreventivo').value);
+                sendData.append('DNI_RECURSO', f.get('dniRecurso'));
+                sendData.append('DIRECCION_EMPLAZAMIENTO', document.getElementById('direccion').value);
+                sendData.append('CODIGO_POSTAL', document.getElementById('codigoPostal').value);
+                sendData.append('MATERIAL_POSTE', f.get('tipoPoste'));
+                sendData.append('ESTADO_GLOBAL_POSTE', f.get('estadoPoste'));
+                sendData.append('METODO_SUBIDA', f.get('paraSubir'));
+                sendData.append('APTO_ESCALERA', f.get('sePuede'));
+                sendData.append('TOTAL_POSTES', document.getElementById('cantidadPostes').value);
                 sendData.append('METROS_TENDIDO', calculateTotalMeters() + 'm');
-                sendData.append('CANTIDAD_POSTES', document.getElementById('cantidadPostes').value);
-                sendData.append('TIPO_ACTUACION', rawFormData.get('tipo') || '-');
-                sendData.append('ESTADO_INFRAESTRUCTURA', rawFormData.get('estado') || '-');
-                sendData.append('MATERIAL_POSTE', rawFormData.get('tipoPoste') || '-');
-                sendData.append('ESTADO_POSTE', document.getElementById('estadoPoste').value);
-                sendData.append('METODO_SUBIR', document.getElementById('paraSubir').value);
-                sendData.append('APTO_ESCALERA', rawFormData.get('sePuede') || '-');
-                sendData.append('OBSERVACIONES', document.getElementById('observaciones').value || 'Ninguna');
+                sendData.append('MEDIDAS_MADERA_APLICADAS', f.getAll('medidasMadera').join(', ') || 'Ninguna');
+                sendData.append('CHECKS_ESCALERA', f.getAll('ladderCheck').join(' | ') || 'Ninguno');
+                sendData.append('EPIS_UTILIZADOS', f.getAll('epis').join(', ') || 'Ninguno');
+                sendData.append('OBSERVACIONES_TECNICAS', f.get('observaciones') || 'Ninguna');
 
-                // Enlaces de las fotos
-                sendData.append('ENLACE_FOTO_CROQUIS', uCroquis);
+                // Enlaces directos de las fotos para el correo
+                sendData.append('ENLACE_FOTO_CROQUIS_MAPA', uCroquis);
                 sendData.append('ENLACE_FOTO_ESCALERA', uEsc);
                 sendData.append('ENLACE_FOTO_ENTORNO', uF1);
                 sendData.append('ENLACE_FOTO_DETALLE', uF2);
 
                 await fetch(`https://formsubmit.co/ajax/${DESTINATION_EMAIL}`, { method: 'POST', body: sendData });
-
-                document.getElementById('modal-ot').innerText = nOt;
-                document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
 
-            } catch(e) {
-                alert('El parte se ha guardado en el historial local de "Enviados".');
-            } finally { 
+            } catch (err) {
+                alert('Parte guardado en el historial local.');
+            } finally {
                 submitBtn.disabled = false;
-                submitText.innerText = 'Finalizar y Enviar Correo';
-                submitIcon.className = 'fa-solid fa-paper-plane'; 
+                document.getElementById('submit-text').innerText = 'Finalizar y Enviar Correo';
+                document.getElementById('submit-icon').className = 'fa-solid fa-paper-plane';
             }
         }
 
-        function resetFormAndCloseModal() {
-            document.getElementById('success-modal').classList.add('hidden');
-            document.getElementById('pole-form').reset();
-            Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
-            clearCroquisMap();
-            clearSignatureCanvas();
-            goToStep(1);
+        // HISTORIAL LOCAL
+        function saveToSentHistoryCompletely(nOt) {
+            const f = new FormData(document.getElementById('pole-form'));
+            const data = {}; f.forEach((val, key) => data[key] = val);
+            const checkboxesStates = {};
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.name) { if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = []; if (cb.checked) checkboxesStates[cb.name].push(cb.value); }
+            });
+            data['checkboxesStates'] = checkboxesStates;
+            data['firmaData'] = document.getElementById('firmaData').value;
+            data['sentAt'] = new Date().toLocaleString();
+            data['croquisPoints'] = croquisPoints;
+            data['uploadedFiles'] = { ...uploadedFiles };
+            data['nOt'] = nOt;
+            let list = []; try { list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch(e){}
+            list.unshift(data); localStorage.setItem('user_sent_pole_parts', JSON.stringify(list)); updateSentPartsBadge();
         }
+        function updateSentPartsBadge() {
+            let list = []; try { list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch(e){}
+            document.getElementById('sent-parts-count').innerText = list.length;
+        }
+        function openSentPartsModal() {
+            let list = []; try { list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch(e){}
+            const c = document.getElementById('sent-parts-list');
+            if (list.length === 0) { c.innerHTML = `<p class="text-slate-400 text-center py-4">Sin partes guardados.</p>`; }
+            else {
+                c.innerHTML = list.map((item, idx) => `<div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex justify-between items-center"><div><strong>OT: ${item.nOt}</strong><div class="text-[10px] text-slate-400">${item.sentAt}</div></div><button type="button" onclick="previewSentPdf(${idx})" class="px-3 py-1 bg-purple-700 text-white rounded-lg text-xs">PDF</button></div>`).join('');
+            }
+            document.getElementById('sent-parts-modal').classList.remove('hidden');
+        }
+        function previewSentPdf(idx) {
+            let list = []; try { list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch(e){}
+            const item = list[idx]; if (!item) return;
+            document.getElementById('pole-form').reset(); Object.keys(uploadedFiles).forEach(k=>delete uploadedFiles[k]);
+            Object.keys(item).forEach(k => {
+                if (['checkboxesStates', 'uploadedFiles', 'croquisPoints', 'firmaData', 'sentAt'].includes(k)) return;
+                const els = document.getElementsByName(k);
+                if (els.length > 0) { if (els[0].type === 'radio') els.forEach(r => { if(r.value === item[k]) r.checked = true; }); else els[0].value = item[k]; }
+                else { const el = document.getElementById(k); if (el) el.value = item[k]; }
+            });
+            if (item.checkboxesStates) Object.keys(item.checkboxesStates).forEach(n => document.querySelectorAll(`input[name="${n}"]`).forEach(cb => cb.checked = item.checkboxesStates[n].includes(cb.value)));
+            if (item.croquisPoints) croquisPoints = item.croquisPoints;
+            if (item.uploadedFiles) Object.keys(item.uploadedFiles).forEach(fk => uploadedFiles[fk] = item.uploadedFiles[fk]);
+            if (item.firmaData) document.getElementById('firmaData').value = item.firmaData;
+            closeSentPartsModal(); setTimeout(() => generatePrintPreview(), 200);
+        }
+        function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
+        function clearSentHistory() { if (confirm('¿Vaciar historial?')) { localStorage.removeItem('user_sent_pole_parts'); updateSentPartsBadge(); closeSentPartsModal(); } }
+        function resetFormAndCloseModal() { document.getElementById('success-modal').classList.add('hidden'); document.getElementById('pole-form').reset(); Object.keys(uploadedFiles).forEach(k=>delete uploadedFiles[k]); clearCroquisMap(); clearSignatureCanvas(); goToStep(1); }
+        function confirmResetForm() { if (confirm('¿Limpiar todo el formulario?')) resetFormAndCloseModal(); }
     </script>
 </body>
 </html>
