@@ -105,9 +105,9 @@
     <header class="bg-brand-950 border-b border-purple-900/40 sticky top-0 z-30 shadow-lg no-print">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- LOGO INCORPORADO -->
-                <div class="bg-black p-2 rounded-xl border border-purple-900/50 shadow-md flex items-center">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" alt="Finetwork by Wewi" class="h-10 w-auto object-contain">
+                <!-- LOGO PNG CON FONDO INTEGRADO DE LA WEB -->
+                <div class="p-2 rounded-xl border border-purple-900/50 shadow-md flex items-center bg-[#1e1b4b]">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsmdbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" alt="Finetwork by Wewi" class="h-10 w-auto object-contain">
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-white flex items-center gap-2">
@@ -116,7 +116,7 @@
                     <p class="text-xs text-slate-400">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES (SIN RECUPERAR) -->
+            <!-- BOTONES SUPERIORES -->
             <div class="flex flex-col items-end space-y-1.5">
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-full justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
@@ -639,7 +639,7 @@
                     </div>
                 </div>
 
-                <!-- BOTONERA INFERIOR ADAPTADA MÓVIL -->
+                <!-- BOTONERA INFERIOR -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
                     <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
                     <div class="flex flex-wrap items-center justify-end gap-2">
@@ -678,7 +678,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE PARTES ENVIADOS (SIN RECUPERAR) -->
+    <!-- MODAL DE PARTES ENVIADOS -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1469,7 +1469,7 @@
                 listContainer.innerHTML = sentList.map((item, index) => `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                         <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || (item.formData && item.formData.ASUNTO_OT) || 'Sin OT'}</div>
+                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
                             <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
                         </div>
                         <div class="flex gap-1.5">
@@ -1490,7 +1490,6 @@
             const item = sentList[index];
             if (!item) return;
 
-            // Cargar temporalmente para vista previa PDF
             document.getElementById('pole-form').reset();
             Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
             Object.keys(item).forEach(k => {
@@ -1563,7 +1562,7 @@
                 <div class="pdf-page">
                     <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsmdbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" style="height: 25px; width: auto; background: black; padding: 2px; border-radius: 3px;">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAADICAYAAACtWcpoAAAgAElEQVR4Xu19B3hc13XuufcuHcy9194jSZIiZXuW4zpu7MS9O3GTuElsmdbNmSIruW7c3ubd9N77tJ722b5N5x1C63d9vE937fe54QW5Ik2bK2LdmSd8m3/885mDMzM7MzA7u/M79z7j1P3a+qLhUAAAAASUVORK5CYII=" style="height: 25px; width: auto; background: #1e1b4b; padding: 2px; border-radius: 3px;">
                             <div>
                                 <h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
                                 <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
@@ -1740,9 +1739,11 @@
             sendData.append('_captcha', 'false');
             sendData.append('_template', 'table');
 
-            // INCLUIR ABSOLUTAMENTE TODOS LOS DATOS EN EL CORREO
+            // VOLCADO SEGURO DE TODOS LOS CAMPOS EN TEXTO PLANO
             Object.keys(item.formData).forEach(key => {
-                sendData.append(key, item.formData[key]);
+                let val = item.formData[key];
+                if (Array.isArray(val)) val = val.join(', ');
+                sendData.append(key, val);
             });
 
             const pdfBlob = base64ToBlob(item.pdfBase64);
@@ -1859,7 +1860,7 @@
 
                 const pdfBase64 = await blobToBase64(pdfBlob);
 
-                // RECOPILAR ABSOLUTAMENTE TODOS LOS DATOS PARA EL CORREO
+                // RECOPILAR TODOS LOS DATOS DEL FORMULARIO DE FORMA LIMPIA
                 const formElement = document.getElementById('pole-form');
                 const allFormData = new FormData(formElement);
                 const payloadFormData = {};
@@ -1872,7 +1873,18 @@
                     }
                 });
 
-                // Añadir campos extra importantes
+                // Incluir campos estructurados adicionales y checkboxes
+                const ladderChecksArr = [];
+                formElement.querySelectorAll('input[name="ladderCheck"]:checked').forEach(cb => ladderChecksArr.push(cb.value));
+                const episArr = [];
+                formElement.querySelectorAll('input[name="epis"]:checked').forEach(cb => episArr.push(cb.value));
+                const maderaArr = [];
+                formElement.querySelectorAll('input[name="medidasMadera"]:checked').forEach(cb => maderaArr.push(cb.value));
+
+                payloadFormData['VERIFICACIONES_ESCALERA'] = ladderChecksArr.join(', ');
+                payloadFormData['EPIS_SELECCIONADOS'] = episArr.join(', ');
+                if (maderaArr.length > 0) payloadFormData['MEDIDAS_POSTE_MADERA'] = maderaArr.join(', ');
+
                 payloadFormData['ASUNTO_OT'] = nOt;
                 payloadFormData['CONTRATA_PRINCIPAL'] = contrata;
                 payloadFormData['ALIAS_TECNICO_TEC1'] = aliasTec1;
