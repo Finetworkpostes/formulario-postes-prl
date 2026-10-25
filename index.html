@@ -188,6 +188,16 @@
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
+                
+                <!-- ALERTA DE DUPLICIDAD DE OT -->
+                <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
+                    <div>
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm mr-1"></i>
+                        <strong>¡Cuidado Xiki!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
+                    </div>
+                    <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
@@ -197,7 +207,7 @@
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería y fecha.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -545,7 +555,6 @@
                             2. Foto Escalera en Poste <span class="text-rose-500">*</span>
                         </label>
                         
-                        <!-- AVISO VISIBLE OBLIGATORIO DE LO QUE DEBE SALIR EN LA FOTO -->
                         <div class="bg-purple-950/40 border border-purple-800/60 rounded-xl p-2.5 text-[11px] text-purple-200 space-y-1">
                             <div class="font-bold text-purple-300 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-exclamation"></i> Requisitos obligatorios en la foto:
@@ -708,7 +717,6 @@
         let mapMarkers = [];
         let croquisPolyline = null;
 
-        // LÓGICA DE RECONOCIMIENTO DE VOZ (SPEECH TO TEXT)
         let recognition = null;
         let isRecordingVoice = false;
 
@@ -940,11 +948,38 @@
                             }
                         }
                     }
+
+                    // Comprobar duplicidad también al cargar borrador
+                    if (draft.data.nOt) {
+                        checkOtDuplication(draft.data.nOt);
+                    }
                 } else {
                     localStorage.removeItem('pole_form_draft');
                 }
             } catch (e) {
                 console.error("Error al cargar borrador", e);
+            }
+        }
+
+        // FUNCIÓN DE VERIFICACIÓN DE DUPLICIDAD DE OT
+        function checkOtDuplication(otVal) {
+            const cleanOt = otVal.trim().toLowerCase();
+            const alertBox = document.getElementById('duplicate-ot-alert');
+            const dateSpan = document.getElementById('duplicate-date');
+            if (!cleanOt || !alertBox) return;
+
+            let sentList = [];
+            try {
+                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) { sentList = []; }
+
+            const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
+
+            if (found) {
+                alertBox.classList.remove('hidden');
+                if (dateSpan) dateSpan.innerText = found.sentAt || 'fecha anterior';
+            } else {
+                alertBox.classList.add('hidden');
             }
         }
 
@@ -976,6 +1011,9 @@
                     inputOT.style.borderColor = '#334155';
                 }
             }
+
+            // Ejecutar comprobación de duplicidad
+            checkOtDuplication(val);
         }
 
         async function cargarListaUsuarios() {
@@ -1621,7 +1659,7 @@
                     </div>
                 `).join('');
             }
-            document.getElementById('sent-parts-modal').classList.remove('hidden');
+            document.getElementById('sent-parts-modal').classList.add('hidden');
         }
 
         function closeSentPartsModal() {
@@ -1642,6 +1680,7 @@
                 clearCroquisMap();
                 clearSignatureCanvas();
                 localStorage.removeItem('pole_form_draft');
+                document.getElementById('duplicate-ot-alert').classList.add('hidden');
                 goToStep(1);
             }
         }
@@ -1795,6 +1834,7 @@
             clearCroquisMap();
             clearSignatureCanvas();
             localStorage.removeItem('pole_form_draft');
+            document.getElementById('duplicate-ot-alert').classList.add('hidden');
             goToStep(1);
         }
 
@@ -1999,6 +2039,7 @@
             clearCroquisMap();
             clearSignatureCanvas();
             localStorage.removeItem('pole_form_draft');
+            document.getElementById('duplicate-ot-alert').classList.add('hidden');
             goToStep(1);
         }
     </script>
