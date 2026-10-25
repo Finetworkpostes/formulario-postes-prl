@@ -704,7 +704,7 @@
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López" },
             { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz" },
-            { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian " },
+            { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian" },
             { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano" },
             { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil" },
             { "Contrata": "OBREMO", "Alias": "O011", "NombreCompleto": "Gonzalo Pérez Vera" },
@@ -949,7 +949,6 @@
                         }
                     }
 
-                    // Comprobar duplicidad también al cargar borrador
                     if (draft.data.nOt) {
                         checkOtDuplication(draft.data.nOt);
                     }
@@ -961,7 +960,6 @@
             }
         }
 
-        // FUNCIÓN DE VERIFICACIÓN DE DUPLICIDAD DE OT
         function checkOtDuplication(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const alertBox = document.getElementById('duplicate-ot-alert');
@@ -1012,7 +1010,6 @@
                 }
             }
 
-            // Ejecutar comprobación de duplicidad
             checkOtDuplication(val);
         }
 
@@ -1659,7 +1656,8 @@
                     </div>
                 `).join('');
             }
-            document.getElementById('sent-parts-modal').classList.add('hidden');
+            // CORREGIDO: Abrir correctamente el modal de enviados
+            document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
         function closeSentPartsModal() {
