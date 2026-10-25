@@ -58,7 +58,6 @@
         body.sun-mode input, body.sun-mode select, body.sun-mode textarea { background-color: #f8fafc !important; color: #0f172a !important; border-color: #94a3b8 !important; }
         body.sun-mode .bg-slate-800, body.sun-mode .bg-slate-900, body.sun-mode .bg-slate-950 { background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
         body.sun-mode .text-slate-100, body.sun-mode .text-slate-200, body.sun-mode .text-slate-300, body.sun-mode .text-slate-400 { color: #334155 !important; }
-        /* Corrección específica para los botones/tarjetas de selección y radio en Modo Sol */
         body.sun-mode label.border { background-color: #f8fafc !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
         body.sun-mode label.border span { color: #0f172a !important; }
 
@@ -133,9 +132,14 @@
                     <p class="text-[11px] sm:text-xs text-slate-400 truncate">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES LIGEROS -->
+            <!-- CONTROLES SUPERIORES -->
             <div class="flex flex-col items-end space-y-1.5 shrink-0">
                 <div class="flex items-center gap-1.5 w-36 sm:w-40 justify-end">
+                    <!-- ICONO DE COBERTURA INTELIGENTE CON RALLITAS -->
+                    <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5 shrink-0" title="Estado de cobertura de red">
+                        <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
+                        <span class="font-mono text-[11px]" id="signal-text">4G/5G</span>
+                    </button>
                     <button type="button" onclick="toggleSunMode()" id="btn-sun-mode" class="px-2.5 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center justify-center gap-1 w-full" title="Alternar modo luz solar">
                         <i class="fa-solid fa-sun"></i> <span id="sun-mode-text">Modo Sol</span>
                     </button>
@@ -560,7 +564,7 @@
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -694,6 +698,7 @@
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
+            updateNetworkSignalUI();
             
             // Comprobar si hay modo sol guardado en preferencias
             if (localStorage.getItem('sun_mode_active') === 'true') {
@@ -730,9 +735,40 @@
             }
 
             window.addEventListener('online', () => {
+                updateNetworkSignalUI();
                 syncPendingSubmissions();
             });
+            window.addEventListener('offline', () => {
+                updateNetworkSignalUI();
+            });
         });
+
+        // FUNCIONES DE ESTADO DE RED E INTERACCIÓN CON EL ICONO
+        function updateNetworkSignalUI() {
+            const icon = document.getElementById('signal-icon');
+            const text = document.getElementById('signal-text');
+            const badge = document.getElementById('network-signal-badge');
+            if (!icon || !text || !badge) return;
+
+            if (navigator.onLine) {
+                icon.className = 'fa-solid fa-signal text-emerald-400';
+                text.innerText = 'Online';
+                badge.style.borderColor = '#10b981';
+            } else {
+                icon.className = 'fa-solid fa-signal-slash text-rose-500 animate-pulse';
+                text.innerText = 'Sin Red';
+                badge.style.borderColor = '#f43f5e';
+            }
+        }
+
+        function checkNetworkStatusInteractive() {
+            updateNetworkSignalUI();
+            if (navigator.onLine) {
+                alert('🟢 ESTADO DE COBERTURA: ¡Óptimo!\n\nHay conexión a internet disponible. Puedes rellenar y enviar el formulario de inmediato sin problemas.');
+            } else {
+                alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.\n\nNo te preocupes: puedes seguir rellenando y firmando el parte. Al pulsar en finalizar, se guardará de forma segura y se enviará automáticamente en cuanto recuperes cobertura.');
+            }
+        }
 
         // FUNCIÓN MODO SOL (ALTO CONTRASTE)
         function toggleSunMode() {
@@ -749,7 +785,6 @@
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
 
-            // Guardar checkboxes también
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 if (cb.name) {
@@ -792,7 +827,6 @@
                         }
                     }
 
-                    // Restaurar contrata y técnicos si aplica
                     if (draft.data.contrataPrincipal) {
                         handleContractorChange();
                         setTimeout(() => {
@@ -807,7 +841,6 @@
                         }, 100);
                     }
 
-                    // Restaurar checkboxes
                     if (draft.checkboxes) {
                         for (let name in draft.checkboxes) {
                             draft.checkboxes[name].forEach(val => {
@@ -817,12 +850,10 @@
                         }
                     }
 
-                    // Restaurar croquis points si existen
                     if (draft.croquisPoints && Array.isArray(draft.croquisPoints)) {
                         croquisPoints = draft.croquisPoints;
                     }
 
-                    // Restaurar archivos subidos
                     if (draft.uploadedFiles) {
                         for (let id in draft.uploadedFiles) {
                             uploadedFiles[id] = draft.uploadedFiles[id];
