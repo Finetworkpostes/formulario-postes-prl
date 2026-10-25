@@ -171,12 +171,12 @@
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-1792490364818" maxlength="26" minlength="26" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-179249036481" maxlength="24" minlength="24" oninput="handleOtInput(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
                             <button type="button" id="btnPegarOT" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Pegar OT desde el portapapeles">
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (26 caracteres).</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería y fecha.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -672,13 +672,14 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
-            setNowDateTime();
+            // Ya no sobreescribimos la fecha/hora aquí de forma rígida al iniciar por primera vez, 
+            // se rellenará automáticamente al introducir/pegar la OT.
             await cargarListaUsuarios();
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
 
-            // Script para el botón de Pegar OT
+            // Script para el botón de Pegar OT (validado a 24 caracteres)
             const btnPegarOT = document.getElementById('btnPegarOT');
             const inputOT = document.getElementById('nOt');
             if (btnPegarOT && inputOT) {
@@ -686,7 +687,8 @@
                     try {
                         const text = await navigator.clipboard.readText();
                         inputOT.value = text.trim();
-                        if (inputOT.value.length === 26) {
+                        handleOtInput(inputOT.value); // Disparar la lógica de autocompletado
+                        if (inputOT.value.length === 24) {
                             inputOT.style.borderColor = '#10b981';
                         } else {
                             inputOT.style.borderColor = '#f59e0b';
@@ -701,6 +703,40 @@
                 syncPendingSubmissions();
             });
         });
+
+        // NUEVA FUNCIÓN: Autocompleta fecha/hora actual y tipo según prefijo de la OT
+        function handleOtInput(val) {
+            const cleanVal = val.trim().toLowerCase();
+            
+            // 1. Marcar fecha y hora actual si el campo está vacío
+            const fechaHoraInput = document.getElementById('fechaHora');
+            if (fechaHoraInput && !fechaHoraInput.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                fechaHoraInput.value = now.toISOString().slice(0, 16);
+            }
+
+            // 2. Autodetectar Tipo de Actuación según prefijo ("in" o "av")
+            if (cleanVal.startsWith('in')) {
+                const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
+                if (radioInst) radioInst.checked = true;
+            } else if (cleanVal.startsWith('av')) {
+                const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
+                if (radioAv) radioAv.checked = true;
+            }
+
+            // Validación visual de longitud de 24 caracteres
+            const inputOT = document.getElementById('nOt');
+            if (inputOT) {
+                if (inputOT.value.length === 24) {
+                    inputOT.style.borderColor = '#10b981';
+                } else if (inputOT.value.length > 0) {
+                    inputOT.style.borderColor = '#f59e0b';
+                } else {
+                    inputOT.style.borderColor = '#334155';
+                }
+            }
+        }
 
         async function cargarListaUsuarios() {
             let rawData = null;
@@ -1041,8 +1077,8 @@
 
             if (step === 1) {
                 const otInput = document.getElementById('nOt');
-                if (otInput && otInput.value.length !== 26) {
-                    alert('⚠️ El número de OT debe tener exactamente 26 caracteres.');
+                if (otInput && otInput.value.length !== 24) {
+                    alert('⚠️ El número de OT debe tener exactamente 24 caracteres.');
                     return false;
                 }
             }
@@ -1179,12 +1215,6 @@
             document.getElementById('progress-bar').style.width = `${percent}%`;
             document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
             document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
-        }
-
-        function setNowDateTime() {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('fechaHora').value = now.toISOString().slice(0, 16);
         }
 
         function toggleWoodPoleMeasures() {
