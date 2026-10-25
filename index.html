@@ -49,7 +49,7 @@
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
-        /* ESTILOS MODO SOL (ALTO CONTRASTE EXTERIOR) */
+        /* ESTILOS MODO SOL (ALTO CONTRASTE EXTERIOR CORREGIDOS) */
         body.sun-mode { background-color: #f1f5f9 !important; color: #0f172a !important; }
         body.sun-mode header { background-color: #ffffff !important; border-bottom: 2px solid #cbd5e1 !important; }
         body.sun-mode header h1, body.sun-mode header p, body.sun-mode header span { color: #0f172a !important; }
@@ -58,6 +58,9 @@
         body.sun-mode input, body.sun-mode select, body.sun-mode textarea { background-color: #f8fafc !important; color: #0f172a !important; border-color: #94a3b8 !important; }
         body.sun-mode .bg-slate-800, body.sun-mode .bg-slate-900, body.sun-mode .bg-slate-950 { background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
         body.sun-mode .text-slate-100, body.sun-mode .text-slate-200, body.sun-mode .text-slate-300, body.sun-mode .text-slate-400 { color: #334155 !important; }
+        /* Corrección específica para los botones/tarjetas de selección y radio en Modo Sol */
+        body.sun-mode label.border { background-color: #f8fafc !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
             header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal { display: none !important; }
@@ -1479,7 +1482,6 @@
                 localStorage.removeItem('user_sent_pole_parts');
             }
 
-            // Limpiar borrador tras envío exitoso
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
         }
