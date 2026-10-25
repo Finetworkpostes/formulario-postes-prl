@@ -953,7 +953,6 @@
             );
         }
 
-        // CAPTURA OPTIMIZADA Y LIGERA DEL MAPA
         async function captureAndAttachCroquis() {
             if (croquisPoints.length < 2) {
                 alert('⚠️ Debe marcar al menos CTO y Vivienda.');
@@ -969,7 +968,6 @@
             try {
                 controls.forEach(c => c.style.display = 'none');
                 
-                // Scale reducido a 1.0 y calidad 0.5 para que la imagen sea ligera de peso desde el origen
                 const canvas = await html2canvas(mapBox, { 
                     useCORS: true, 
                     allowTaint: true, 
@@ -1538,6 +1536,9 @@
 
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
+                // ASUNTO CONFIGURADO CON Nº DE OT Y CONTRATA
+                subject: `OT: ${item.nOt} - ${item.contrata}`,
+                
                 ot_number: item.nOt,
                 contrata: item.contrata,
                 tipo_actuacion: item.formData.tipo || '-',
