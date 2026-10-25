@@ -49,6 +49,16 @@
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
+        /* ESTILOS MODO SOL (ALTO CONTRASTE EXTERIOR) */
+        body.sun-mode { background-color: #f1f5f9 !important; color: #0f172a !important; }
+        body.sun-mode header { background-color: #ffffff !important; border-bottom: 2px solid #cbd5e1 !important; }
+        body.sun-mode header h1, body.sun-mode header p, body.sun-mode header span { color: #0f172a !important; }
+        body.sun-mode .step-content, body.sun-mode div[id*="step-"] { background-color: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
+        body.sun-mode label, body.sun-mode h2, body.sun-mode h3, body.sun-mode span { color: #1e293b !important; }
+        body.sun-mode input, body.sun-mode select, body.sun-mode textarea { background-color: #f8fafc !important; color: #0f172a !important; border-color: #94a3b8 !important; }
+        body.sun-mode .bg-slate-800, body.sun-mode .bg-slate-900, body.sun-mode .bg-slate-950 { background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+        body.sun-mode .text-slate-100, body.sun-mode .text-slate-200, body.sun-mode .text-slate-300, body.sun-mode .text-slate-400 { color: #334155 !important; }
+
         @media print {
             header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal { display: none !important; }
             body { background: white !important; color: black !important; }
@@ -122,6 +132,11 @@
             </div>
             <!-- BOTONES SUPERIORES LIGEROS -->
             <div class="flex flex-col items-end space-y-1.5 shrink-0">
+                <div class="flex items-center gap-1.5 w-36 sm:w-40 justify-end">
+                    <button type="button" onclick="toggleSunMode()" id="btn-sun-mode" class="px-2.5 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center justify-center gap-1 w-full" title="Alternar modo luz solar">
+                        <i class="fa-solid fa-sun"></i> <span id="sun-mode-text">Modo Sol</span>
+                    </button>
+                </div>
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-36 sm:w-40 justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
@@ -672,14 +687,25 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
-            // Ya no sobreescribimos la fecha/hora aquí de forma rígida al iniciar por primera vez, 
-            // se rellenará automáticamente al introducir/pegar la OT.
             await cargarListaUsuarios();
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
+            
+            // Comprobar si hay modo sol guardado en preferencias
+            if (localStorage.getItem('sun_mode_active') === 'true') {
+                document.body.classList.add('sun-mode');
+                document.getElementById('sun-mode-text').innerText = 'Modo Noche';
+            }
 
-            // Script para el botón de Pegar OT (validado a 24 caracteres)
+            // Cargar borrador guardado si existe
+            loadFormDraft();
+
+            // Guardar borrador automáticamente ante cualquier cambio en el formulario
+            document.getElementById('pole-form').addEventListener('input', saveFormDraft);
+            document.getElementById('pole-form').addEventListener('change', saveFormDraft);
+
+            // Script para el botón de Pegar OT
             const btnPegarOT = document.getElementById('btnPegarOT');
             const inputOT = document.getElementById('nOt');
             if (btnPegarOT && inputOT) {
@@ -687,7 +713,8 @@
                     try {
                         const text = await navigator.clipboard.readText();
                         inputOT.value = text.trim();
-                        handleOtInput(inputOT.value); // Disparar la lógica de autocompletado
+                        handleOtInput(inputOT.value);
+                        saveFormDraft();
                         if (inputOT.value.length === 24) {
                             inputOT.style.borderColor = '#10b981';
                         } else {
@@ -704,11 +731,116 @@
             });
         });
 
-        // NUEVA FUNCIÓN: Autocompleta fecha/hora actual y tipo según prefijo de la OT
+        // FUNCIÓN MODO SOL (ALTO CONTRASTE)
+        function toggleSunMode() {
+            document.body.classList.toggle('sun-mode');
+            const isSun = document.body.classList.contains('sun-mode');
+            document.getElementById('sun-mode-text').innerText = isSun ? 'Modo Noche' : 'Modo Sol';
+            localStorage.setItem('sun_mode_active', isSun);
+        }
+
+        // FUNCIONES DE AUTOGUARDADO DE BORRADOR
+        function saveFormDraft() {
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((val, key) => { data[key] = val; });
+
+            // Guardar checkboxes también
+            const checkboxes = {};
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.name) {
+                    if (!checkboxes[cb.name]) checkboxes[cb.name] = [];
+                    if (cb.checked) checkboxes[cb.name].push(cb.value);
+                }
+            });
+
+            const draft = {
+                data: data,
+                checkboxes: checkboxes,
+                croquisPoints: croquisPoints,
+                uploadedFiles: uploadedFiles,
+                timestamp: new Date().toLocaleString()
+            };
+
+            try {
+                localStorage.setItem('pole_form_draft', JSON.stringify(draft));
+            } catch (e) {}
+        }
+
+        function loadFormDraft() {
+            try {
+                const saved = localStorage.getItem('pole_form_draft');
+                if (!saved) return;
+                const draft = JSON.parse(saved);
+                if (!draft || !draft.data) return;
+
+                if (confirm(`📋 Se ha encontrado un borrador guardado del ${draft.timestamp}. ¿Desea recuperarlo?`)) {
+                    const form = document.getElementById('pole-form');
+                    for (let key in draft.data) {
+                        const el = form.elements[key];
+                        if (el) {
+                            if (el.type === 'radio') {
+                                const radio = form.querySelector(`input[name="${key}"][value="${draft.data[key]}"]`);
+                                if (radio) radio.checked = true;
+                            } else {
+                                el.value = draft.data[key];
+                            }
+                        }
+                    }
+
+                    // Restaurar contrata y técnicos si aplica
+                    if (draft.data.contrataPrincipal) {
+                        handleContractorChange();
+                        setTimeout(() => {
+                            if (draft.data.aliasKairosTec1) {
+                                document.getElementById('aliasKairosTec1').value = draft.data.aliasKairosTec1;
+                                handleAliasTec1Change(draft.data.aliasKairosTec1);
+                            }
+                            if (draft.data.aliasRecursoPreventivo) {
+                                document.getElementById('aliasRecursoPreventivo').value = draft.data.aliasRecursoPreventivo;
+                                handleAliasRecursoChange(draft.data.aliasRecursoPreventivo);
+                            }
+                        }, 100);
+                    }
+
+                    // Restaurar checkboxes
+                    if (draft.checkboxes) {
+                        for (let name in draft.checkboxes) {
+                            draft.checkboxes[name].forEach(val => {
+                                const cb = form.querySelector(`input[name="${name}"][value="${val}"]`);
+                                if (cb) cb.checked = true;
+                            });
+                        }
+                    }
+
+                    // Restaurar croquis points si existen
+                    if (draft.croquisPoints && Array.isArray(draft.croquisPoints)) {
+                        croquisPoints = draft.croquisPoints;
+                    }
+
+                    // Restaurar archivos subidos
+                    if (draft.uploadedFiles) {
+                        for (let id in draft.uploadedFiles) {
+                            uploadedFiles[id] = draft.uploadedFiles[id];
+                            if (id === 'file-croquis') {
+                                document.getElementById('preview-croquis').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa recuperado</div>`;
+                            } else if (id === 'file-escalera') {
+                                document.getElementById('preview-escalera').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada</div>`;
+                            }
+                        }
+                    }
+                } else {
+                    localStorage.removeItem('pole_form_draft');
+                }
+            } catch (e) {
+                console.error("Error al cargar borrador", e);
+            }
+        }
+
         function handleOtInput(val) {
             const cleanVal = val.trim().toLowerCase();
             
-            // 1. Marcar fecha y hora actual si el campo está vacío
             const fechaHoraInput = document.getElementById('fechaHora');
             if (fechaHoraInput && !fechaHoraInput.value) {
                 const now = new Date();
@@ -716,7 +848,6 @@
                 fechaHoraInput.value = now.toISOString().slice(0, 16);
             }
 
-            // 2. Autodetectar Tipo de Actuación según prefijo ("in" o "av")
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
@@ -725,7 +856,6 @@
                 if (radioAv) radioAv.checked = true;
             }
 
-            // Validación visual de longitud de 24 caracteres
             const inputOT = document.getElementById('nOt');
             if (inputOT) {
                 if (inputOT.value.length === 24) {
@@ -833,6 +963,7 @@
                     reader.readAsDataURL(file);
                 });
                 uploadedFiles[input.id] = compressedDataUrl;
+                saveFormDraft();
 
                 previewContainer.innerHTML = `
                     <div class="relative group">
@@ -869,12 +1000,17 @@
             croquisMap.on('click', async (e) => {
                 await addCroquisPoint(e.latlng.lat, e.latlng.lng);
             });
+
+            if (croquisPoints.length > 0) {
+                renderCroquisMarkersAndPath();
+            }
         }
 
         async function addCroquisPoint(lat, lng) {
             const geo = await reverseGeocode(lat, lng);
             croquisPoints.push({ lat, lng, address: geo.address, postcode: geo.postcode });
             renderCroquisMarkersAndPath();
+            saveFormDraft();
         }
 
         function renderCroquisMarkersAndPath() {
@@ -973,6 +1109,7 @@
             document.getElementById('direccion').value = '';
             document.getElementById('codigoPostal').value = '';
             updateCroquisSummary();
+            saveFormDraft();
         }
 
         async function reverseGeocode(lat, lng) {
@@ -1041,6 +1178,7 @@
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.5);
                 uploadedFiles['file-croquis'] = imgData;
+                saveFormDraft();
 
                 document.getElementById('preview-croquis').innerHTML = `
                     <img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
@@ -1222,6 +1360,7 @@
             const block = document.getElementById('wood-pole-block');
             if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
             else block.classList.add('hidden');
+            saveFormDraft();
         }
 
         function handlePoleStatusChange() {
@@ -1229,10 +1368,12 @@
             const alertBox = document.getElementById('no-climb-alert');
             if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
             else alertBox.classList.add('hidden');
+            saveFormDraft();
         }
 
         function toggleAllCheckboxes(cls, state) {
             document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
+            saveFormDraft();
         }
 
         function initSignatureCanvas() {
@@ -1285,6 +1426,7 @@
             if (isSigning) {
                 isSigning = false;
                 document.getElementById('firmaData').value = signatureCanvas.toDataURL();
+                saveFormDraft();
             }
         }
 
@@ -1292,6 +1434,7 @@
             signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             document.getElementById('signature-placeholder').classList.remove('hidden');
             document.getElementById('firmaData').value = '';
+            saveFormDraft();
         }
 
         function saveToSentHistoryCompletely(nOt) {
@@ -1336,6 +1479,8 @@
                 localStorage.removeItem('user_sent_pole_parts');
             }
 
+            // Limpiar borrador tras envío exitoso
+            localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
         }
 
@@ -1383,10 +1528,11 @@
         }
 
         function confirmResetForm() {
-            if (confirm('¿Limpiar todo el formulario?')) {
+            if (confirm('¿Limpiar todo el formulario y borrar borrador guardado?')) {
                 document.getElementById('pole-form').reset();
                 clearCroquisMap();
                 clearSignatureCanvas();
+                localStorage.removeItem('pole_form_draft');
                 goToStep(1);
             }
         }
@@ -1539,6 +1685,7 @@
             document.getElementById('pole-form').reset();
             clearCroquisMap();
             clearSignatureCanvas();
+            localStorage.removeItem('pole_form_draft');
             goToStep(1);
         }
 
@@ -1742,6 +1889,7 @@
             document.getElementById('pole-form').reset();
             clearCroquisMap();
             clearSignatureCanvas();
+            localStorage.removeItem('pole_form_draft');
             goToStep(1);
         }
     </script>
