@@ -50,7 +50,7 @@
         .leaflet-popup-tip { background: #0f172a; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #admin-modal, #admin-dashboard-modal, #admin-login-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -120,11 +120,8 @@
                     <p class="text-[11px] sm:text-xs text-slate-400 truncate">Prevención de Riesgos Laborales</p>
                 </div>
             </div>
-            <!-- BOTONES SUPERIORES APILADOS Y ADAPTADOS (Administrador PRIMERO) -->
+            <!-- BOTONES SUPERIORES LIGEROS -->
             <div class="flex flex-col items-end space-y-1.5 shrink-0">
-                <button type="button" onclick="openAdminLoginModal()" class="px-2.5 py-1.5 text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 rounded-lg border border-purple-600 transition flex items-center justify-between gap-2 w-36 sm:w-40">
-                    <span><i class="fa-solid fa-lock text-amber-400"></i> Administrador</span>
-                </button>
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden px-2.5 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition flex items-center gap-1.5 font-bold animate-pulse w-36 sm:w-40 justify-center">
                     <i class="fa-solid fa-wifi"></i> Sincronizar (<span id="pending-count">0</span>)
                 </button>
@@ -216,10 +213,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
-                    <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i> Guardar para más tarde
-                    </button>
+                <div class="flex justify-end pt-3 border-t border-slate-800">
                     <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
@@ -262,14 +256,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
-                            <i class="fa-solid fa-clock"></i> Guardar
-                        </button>
-                        <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center flex-grow sm:flex-grow-0">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
-                    </div>
+                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -369,14 +358,9 @@
                     <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
-                            <i class="fa-solid fa-clock"></i> Guardar
-                        </button>
-                        <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
-                    </div>
+                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -445,18 +429,13 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
-                            <i class="fa-solid fa-clock"></i> Guardar
-                        </button>
-                        <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
-                    </div>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 5: CROQUIS FTTH EVIDENCIAS FOTOGRÁFICAS (SOLO 2 FOTOS) -->
+            <!-- SECCIÓN 5: CROQUIS FTTH EVIDENCIAS FOTOGRÁFICAS -->
             <div id="step-5" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 5: Croquis FTTH Satelital y Foto de Escalera</h2>
 
@@ -555,14 +534,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
-                            <i class="fa-solid fa-clock"></i> Guardar
-                        </button>
-                        <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center flex-grow sm:flex-grow-0">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
-                    </div>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -610,17 +584,11 @@
                 </div>
 
                 <!-- BOTONERA INFERIOR -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                <div class="flex items-center justify-between pt-4 border-t border-slate-800">
                     <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <button type="button" onclick="saveForLater()" class="px-4 py-2.5 bg-purple-900/50 hover:bg-purple-900 text-purple-200 font-medium rounded-xl text-sm transition flex items-center justify-center gap-1.5 flex-grow sm:flex-grow-0">
-                            <i class="fa-solid fa-clock"></i> Guardar
-                        </button>
-                        <button type="button" onclick="generatePrintPreview()" class="px-4 py-2.5 bg-slate-800 text-purple-300 border border-purple-500/30 font-medium rounded-xl text-sm text-center flex-grow sm:flex-grow-0"><i class="fa-solid fa-print"></i> Vista Previa</button>
-                        <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 w-full sm:w-auto">
-                            <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
-                        </button>
-                    </div>
+                    <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
+                    </button>
                 </div>
             </div>
 
@@ -641,14 +609,14 @@
             </div>
             <div class="space-y-2 pt-2">
                 <button type="button" onclick="generatePrintPreview()" class="w-full py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-print"></i> 👁️ Ver Vista Previa / Descargar PDF
+                    <i class="fa-solid fa-print"></i> 👁️ Descargar PDF Ahora
                 </button>
-                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Realizar Nueva Actuación</button>
+                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Nuevo Formulario</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE PARTES ENVIADOS (MÓVIL) -->
+    <!-- MODAL DE PARTES ENVIADOS (MÓVIL SIN BOTÓN DE PDF) -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -661,47 +629,6 @@
             <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
                 <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
                 <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE LOGIN ADMIN (CONTRASEÑA 1234FI) -->
-    <div id="admin-login-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-        <div class="bg-slate-900 border border-purple-900/50 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
-            <div class="w-12 h-12 bg-purple-950 border border-purple-600 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            <h3 class="text-sm font-bold text-white">Acceso Panel de Administración</h3>
-            <p class="text-xs text-slate-400">Introduce la contraseña de control para acceder desde el PC.</p>
-            <input type="password" id="admin-pass-input" placeholder="Contraseña..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
-            <div class="flex gap-2 pt-2">
-                <button type="button" onclick="closeAdminLoginModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs">Cancelar</button>
-                <button type="button" onclick="verifyAdminPassword()" class="flex-1 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-xl text-xs">Entrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PANEL MAESTRO (ADMIN DASHBOARD) -->
-    <div id="admin-dashboard-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 no-print">
-        <div class="bg-slate-900 border border-purple-800 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col p-5 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-laptop text-purple-400"></i> Panel Maestro de Control - OTs Registradas
-                    </h3>
-                    <p class="text-xs text-slate-400">Control centralizado de partes de todos los técnicos.</p>
-                </div>
-                <button type="button" onclick="closeAdminDashboard()" class="text-slate-400 hover:text-white text-base px-2"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <!-- RESUMEN DE ENVÍOS POR CONTRATA -->
-            <div id="contractor-stats-summary" class="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0"></div>
-
-            <div id="admin-parts-list" class="flex-grow overflow-y-auto space-y-3 text-xs pr-1"></div>
-            
-            <div class="pt-3 border-t border-slate-800 flex justify-between items-center shrink-0">
-                <span class="text-xs text-slate-400" id="admin-total-count">Total Registros: 0</span>
-                <button type="button" onclick="closeAdminDashboard()" class="px-5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold">Cerrar Panel</button>
             </div>
         </div>
     </div>
@@ -741,13 +668,9 @@
             initSignatureCanvas();
             setNowDateTime();
             await cargarListaUsuarios();
-            loadDraft();
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
-
-            document.getElementById('pole-form').addEventListener('input', autoSaveDraft);
-            document.getElementById('pole-form').addEventListener('change', autoSaveDraft);
 
             window.addEventListener('online', () => {
                 syncPendingSubmissions();
@@ -863,7 +786,6 @@
                     dropzoneBox.classList.remove('border-rose-500');
                     dropzoneBox.classList.add('border-emerald-500/50');
                 }
-                autoSaveDraft();
             } catch (err) {
                 alert("Error al procesar la imagen seleccionada.");
             }
@@ -1053,7 +975,6 @@
                     <div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
 
                 alert('✅ Foto del mapa capturada con éxito.');
-                autoSaveDraft();
             } catch (e) {
                 controls.forEach(c => c.style.display = '');
                 alert('Error al capturar mapa.');
@@ -1238,7 +1159,6 @@
 
         function toggleAllCheckboxes(cls, state) {
             document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
-            autoSaveDraft();
         }
 
         function initSignatureCanvas() {
@@ -1291,7 +1211,6 @@
             if (isSigning) {
                 isSigning = false;
                 document.getElementById('firmaData').value = signatureCanvas.toDataURL();
-                autoSaveDraft();
             }
         }
 
@@ -1299,83 +1218,6 @@
             signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             document.getElementById('signature-placeholder').classList.remove('hidden');
             document.getElementById('firmaData').value = '';
-            autoSaveDraft();
-        }
-
-        function autoSaveDraft() {
-            const formData = new FormData(document.getElementById('pole-form'));
-            const data = {};
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) data[key] = [data[key]];
-                    data[key].push(value);
-                } else data[key] = value;
-            });
-            data['firmaData'] = document.getElementById('firmaData').value;
-            localStorage.setItem('pole_form_draft', JSON.stringify(data));
-        }
-
-        function loadDraft() {
-            const saved = localStorage.getItem('pole_form_draft');
-            if (!saved) return;
-            try {
-                const data = JSON.parse(saved);
-                Object.keys(data).forEach(k => {
-                    const el = document.getElementById(k);
-                    if (el && typeof data[k] === 'string') el.value = data[k];
-                });
-                if (data.contrataPrincipal) {
-                    handleContractorChange();
-                    if (data.aliasKairosTec1) document.getElementById('aliasKairosTec1').value = data.aliasKairosTec1;
-                    if (data.aliasRecursoPreventivo) document.getElementById('aliasRecursoPreventivo').value = data.aliasRecursoPreventivo;
-                }
-            } catch (e) {}
-        }
-
-        function saveForLater() {
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-            const data = {};
-
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) data[key] = [data[key]];
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            });
-
-            const checkboxesStates = {};
-            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb.name) {
-                    if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = [];
-                    if (cb.checked) checkboxesStates[cb.name].push(cb.value);
-                }
-            });
-
-            data['checkboxesStates'] = checkboxesStates;
-            data['firmaData'] = document.getElementById('firmaData').value;
-            data['savedAt'] = new Date().toLocaleString();
-            data['step'] = currentStep;
-            data['croquisPoints'] = croquisPoints;
-            data['uploadedFiles'] = { ...uploadedFiles };
-
-            let savedList = [];
-            try {
-                savedList = JSON.parse(localStorage.getItem('user_saved_pole_parts') || '[]');
-            } catch (e) { savedList = []; }
-
-            const nOt = data['nOt'] || 'OT-Sin-Numero';
-            const existingIdx = savedList.findIndex(item => item.nOt === nOt);
-            if (existingIdx >= 0) {
-                savedList[existingIdx] = data;
-            } else {
-                savedList.push(data);
-            }
-
-            localStorage.setItem('user_saved_pole_parts', JSON.stringify(savedList));
-            alert(`💾 Parte de la OT "${nOt}" guardado correctamente.`);
         }
 
         function saveToSentHistoryCompletely(nOt) {
@@ -1404,23 +1246,21 @@
             data['firmaData'] = document.getElementById('firmaData').value;
             data['sentAt'] = new Date().toLocaleString();
             data['croquisPoints'] = croquisPoints;
-            data['uploadedFiles'] = { ...uploadedFiles };
             data['nOt'] = nOt;
             data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value || 'OTRAS';
+            data['uploadedFiles'] = {}; 
 
             let sentList = [];
             try {
                 sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
             } catch (e) { sentList = []; }
             sentList.unshift(data);
-            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
-
-            let masterList = [];
+            if (sentList.length > 20) sentList = sentList.slice(0, 20);
             try {
-                masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
-            } catch (e) { masterList = []; }
-            masterList.unshift(data);
-            localStorage.setItem('master_admin_pole_parts', JSON.stringify(masterList));
+                localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
+            } catch (e) {
+                localStorage.removeItem('user_sent_pole_parts');
+            }
 
             updateSentPartsBadge();
         }
@@ -1443,51 +1283,18 @@
             if (sentList.length === 0) {
                 listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
             } else {
-                listContainer.innerHTML = sentList.map((item, index) => `
+                // SIN BOTÓN DE PDF EN EL HISTORIAL (SOLO DETALLE DE ENVÍO)
+                listContainer.innerHTML = sentList.map((item) => `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                         <div>
                             <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
                             <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
                         </div>
-                        <div class="flex gap-1.5">
-                            <button type="button" onclick="loadItemToPreview(${index}, 'sent')" class="px-2.5 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-xs"><i class="fa-solid fa-print"></i> PDF</button>
-                        </div>
+                        <div class="text-emerald-400 font-semibold text-[11px]">Enviado OK</div>
                     </div>
                 `).join('');
             }
             document.getElementById('sent-parts-modal').classList.remove('hidden');
-        }
-
-        function loadItemToPreview(index, source = 'sent') {
-            let list = [];
-            try {
-                if (source === 'sent') list = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-                else list = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
-            } catch (e) { return; }
-
-            const item = list[index];
-            if (!item) return;
-
-            document.getElementById('pole-form').reset();
-            Object.keys(uploadedFiles).forEach(k => delete uploadedFiles[k]);
-            
-            Object.keys(item).forEach(k => {
-                const el = document.getElementById(k);
-                if (el && typeof item[k] === 'string') el.value = item[k];
-            });
-
-            if (item.uploadedFiles) {
-                Object.keys(item.uploadedFiles).forEach(fk => {
-                    uploadedFiles[fk] = item.uploadedFiles[fk];
-                });
-            }
-
-            if (item.croquisPoints) croquisPoints = item.croquisPoints;
-            if (item.firmaData) document.getElementById('firmaData').value = item.firmaData;
-
-            closeSentPartsModal();
-            closeAdminDashboard();
-            setTimeout(() => { generatePrintPreview(); }, 300);
         }
 
         function closeSentPartsModal() {
@@ -1502,86 +1309,8 @@
             }
         }
 
-        // CONTROL PANEL ADMIN (CONTRASEÑA 1234FI)
-        function openAdminLoginModal() {
-            document.getElementById('admin-pass-input').value = '';
-            document.getElementById('admin-login-modal').classList.remove('hidden');
-        }
-
-        function closeAdminLoginModal() {
-            document.getElementById('admin-login-modal').classList.add('hidden');
-        }
-
-        function verifyAdminPassword() {
-            const pass = document.getElementById('admin-pass-input').value;
-            if (pass === '1234FI') {
-                closeAdminLoginModal();
-                openAdminDashboard();
-            } else {
-                alert('❌ Contraseña incorrecta.');
-            }
-        }
-
-        function openAdminDashboard() {
-            let masterList = [];
-            try {
-                masterList = JSON.parse(localStorage.getItem('master_admin_pole_parts') || '[]');
-            } catch (e) { masterList = []; }
-
-            const stats = {};
-            masterList.forEach(item => {
-                const c = (item.contrataPrincipal || 'OTRAS').trim().toUpperCase();
-                stats[c] = (stats[c] || 0) + 1;
-            });
-
-            const statsContainer = document.getElementById('contractor-stats-summary');
-            const contratasKeys = Object.keys(stats);
-
-            if (contratasKeys.length === 0) {
-                statsContainer.innerHTML = `<div class="col-span-full bg-slate-800 p-2.5 rounded-xl text-center text-slate-400 text-xs">Sin envíos registrados todavía.</div>`;
-            } else {
-                statsContainer.innerHTML = contratasKeys.map(c => `
-                    <div class="bg-slate-800 border border-purple-900/40 rounded-xl p-2.5 text-center">
-                        <div class="text-[10px] text-purple-300 font-bold uppercase truncate">${c}</div>
-                        <div class="text-base font-extrabold text-emerald-400 mt-0.5">${stats[c]} <span class="text-[10px] text-slate-400 font-normal">envíos</span></div>
-                    </div>
-                `).join('');
-            }
-
-            const listContainer = document.getElementById('admin-parts-list');
-            document.getElementById('admin-total-count').innerText = `Total Registros en Nube: ${masterList.length}`;
-
-            if (masterList.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-8">No hay OTs registradas en la nube todavía.</p>`;
-            } else {
-                listContainer.innerHTML = masterList.map((item, index) => `
-                    <div class="bg-slate-800/80 border border-purple-900/40 rounded-xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div class="space-y-0.5">
-                            <div class="font-bold text-white text-sm flex items-center gap-2">
-                                <span class="bg-purple-900 text-purple-200 px-2 py-0.5 rounded text-xs">${item.nOt || 'Sin OT'}</span>
-                                <span class="text-emerald-400 text-xs">${item.contrataPrincipal || ''}</span>
-                            </div>
-                            <div class="text-[11px] text-slate-300"><strong>Técnico:</strong> ${item.nombreTec1 || item.aliasKairosTec1 || 'N/A'} | <strong>Recurso:</strong> ${item.nombreRecursoPreventivo || 'N/A'}</div>
-                            <div class="text-[10px] text-slate-400">📅 Registrado: ${item.sentAt || 'Fecha desconocida'}</div>
-                        </div>
-                        <div class="flex gap-2 w-full sm:w-auto justify-end">
-                            <button type="button" onclick="loadItemToPreview(${index}, 'master')" class="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-xl text-xs flex items-center gap-1.5 font-semibold">
-                                <i class="fa-solid fa-print"></i> Ver / Descargar PDF
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
-        }
-
-        function closeAdminDashboard() {
-            document.getElementById('admin-dashboard-modal').classList.add('hidden');
-        }
-
         function confirmResetForm() {
             if (confirm('¿Limpiar todo el formulario?')) {
-                localStorage.removeItem('pole_form_draft');
                 document.getElementById('pole-form').reset();
                 clearCroquisMap();
                 clearSignatureCanvas();
@@ -1732,9 +1461,7 @@
             localStorage.setItem('pending_pole_submissions', JSON.stringify(queue));
 
             updatePendingBadge();
-            localStorage.removeItem('pole_form_draft');
-
-            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación de la OT se ha guardado localmente.\n\nSe enviará automáticamente en cuanto recuperes la conexión.`);
+            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación se ha guardado temporalmente y se enviará en cuanto recuperes conexión.`);
 
             document.getElementById('pole-form').reset();
             clearCroquisMap();
@@ -1761,7 +1488,6 @@
             }
         }
 
-        // COMPRESIÓN MÁXIMA AGRESIVA (200px y 25% calidad) PARA NUNCA PASAR EL LÍMITE DE EMAILJS
         function comprimirMiniaturaParaEmail(dataUrl, maxWidth = 200, quality = 0.25) {
             return new Promise((resolve) => {
                 if (!dataUrl) { resolve(''); return; }
@@ -1784,7 +1510,6 @@
             });
         }
 
-        // ENVÍO CON DOBLE MINIATURA ULTRALIGERA
         async function sendPayloadToEmailJS(item) {
             const formElement = document.getElementById('pole-form');
             const buildData = buildPrintHTML();
@@ -1925,7 +1650,6 @@
                 saveToSentHistoryCompletely(nOt);
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
-                localStorage.removeItem('pole_form_draft');
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (err) {
