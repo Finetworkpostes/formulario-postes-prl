@@ -170,7 +170,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
-                        <input type="text" id="nOt" name="nOt" required placeholder="ej. OT-1234-123456788" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-1792490364818" maxlength="26" minlength="26" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            <button type="button" id="btnPegarOT" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Pegar OT desde el portapapeles">
+                                <i class="fa-solid fa-paste"></i> Pegar
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (26 caracteres).</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -672,6 +678,25 @@
             updatePendingBadge();
             updateSentPartsBadge();
 
+            // Script para el botón de Pegar OT
+            const btnPegarOT = document.getElementById('btnPegarOT');
+            const inputOT = document.getElementById('nOt');
+            if (btnPegarOT && inputOT) {
+                btnPegarOT.addEventListener('click', async () => {
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        inputOT.value = text.trim();
+                        if (inputOT.value.length === 26) {
+                            inputOT.style.borderColor = '#10b981';
+                        } else {
+                            inputOT.style.borderColor = '#f59e0b';
+                        }
+                    } catch (err) {
+                        alert('Usa Ctrl+V para pegar; el navegador bloqueó el acceso automático.');
+                    }
+                });
+            }
+
             window.addEventListener('online', () => {
                 syncPendingSubmissions();
             });
@@ -1013,6 +1038,14 @@
                     if (!input.value || !input.value.trim()) valid = false;
                 }
             });
+
+            if (step === 1) {
+                const otInput = document.getElementById('nOt');
+                if (otInput && otInput.value.length !== 26) {
+                    alert('⚠️ El número de OT debe tener exactamente 26 caracteres.');
+                    return false;
+                }
+            }
 
             if (step === 5 && !uploadedFiles['file-croquis']) {
                 alert('⚠️ Es obligatorio pulsar "📸 Capturar Foto del Mapa y Adjuntar".');
@@ -1536,7 +1569,6 @@
 
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
-                // ASUNTO CONFIGURADO CON Nº DE OT Y CONTRATA
                 subject: `${item.nOt} - ${item.contrata}`,
                 
                 ot_number: item.nOt,
