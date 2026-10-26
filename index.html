@@ -49,7 +49,7 @@
         .leaflet-popup-content-wrapper { background: #0f172a; color: #f8fafc; font-size: 11px; }
         .leaflet-popup-tip { background: #0f172a; }
 
-        /* ESTILOS MODO SOL (ALTO CONTRASTE EXTERIOR CORREGIDOS) */
+        /* ESTILOS MODO SOL */
         body.sun-mode { background-color: #f1f5f9 !important; color: #0f172a !important; }
         body.sun-mode header { background-color: #ffffff !important; border-bottom: 2px solid #cbd5e1 !important; }
         body.sun-mode header h1, body.sun-mode header p, body.sun-mode header span { color: #0f172a !important; }
@@ -558,6 +558,11 @@
                             2. Foto Escalera en Poste <span class="text-rose-500">*</span>
                         </label>
                         
+                        <!-- BOTÓN DE GUÍA VISUAL / EJEMPLO CON TU URL -->
+                        <button type="button" onclick="abrirEjemploModal()" class="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-image"></i> 🖼️ Ver ejemplo de foto correcta
+                        </button>
+                        
                         <div class="bg-purple-950/40 border border-purple-800/60 rounded-xl p-2.5 text-[11px] text-purple-200 space-y-1">
                             <div class="font-bold text-purple-300 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-exclamation"></i> Requisitos obligatorios en la foto:
@@ -651,6 +656,27 @@
         </form>
     </main>
 
+    <!-- VENTANA MODAL PARA EL EJEMPLO DE FOTO (CON TU URL INTEGRADA) -->
+    <div id="modal-ejemplo-foto" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print" onclick="cerrarEjemploModal()">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 space-y-4 text-center relative" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-image text-purple-400"></i> Ejemplo de Foto Correcta
+                </h3>
+                <button type="button" onclick="cerrarEjemploModal()" class="text-slate-400 hover:text-white text-base font-bold px-2">&times;</button>
+            </div>
+            <div>
+                <img src="https://raw.githubusercontent.com/Finetworkpostes/formulario-postes-prl/main/foto_ejemplo_escalera.jpg" alt="Ejemplo de foto correcta" class="w-full max-h-[60vh] object-contain rounded-xl border border-slate-700 mx-auto shadow-lg">
+                <p class="text-xs text-slate-300 mt-3">
+                    Asegúrate de que se aprecie la escalera apoyada con seguridad, los conos en la base, y el técnico equipado con casco, arnés y chaleco reflectante.
+                </p>
+            </div>
+            <button type="button" onclick="cerrarEjemploModal()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl text-xs transition">
+                Entendido, cerrar
+            </button>
+        </div>
+    </div>
+
     <!-- Modal Éxito -->
     <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4">
@@ -722,6 +748,14 @@
 
         let recognition = null;
         let isRecordingVoice = false;
+
+        // Funciones del modal de ejemplo de foto
+        function abrirEjemploModal() {
+            document.getElementById('modal-ejemplo-foto').classList.remove('hidden');
+        }
+        function cerrarEjemploModal() {
+            document.getElementById('modal-ejemplo-foto').classList.add('hidden');
+        }
 
         function initVoiceRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -925,7 +959,6 @@
                                 document.getElementById('aliasRecursoPreventivo').value = draft.data.aliasRecursoPreventivo;
                                 handleAliasRecursoChange(draft.data.aliasRecursoPreventivo);
                                 
-                                // Si estaba marcada la exención de responsabilidad en el borrador
                                 const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
                                 if (exencionCb && draft.data.exencionResponsabilidadEmpresa) {
                                     exencionCb.checked = true;
@@ -1098,7 +1131,6 @@
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
                 
-                // Guardar el estado del curso 60HPRL en un campo oculto o atributo de control
                 const statusBox = document.getElementById('rp-course-status-box');
                 if (user) {
                     const cursoEstado = (user["60HPRL"] || "").trim().toUpperCase();
@@ -1137,7 +1169,6 @@
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
-                // FALTA DOCUMENTO O CUALQUIER OTRO VALOR
                 const isChecked = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
                 
                 statusBox.className = "mt-3 p-3 rounded-xl border border-rose-500/60 bg-rose-950/60 text-xs space-y-2";
