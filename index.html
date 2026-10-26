@@ -106,12 +106,12 @@
             color: #334155;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
-            padding: 3px;
+            padding: 4px;
             background: #f8fafc;
         }
 
         .print-img {
-            max-height: 110px;
+            max-height: 100px;
             width: 100%;
             object-fit: contain;
             border-radius: 2px;
@@ -2082,7 +2082,7 @@
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
                             ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span style="color:#059669; font-weight:bold;">${escaleraGeo}</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span style="font-size:8px; font-weight:bold; color:#1e293b;">Foto Escalera</span><div style="margin-top:2px; font-size:7.5px; color:#059669; font-weight:bold;">📍 ${escaleraGeo}</div><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
                         </div>
                         ${pointsPrintHTML}
                         ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
@@ -2226,7 +2226,7 @@
                 desglose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
                 observaciones: item.formData.observaciones || 'Sin observaciones',
                 
-                // Variable con la geolocalización de la foto para el correo
+                // Variable de la geolocalización para el correo
                 escalera_geolocalizacion: escaleraGeoInfo,
 
                 foto_croquis_miniatura: croquisMiniatura,
