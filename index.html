@@ -136,12 +136,10 @@
 
                 <!-- ACCESOS SUPERIORES: ICONO SOL/LUNA + BOTÓN 112 -->
                 <div class="flex items-center gap-2.5 shrink-0">
-                    <!-- ICONO DE MODO LUZ (SOL/LUNA) AL LADO DEL 112 -->
                     <button type="button" onclick="toggleSunMode()" id="btn-sun-mode" class="text-amber-400 hover:text-amber-300 transition text-lg p-1" title="Cambiar Modo Luz">
                         <i id="sun-mode-icon" class="fa-solid fa-sun"></i>
                     </button>
 
-                    <!-- BOTÓN EMERGENCIA 112 DIRECTO -->
                     <a href="tel:112" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-rose-900/60 transition flex items-center gap-1.5 animate-pulse border border-rose-400 no-underline">
                         <i class="fa-solid fa-phone-volume text-xs"></i>
                         <span>112</span>
@@ -149,31 +147,26 @@
                 </div>
             </div>
 
-            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS (SOLO ICONOS) -->
+            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
             <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
-                <!-- WIDGET METEOROLÓGICO (OCUPA 2 COLUMNAS) -->
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
                 </button>
 
-                <!-- SEÑAL DE RED (SOLO ICONO) -->
                 <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
                     <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
                     <span class="font-mono text-[10px]" id="signal-text">4G</span>
                 </button>
 
-                <!-- HISTORIAL ENVIADOS (SOLO ICONO + CONTADOR) -->
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
                     <i class="fa-solid fa-paper-plane"></i> <span id="sent-parts-count" class="font-bold">0</span>
                 </button>
 
-                <!-- BOTÓN LIMPIAR (SOLO ICONO) -->
                 <button type="button" onclick="confirmResetForm()" class="px-2 py-1.5 text-xs bg-rose-950/60 hover:bg-rose-900 text-rose-300 rounded-lg border border-rose-800/60 transition flex items-center justify-center" title="Limpiar formulario">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
 
-                <!-- BOTÓN SINCRONIZAR OFFLINE (OCULTO SALVO QUE HAYA PENDIENTES) -->
                 <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-5 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
                     <i class="fa-solid fa-wifi"></i> Sincronizar pendientes (<span id="pending-count">0</span>)
                 </button>
@@ -211,12 +204,13 @@
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
             <input type="hidden" id="datoViento" name="datoViento">
+            <!-- Campo oculto para geolocalización de la foto de escalera -->
+            <input type="hidden" id="escaleraGeoInfo" name="escaleraGeoInfo" value="Sin geolocalización registrada">
 
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 
-                <!-- ALERTA DE DUPLICIDAD DE OT -->
                 <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
                     <div>
                         <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm mr-1"></i>
@@ -318,7 +312,6 @@
                             <input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
                         </div>
 
-                        <!-- ESTADO DEL CURSO DE 60H Y CASILLA DE RESPONSABILIDAD -->
                         <div id="rp-course-status-box" class="hidden mt-3 p-3 rounded-xl border text-xs space-y-2"></div>
                     </div>
                 </div>
@@ -578,14 +571,13 @@
                         </div>
                     </div>
 
-                    <!-- DROPZONE 2: Foto Escalera -->
+                    <!-- DROPZONE 2: Foto Escalera CON GEOLOCALIZACIÓN -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-camera text-brand-400"></i>
                             2. Foto Escalera en Poste <span class="text-rose-500">*</span>
                         </label>
                         
-                        <!-- BOTÓN DE GUÍA VISUAL / EJEMPLO CON TU URL -->
                         <button type="button" onclick="abrirEjemploModal()" class="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm">
                             <i class="fa-solid fa-image"></i> 🖼️ Ver ejemplo de foto correcta
                         </button>
@@ -599,14 +591,15 @@
                                 <div>• Técnico con <strong>Casco</strong> de seguridad</div>
                                 <div>• Técnico con <strong>Arnés</strong> anticaídas</div>
                                 <div>• Técnico con <strong>Chaleco</strong> de alta visibilidad</div>
+                                <div class="text-emerald-300 font-medium pt-0.5">📍 Se geolocalizará automáticamente al adjuntar</div>
                             </div>
                         </div>
                         
                         <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
-                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this, 'preview-escalera')">
+                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelectWithGeolocation(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo</div>
+                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Geolocalización automática)</div>
                             </div>
                         </div>
                     </div>
@@ -711,7 +704,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS con sus datos, el croquis y la foto de la escalera.</p>
+            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS con sus datos, el croquis, la foto geolocalizada de la escalera y la firma.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -784,7 +777,6 @@
             document.getElementById('modal-ejemplo-foto').classList.add('hidden');
         }
 
-        // --- SISTEMA DE METEOROLOGÍA BLINDADO ---
         async function fetchWeatherByCoordinates(lat, lon) {
             const badge = document.getElementById('weather-badge');
             const icon = document.getElementById('weather-icon');
@@ -862,7 +854,6 @@
         function checkWeatherInteractive() {
             alert(`🌤️ ESTADO METEOROLÓGICO EN ALTURA:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Estado de seguridad: ${currentWeatherInfo.status}\n\n*Nota: Con vientos superiores a 50 km/h o lluvia intensa, se recomienda suspender temporalmente los trabajos en escalera sobre postes.*`);
         }
-        // -------------------------------------------------------------
 
         function initVoiceRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1101,7 +1092,8 @@
                             if (id === 'file-croquis') {
                                 document.getElementById('preview-croquis').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa recuperado</div>`;
                             } else if (id === 'file-escalera') {
-                                document.getElementById('preview-escalera').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada</div>`;
+                                const geoInfo = document.getElementById('escaleraGeoInfo').value || '';
+                                document.getElementById('preview-escalera').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada<br><span class="text-slate-300">${geoInfo}</span></div>`;
                             }
                         }
                     }
@@ -1312,12 +1304,82 @@
             document.getElementById(id).click();
         }
 
-        async function handleFileSelect(input, previewId) {
+        // --- NUEVA FUNCIÓN: CAPTURA FOTO ESCALERA CON GEOLOCALIZACIÓN Y HORA ---
+        async function handleFileSelectWithGeolocation(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
             if (!file) return;
 
-            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Optimizando foto...</div>`;
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y optimizando foto...</div>`;
+
+            // Obtener fecha y hora exacta actual
+            const now = new Date();
+            const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
+
+            // Intentar geolocalizar
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const geoData = await reverseGeocode(lat, lon);
+                        
+                        const direccionCompleta = geoData.address || 'Ubicación desconocida';
+                        const cpStr = geoData.postcode ? ` (C.P. ${geoData.postcode})` : '';
+                        
+                        const infoTextoFinal = `Fotografía realizada en: ${direccionCompleta}${cpStr} el ${fechaHoraStr}`;
+                        document.getElementById('escaleraGeoInfo').value = infoTextoFinal;
+
+                        await processAndStorePhoto(file, input.id, previewContainer, infoTextoFinal);
+                    },
+                    async (error) => {
+                        // Fallback si el GPS está desactivado o denegado
+                        const fallbackInfo = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
+                        document.getElementById('escaleraGeoInfo').value = fallbackInfo;
+                        await processAndStorePhoto(file, input.id, previewContainer, fallbackInfo);
+                    },
+                    { timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                const fallbackInfo = `Fotografía realizada en: Geolocalización no soportada el ${fechaHoraStr}`;
+                document.getElementById('escaleraGeoInfo').value = fallbackInfo;
+                await processAndStorePhoto(file, input.id, previewContainer, fallbackInfo);
+            }
+        }
+
+        async function processAndStorePhoto(file, inputId, previewContainer, geoText) {
+            try {
+                const reader = new FileReader();
+                const compressedDataUrl = await new Promise((res) => {
+                    reader.onload = (e) => res(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                uploadedFiles[inputId] = compressedDataUrl;
+                saveFormDraft();
+
+                previewContainer.innerHTML = `
+                    <div class="relative group">
+                        <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
+                        <div class="text-[10px] text-emerald-400 font-semibold mt-1 space-y-0.5">
+                            <div>✓ Foto adjuntada con éxito</div>
+                            <div class="text-slate-300 italic">${geoText}</div>
+                        </div>
+                    </div>`;
+
+                const dropzoneBox = document.getElementById(inputId).closest('.file-dropzone');
+                if (dropzoneBox) {
+                    dropzoneBox.classList.remove('border-rose-500');
+                    dropzoneBox.classList.add('border-emerald-500/50');
+                }
+            } catch (err) {
+                alert("Error al procesar la imagen seleccionada.");
+            }
+        }
+
+        async function handleFileSelect(input, previewId) {
+            const file = input.files[0];
+            const previewContainer = document.getElementById(previewId);
+            if (!file) return;
 
             try {
                 const reader = new FileReader();
@@ -1335,16 +1397,9 @@
                             <i class="fa-solid fa-check-circle"></i> ${file.name}
                         </div>
                     </div>`;
-
-                const dropzoneBox = input.closest('.file-dropzone');
-                if (dropzoneBox) {
-                    dropzoneBox.classList.remove('border-rose-500');
-                    dropzoneBox.classList.add('border-emerald-500/50');
-                }
-            } catch (err) {
-                alert("Error al procesar la imagen seleccionada.");
-            }
+            } catch (err) {}
         }
+        // -------------------------------------------------------------
 
         function initCroquisMap() {
             if (croquisMap) {
@@ -1644,6 +1699,7 @@
             const totalMeters = calculateTotalMeters();
             const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
             const datoViento = document.getElementById('datoViento').value || 'No medido';
+            const escaleraGeo = document.getElementById('escaleraGeoInfo').value || 'No geolocalizada';
 
             const ladderChecks = formData.getAll('ladderCheck');
             const epis = formData.getAll('epis');
@@ -1718,6 +1774,7 @@
                             <button type="button" onclick="goToStep(5)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
                         </div>
                         <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400 font-bold">${cantidadPostes}</span> | <strong class="text-slate-400">Metros de Tendido:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></div>
+                        <div class="text-[11px] text-emerald-300"><strong>📍 Geolocalización Foto Escalera:</strong> ${escaleraGeo}</div>
                         ${pointsSummaryHTML}
                         <div class="mt-1"><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${observaciones}</span></div>
                     </div>
@@ -1943,6 +2000,7 @@
             const statusBox = document.getElementById('rp-course-status-box');
             const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
             const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
+            const escaleraGeo = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización';
 
             let rpCursoPrint = "Válido (NO CADUCA)";
             let rpExencionPrint = "";
@@ -2052,7 +2110,7 @@
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
                             ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>Foto Escalera en Poste</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>${escaleraGeo}</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
                         </div>
                         ${pointsPrintHTML}
                         ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
@@ -2168,6 +2226,8 @@
                 rpEmailText = "FALTA DOCUMENTO" + (exencionMarcada ? " [ACTUANDO BAJO RESPONSABILIDAD DE LA EMPRESA]" : "");
             }
 
+            const escaleraGeoInfo = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
+
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
                 subject: `${item.nOt} - ${item.contrata}`,
@@ -2193,6 +2253,10 @@
                 medidas_madera: Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'No aplica',
                 desglose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
                 observaciones: item.formData.observaciones || 'Sin observaciones',
+                
+                // CAMBIO SOLICITADO: Variable limpia para el correo con la geolocalización de la foto
+                escalera_geolocalizacion: escaleraGeoInfo,
+
                 foto_croquis_miniatura: croquisMiniatura,
                 foto_escalera_miniatura: escaleraMiniatura
             };
