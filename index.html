@@ -193,7 +193,7 @@
                 <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
                     <div>
                         <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm mr-1"></i>
-                        <strong>¡Cuidado!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
+                        <strong>¡Cuidado Xiki!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
                     </div>
                     <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
                 </div>
@@ -290,12 +290,15 @@
                             <label for="nombreRecursoPreventivo" class="block text-xs font-medium text-slate-300">Nombre y Apellidos (Recurso Preventivo) <span class="text-rose-500">*</span></label>
                             <input type="text" id="nombreRecursoPreventivo" name="nombreRecursoPreventivo" required readonly class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-300 outline-none">
                         </div>
+
+                        <!-- ESTADO DEL CURSO DE 60H Y CASILLA DE RESPONSABILIDAD -->
+                        <div id="rp-course-status-box" class="hidden mt-3 p-3 rounded-xl border text-xs space-y-2"></div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" id="btn-next-step-2" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -548,7 +551,7 @@
                         </div>
                     </div>
 
-                    <!-- DROPZONE 2: Foto Escalera CON AVISO OBLIGATORIO DE EPIs -->
+                    <!-- DROPZONE 2: Foto Escalera -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-camera text-brand-400"></i>
@@ -702,14 +705,14 @@
         const uploadedFiles = {};
 
         const DEFAULT_USUARIOS = [
-            { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López" },
-            { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz" },
-            { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian" },
-            { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano" },
-            { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil" },
-            { "Contrata": "OBREMO", "Alias": "O011", "NombreCompleto": "Gonzalo Pérez Vera" },
-            { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos" },
-            { "Contrata": "ZENER", "Alias": "Z003", "NombreCompleto": "Sergio Blanco Castro" }
+            { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
+            { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz", "60HPRL": "NO CADUCA" },
+            { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki", "60HPRL": "NO CADUCA" },
+            { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano", "60HPRL": "FALTA DOCUMENTO" },
+            { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil", "60HPRL": "NO CADUCA" },
+            { "Contrata": "OBREMO", "Alias": "O011", "NombreCompleto": "Gonzalo Pérez Vera", "60HPRL": "FALTA DOCUMENTO" },
+            { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos", "60HPRL": "NO CADUCA" },
+            { "Contrata": "ZENER", "Alias": "Z003", "NombreCompleto": "Sergio Blanco Castro", "60HPRL": "NO CADUCA" }
         ];
 
         let croquisMap = null;
@@ -921,6 +924,13 @@
                             if (draft.data.aliasRecursoPreventivo) {
                                 document.getElementById('aliasRecursoPreventivo').value = draft.data.aliasRecursoPreventivo;
                                 handleAliasRecursoChange(draft.data.aliasRecursoPreventivo);
+                                
+                                // Si estaba marcada la exención de responsabilidad en el borrador
+                                const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
+                                if (exencionCb && draft.data.exencionResponsabilidadEmpresa) {
+                                    exencionCb.checked = true;
+                                    validarEstadoRecursoPreventivo();
+                                }
                             }
                         }, 100);
                     }
@@ -1087,7 +1097,70 @@
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
+                
+                // Guardar el estado del curso 60HPRL en un campo oculto o atributo de control
+                const statusBox = document.getElementById('rp-course-status-box');
+                if (user) {
+                    const cursoEstado = (user["60HPRL"] || "").trim().toUpperCase();
+                    statusBox.dataset.cursoEstado = cursoEstado;
+                } else {
+                    statusBox.dataset.cursoEstado = "";
+                }
+
+                validarEstadoRecursoPreventivo();
             }
+        }
+
+        function validarEstadoRecursoPreventivo() {
+            const statusBox = document.getElementById('rp-course-status-box');
+            const nextBtn = document.getElementById('btn-next-step-2');
+            const cursoEstado = statusBox.dataset.cursoEstado || "";
+            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value;
+
+            if (!aliasRecurso) {
+                statusBox.classList.add('hidden');
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            statusBox.classList.remove('hidden');
+
+            if (cursoEstado === "NO CADUCA") {
+                statusBox.className = "mt-3 p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-xs space-y-1";
+                statusBox.innerHTML = `
+                    <div class="font-bold text-emerald-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-check"></i> Curso de 60h PRL: Válido (NO CADUCA)
+                    </div>
+                    <div class="text-slate-300 text-[11px]">El recurso preventivo cumple con la formación obligatoria.</div>
+                `;
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                // FALTA DOCUMENTO O CUALQUIER OTRO VALOR
+                const isChecked = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
+                
+                statusBox.className = "mt-3 p-3 rounded-xl border border-rose-500/60 bg-rose-950/60 text-xs space-y-2";
+                statusBox.innerHTML = `
+                    <div class="font-bold text-rose-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Curso de 60h PRL: FALTA DOCUMENTO / NO VÁLIDO
+                    </div>
+                    <div class="text-rose-200 text-[11px]">Este técnico no dispone del curso homologado de 60h en regla. Prohibido actuar como RP salvo autorización.</div>
+                    <label class="flex items-start gap-2 bg-slate-900/80 p-2 rounded-lg border border-rose-900/50 cursor-pointer mt-1">
+                        <input type="checkbox" id="exencionResponsabilidadEmpresa" name="exencionResponsabilidadEmpresa" value="SÍ" ${isChecked ? 'checked' : ''} onchange="validarEstadoRecursoPreventivo()" class="mt-0.5 accent-rose-600">
+                        <span class="text-slate-200 font-medium">Autorizo la actuación de este técnico como Recurso Preventivo bajo la expresa y exclusiva <strong>responsabilidad de la empresa</strong>.</span>
+                    </label>
+                `;
+
+                if (!isChecked) {
+                    nextBtn.disabled = true;
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+            saveFormDraft();
         }
 
         function triggerFileInput(id) {
@@ -1366,6 +1439,18 @@
                 }
             }
 
+            if (step === 2) {
+                const statusBox = document.getElementById('rp-course-status-box');
+                const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
+                if (cursoEstado !== "NO CADUCA") {
+                    const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
+                    if (!exencionCb || !exencionCb.checked) {
+                        alert('⚠️ El Recurso Preventivo seleccionado no dispone del curso de 60h (Falta Documento). Debe marcar la casilla de autorización bajo responsabilidad de la empresa para continuar.');
+                        return false;
+                    }
+                }
+            }
+
             if (step === 5 && !uploadedFiles['file-croquis']) {
                 alert('⚠️ Es obligatorio pulsar "📸 Capturar Foto del Mapa y Adjuntar".');
                 return false;
@@ -1391,6 +1476,10 @@
             const nomTec1 = document.getElementById('nombreTec1').value || '-';
             const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
             const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || '-';
+            
+            const statusBox = document.getElementById('rp-course-status-box');
+            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
+            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
 
             const tipoPoste = formData.get('tipoPoste') || '-';
             const estadoPoste = document.getElementById('estadoPoste').value || '-';
@@ -1417,6 +1506,11 @@
                 pointsSummaryHTML = `<div class="text-slate-500 italic mt-1">Sin puntos marcados en el mapa</div>`;
             }
 
+            let rpCursoInfoHTML = `<span class="text-emerald-400 font-bold">Válido (NO CADUCA)</span>`;
+            if (cursoEstado !== "NO CADUCA") {
+                rpCursoInfoHTML = `<span class="text-rose-400 font-bold">FALTA DOCUMENTO</span> ${exencionMarcada ? '<br><strong class="text-amber-300">⚠️ Actuando bajo responsabilidad de la empresa</strong>' : ''}`;
+            }
+
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
@@ -1433,11 +1527,12 @@
 
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">2. Personal</span>
+                            <span class="font-bold text-purple-400 uppercase text-[11px]">2. Personal & PRL</span>
                             <button type="button" onclick="goToStep(2)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
                         </div>
                         <div><strong class="text-slate-400">TEC1:</strong> <span class="text-white font-semibold">${aliasTec1} (${nomTec1})</span></div>
                         <div><strong class="text-slate-400">Recurso:</strong> <span class="text-white font-semibold">${aliasRecurso} (${nomRecurso})</span></div>
+                        <div><strong class="text-slate-400">Curso 60h RP:</strong> ${rpCursoInfoHTML}</div>
                     </div>
 
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
@@ -1656,7 +1751,6 @@
                     </div>
                 `).join('');
             }
-            // CORREGIDO: Abrir correctamente el modal de enviados
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
@@ -1679,6 +1773,7 @@
                 clearSignatureCanvas();
                 localStorage.removeItem('pole_form_draft');
                 document.getElementById('duplicate-ot-alert').classList.add('hidden');
+                document.getElementById('rp-course-status-box').classList.add('hidden');
                 goToStep(1);
             }
         }
@@ -1687,6 +1782,19 @@
             const printArea = document.getElementById('print-area');
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
+
+            const statusBox = document.getElementById('rp-course-status-box');
+            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
+            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
+
+            let rpCursoPrint = "Válido (NO CADUCA)";
+            let rpExencionPrint = "";
+            if (cursoEstado !== "NO CADUCA") {
+                rpCursoPrint = "FALTA DOCUMENTO";
+                if (exencionMarcada) {
+                    rpExencionPrint = `<div style="color: #b45309; font-weight: bold; margin-top: 2px;">⚠️ Actuando como RP bajo expresa responsabilidad de la empresa.</div>`;
+                }
+            }
 
             let pointsPrintHTML = '';
             let puntosTextoBreve = [];
@@ -1738,12 +1846,13 @@
                     </div>
 
                     <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. IDENTIFICACIÓN DEL PERSONAL</h3>
+                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. IDENTIFICACIÓN DEL PERSONAL & PRL</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
                             <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'}</div>
                             <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value || '-'}</div>
                             <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'}</div>
                             <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}</div>
+                            <div style="grid-column: span 2;"><strong>Curso 60h RP:</strong> ${rpCursoPrint} ${rpExencionPrint}</div>
                         </div>
                     </div>
 
@@ -1833,6 +1942,7 @@
             clearSignatureCanvas();
             localStorage.removeItem('pole_form_draft');
             document.getElementById('duplicate-ot-alert').classList.add('hidden');
+            document.getElementById('rp-course-status-box').classList.add('hidden');
             goToStep(1);
         }
 
@@ -1891,6 +2001,14 @@
                 escaleraMiniatura = await comprimirMiniaturaParaEmail(uploadedFiles['file-escalera'], 200, 0.25);
             }
 
+            const statusBox = document.getElementById('rp-course-status-box');
+            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
+            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
+            let rpEmailText = "Válido (NO CADUCA)";
+            if (cursoEstado !== "NO CADUCA") {
+                rpEmailText = "FALTA DOCUMENTO" + (exencionMarcada ? " [ACTUANDO BAJO RESPONSABILIDAD DE LA EMPRESA]" : "");
+            }
+
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
                 subject: `${item.nOt} - ${item.contrata}`,
@@ -1902,7 +2020,7 @@
                 fecha: item.formData.fechaHora || '',
                 direccion: item.formData.direccion || 'Sin dirección',
                 tecnico_tec1: `${item.formData.aliasKairosTec1 || ''} - ${item.formData.nombreTec1 || ''}`,
-                recurso_preventivo: `${item.formData.aliasRecursoPreventivo || ''} - ${item.formData.nombreRecursoPreventivo || ''}`,
+                recurso_preventivo: `${item.formData.aliasRecursoPreventivo || ''} - ${item.formData.nombreRecursoPreventivo || ''} (Curso 60h: ${rpEmailText})`,
                 dni_recurso: item.formData.dniRecurso || '',
                 tipo_poste: item.formData.tipoPoste || '-',
                 estado_poste: item.formData.estadoPoste || '',
@@ -2038,6 +2156,7 @@
             clearSignatureCanvas();
             localStorage.removeItem('pole_form_draft');
             document.getElementById('duplicate-ot-alert').classList.add('hidden');
+            document.getElementById('rp-course-status-box').classList.add('hidden');
             goToStep(1);
         }
     </script>
