@@ -1304,7 +1304,7 @@
             document.getElementById(id).click();
         }
 
-        // --- NUEVA FUNCIÓN: CAPTURA FOTO ESCALERA CON GEOLOCALIZACIÓN Y HORA ---
+        // --- CAPTURA FOTO ESCALERA CON GEOLOCALIZACIÓN Y HORA ---
         async function handleFileSelectWithGeolocation(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
@@ -1312,11 +1312,9 @@
 
             previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y optimizando foto...</div>`;
 
-            // Obtener fecha y hora exacta actual
             const now = new Date();
             const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
 
-            // Intentar geolocalizar
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
@@ -1333,7 +1331,6 @@
                         await processAndStorePhoto(file, input.id, previewContainer, infoTextoFinal);
                     },
                     async (error) => {
-                        // Fallback si el GPS está desactivado o denegado
                         const fallbackInfo = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = fallbackInfo;
                         await processAndStorePhoto(file, input.id, previewContainer, fallbackInfo);
@@ -1375,31 +1372,6 @@
                 alert("Error al procesar la imagen seleccionada.");
             }
         }
-
-        async function handleFileSelect(input, previewId) {
-            const file = input.files[0];
-            const previewContainer = document.getElementById(previewId);
-            if (!file) return;
-
-            try {
-                const reader = new FileReader();
-                const compressedDataUrl = await new Promise((res) => {
-                    reader.onload = (e) => res(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-                uploadedFiles[input.id] = compressedDataUrl;
-                saveFormDraft();
-
-                previewContainer.innerHTML = `
-                    <div class="relative group">
-                        <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                        <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-check-circle"></i> ${file.name}
-                        </div>
-                    </div>`;
-            } catch (err) {}
-        }
-        // -------------------------------------------------------------
 
         function initCroquisMap() {
             if (croquisMap) {
@@ -2110,7 +2082,7 @@
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
                             ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span>${escaleraGeo}</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
+                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span style="color:#059669; font-weight:bold;">${escaleraGeo}</span><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
                         </div>
                         ${pointsPrintHTML}
                         ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
@@ -2254,7 +2226,7 @@
                 desglose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
                 observaciones: item.formData.observaciones || 'Sin observaciones',
                 
-                // CAMBIO SOLICITADO: Variable limpia para el correo con la geolocalización de la foto
+                // Variable con la geolocalización de la foto para el correo
                 escalera_geolocalizacion: escaleraGeoInfo,
 
                 foto_croquis_miniatura: croquisMiniatura,
