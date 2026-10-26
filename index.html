@@ -1972,7 +1972,19 @@
             const statusBox = document.getElementById('rp-course-status-box');
             const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
             const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
-            const escaleraGeo = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización';
+            
+            // Extracción robusta de la geolocalización de la escalera (visual o de input)
+            let escaleraGeo = "Sin geolocalización registrada";
+            const previewEscaleraEl = document.getElementById('preview-escalera');
+            if (previewEscaleraEl) {
+                const textNode = previewEscaleraEl.querySelector('.italic');
+                if (textNode && textNode.innerText.trim()) {
+                    escaleraGeo = textNode.innerText.trim();
+                } else {
+                    const fallbackVal = document.getElementById('escaleraGeoInfo').value;
+                    if (fallbackVal) escaleraGeo = fallbackVal;
+                }
+            }
 
             let rpCursoPrint = "Válido (NO CADUCA)";
             let rpExencionPrint = "";
@@ -2103,7 +2115,7 @@
                 </div>
             `;
 
-            return { puntosTextoBreve: puntosTextoBreve.join(' || ') };
+            return { puntosTextoBreve: puntosTextoBreve.join(' || '), escaleraGeoFinal: escaleraGeo };
         }
 
         function generatePrintPreview() {
@@ -2198,7 +2210,7 @@
                 rpEmailText = "FALTA DOCUMENTO" + (exencionMarcada ? " [ACTUANDO BAJO RESPONSABILIDAD DE LA EMPRESA]" : "");
             }
 
-            const escaleraGeoInfo = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
+            const escaleraGeoInfo = buildData.escaleraGeoFinal || document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
 
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
