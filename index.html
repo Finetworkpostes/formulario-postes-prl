@@ -750,6 +750,7 @@
         let isSigning = false;
         const uploadedFiles = {};
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
+        let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
@@ -1100,6 +1101,7 @@
 
                     if (draft.data.nOt) {
                         checkOtDuplication(draft.data.nOt);
+                        handleOtInput(draft.data.nOt);
                     }
                 } else {
                     localStorage.removeItem('pole_form_draft');
@@ -1140,12 +1142,39 @@
                 fechaHoraInput.value = now.toISOString().slice(0, 16);
             }
 
+            const estadoRadios = document.querySelectorAll('input[name="estado"]');
+
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
+                
+                // Habilitar estado infraestructura
+                estadoRadios.forEach(r => {
+                    r.disabled = false;
+                    r.required = true;
+                    r.closest('label').style.opacity = '1';
+                    r.closest('label').style.cursor = 'pointer';
+                });
             } else if (cleanVal.startsWith('av')) {
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
+                
+                // Deshabilitar estado infraestructura, desmarcar y quitar requerimiento
+                estadoRadios.forEach(r => {
+                    r.checked = false;
+                    r.disabled = true;
+                    r.required = false;
+                    r.closest('label').style.opacity = '0.4';
+                    r.closest('label').style.cursor = 'not-allowed';
+                });
+            } else {
+                // Por defecto habilitados
+                estadoRadios.forEach(r => {
+                    r.disabled = false;
+                    r.required = true;
+                    r.closest('label').style.opacity = '1';
+                    r.closest('label').style.cursor = 'pointer';
+                });
             }
 
             const inputOT = document.getElementById('nOt');
@@ -1325,22 +1354,22 @@
                         const direccionCompleta = geoData.address || 'Ubicación desconocida';
                         const cpStr = geoData.postcode ? ` (C.P. ${geoData.postcode})` : '';
                         
-                        const infoTextoFinal = `Fotografía realizada en: ${direccionCompleta}${cpStr} el ${fechaHoraStr}`;
-                        document.getElementById('escaleraGeoInfo').value = infoTextoFinal;
+                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${direccionCompleta}${cpStr} el ${fechaHoraStr}`;
+                        document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
 
-                        await processAndStorePhoto(file, input.id, previewContainer, infoTextoFinal);
+                        await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
                     },
                     async (error) => {
-                        const fallbackInfo = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
-                        document.getElementById('escaleraGeoInfo').value = fallbackInfo;
-                        await processAndStorePhoto(file, input.id, previewContainer, fallbackInfo);
+                        escaleraGeoTextoGlobal = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
+                        document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
+                        await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
                     },
                     { timeout: 5000, maximumAge: 0 }
                 );
             } else {
-                const fallbackInfo = `Fotografía realizada en: Geolocalización no soportada el ${fechaHoraStr}`;
-                document.getElementById('escaleraGeoInfo').value = fallbackInfo;
-                await processAndStorePhoto(file, input.id, previewContainer, fallbackInfo);
+                escaleraGeoTextoGlobal = `Fotografía realizada en: Geolocalización no soportada el ${fechaHoraStr}`;
+                document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
+                await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
             }
         }
 
@@ -1650,7 +1679,7 @@
             const nOt = document.getElementById('nOt').value || '-';
             const contrata = document.getElementById('contrataPrincipal').value || '-';
             const tipo = formData.get('tipo') || '-';
-            const estadoInfra = formData.get('estado') || '-';
+            const estadoInfra = formData.get('estado') || 'No aplica (Avería)';
             const fechaHora = document.getElementById('fechaHora').value || '-';
             const direccion = document.getElementById('direccion').value || '-';
             
@@ -1671,7 +1700,7 @@
             const totalMeters = calculateTotalMeters();
             const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
             const datoViento = document.getElementById('datoViento').value || 'No medido';
-            const escaleraGeo = document.getElementById('escaleraGeoInfo').value || 'No geolocalizada';
+            const escaleraGeo = escaleraGeoTextoGlobal || document.getElementById('escaleraGeoInfo').value || 'No geolocalizada';
 
             const ladderChecks = formData.getAll('ladderCheck');
             const epis = formData.getAll('epis');
@@ -1960,6 +1989,16 @@
                 localStorage.removeItem('pole_form_draft');
                 document.getElementById('duplicate-ot-alert').classList.add('hidden');
                 document.getElementById('rp-course-status-box').classList.add('hidden');
+                
+                // Restaurar estado infraestructura por si venía de avería
+                const estadoRadios = document.querySelectorAll('input[name="estado"]');
+                estadoRadios.forEach(r => {
+                    r.disabled = false;
+                    r.required = true;
+                    r.closest('label').style.opacity = '1';
+                    r.closest('label').style.cursor = 'pointer';
+                });
+
                 goToStep(1);
             }
         }
@@ -1973,18 +2012,7 @@
             const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
             const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
             
-            // Extracción robusta de la geolocalización de la escalera (visual o de input)
-            let escaleraGeo = "Sin geolocalización registrada";
-            const previewEscaleraEl = document.getElementById('preview-escalera');
-            if (previewEscaleraEl) {
-                const textNode = previewEscaleraEl.querySelector('.italic');
-                if (textNode && textNode.innerText.trim()) {
-                    escaleraGeo = textNode.innerText.trim();
-                } else {
-                    const fallbackVal = document.getElementById('escaleraGeoInfo').value;
-                    if (fallbackVal) escaleraGeo = fallbackVal;
-                }
-            }
+            const escaleraGeo = escaleraGeoTextoGlobal || document.getElementById('escaleraGeoInfo').value || "Sin geolocalización registrada";
 
             let rpCursoPrint = "Válido (NO CADUCA)";
             let rpExencionPrint = "";
@@ -2019,6 +2047,7 @@
             const ladderChecks = formData.getAll('ladderCheck');
             const epis = formData.getAll('epis');
             const datoViento = document.getElementById('datoViento').value || 'No medido';
+            const estadoInfraPrint = formData.get('estado') || 'No aplica (Avería)';
 
             printArea.innerHTML = `
                 <!-- PÁGINA 1 -->
@@ -2040,7 +2069,7 @@
                             <div><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}</div>
                             <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
                             <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
-                            <div><strong>Estado Infraestructura:</strong> ${formData.get('estado') || '-'}</div>
+                            <div><strong>Estado Infraestructura:</strong> ${estadoInfraPrint}</div>
                             <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
                         </div>
                     </div>
@@ -2144,6 +2173,15 @@
             localStorage.removeItem('pole_form_draft');
             document.getElementById('duplicate-ot-alert').classList.add('hidden');
             document.getElementById('rp-course-status-box').classList.add('hidden');
+            
+            const estadoRadios = document.querySelectorAll('input[name="estado"]');
+            estadoRadios.forEach(r => {
+                r.disabled = false;
+                r.required = true;
+                r.closest('label').style.opacity = '1';
+                r.closest('label').style.cursor = 'pointer';
+            });
+
             goToStep(1);
         }
 
@@ -2210,7 +2248,8 @@
                 rpEmailText = "FALTA DOCUMENTO" + (exencionMarcada ? " [ACTUANDO BAJO RESPONSABILIDAD DE LA EMPRESA]" : "");
             }
 
-            const escaleraGeoInfo = buildData.escaleraGeoFinal || document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
+            const escaleraGeoInfo = escaleraGeoTextoGlobal || buildData.escaleraGeoFinal || document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
+            const estadoInfraEmail = item.formData.estado || 'No aplica (Avería)';
 
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
@@ -2219,7 +2258,7 @@
                 ot_number: item.nOt,
                 contrata: item.contrata,
                 tipo_actuacion: item.formData.tipo || '-',
-                estado_infra: item.formData.estado || '-',
+                estado_infra: estadoInfraEmail,
                 fecha: item.formData.fechaHora || '',
                 direccion: item.formData.direccion || 'Sin dirección',
                 tecnico_tec1: `${item.formData.aliasKairosTec1 || ''} - ${item.formData.nombreTec1 || ''}`,
@@ -2364,6 +2403,15 @@
             localStorage.removeItem('pole_form_draft');
             document.getElementById('duplicate-ot-alert').classList.add('hidden');
             document.getElementById('rp-course-status-box').classList.add('hidden');
+            
+            const estadoRadios = document.querySelectorAll('input[name="estado"]');
+            estadoRadios.forEach(r => {
+                r.disabled = false;
+                r.required = true;
+                r.closest('label').style.opacity = '1';
+                r.closest('label').style.cursor = 'pointer';
+            });
+
             goToStep(1);
         }
     </script>
