@@ -62,7 +62,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -125,13 +125,19 @@
     <header class="bg-brand-950 border-b border-purple-900/40 sticky top-0 z-30 shadow-lg no-print">
         <div class="max-w-7xl mx-auto px-3 py-2 space-y-1.5">
             
-            <!-- FILA 1: TÍTULO, ICONO SOL/LUNA Y BOTÓN URGENTE 112 -->
+            <!-- FILA 1: TÍTULO, CONTRATA CLICABLE, ICONO SOL/LUNA Y BOTÓN 112 -->
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0">
                     <h1 class="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 truncate">
                         <span class="truncate">Actuación en Poste</span> 
                         <span class="text-[10px] sm:text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30 shrink-0">PRL FTTH</span>
                     </h1>
+                    <!-- SUBTÍTULO CLICABLE PARA CAMBIAR CONTRATA -->
+                    <div class="mt-0.5">
+                        <button type="button" onclick="abrirContrataModal()" class="text-[11px] text-purple-300 hover:text-purple-200 underline flex items-center gap-1 transition" title="Pulsa para cambiar de contrata">
+                            <i class="fa-solid fa-building text-[9px]"></i> Contrata: <span id="header-contrata-label" class="font-bold uppercase">Sin seleccionar</span> <span class="text-[9px] bg-purple-900/60 px-1.5 py-0.2 rounded border border-purple-700/50">Cambiar ✏️</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- ACCESOS SUPERIORES: ICONO SOL/LUNA + BOTÓN 112 -->
@@ -676,6 +682,24 @@
         </form>
     </main>
 
+    <!-- MODAL SELECCIÓN DE CONTRATA (PRIMERA VEZ / CAMBIO RÁPIDO) -->
+    <div id="contrata-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-12 h-12 bg-purple-950 border border-purple-500/40 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">Seleccione su Contrata Principal</h3>
+            <p class="text-xs text-slate-400">Esta opción se guardará automáticamente para que no tenga que volver a seleccionarla.</p>
+            
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="seleccionarContrataRapida('CIRCET')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">CIRCET</button>
+                <button type="button" onclick="seleccionarContrataRapida('INSTELCA')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">INSTELCA</button>
+                <button type="button" onclick="seleccionarContrataRapida('OBREMO')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">OBREMO</button>
+                <button type="button" onclick="seleccionarContrataRapida('ZENER')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">ZENER</button>
+            </div>
+        </div>
+    </div>
+
     <!-- VENTANA MODAL PARA EL EJEMPLO DE FOTO -->
     <div id="modal-ejemplo-foto" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print" onclick="cerrarEjemploModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 space-y-4 text-center relative" onclick="event.stopPropagation()">
@@ -776,6 +800,25 @@
         }
         function cerrarEjemploModal() {
             document.getElementById('modal-ejemplo-foto').classList.add('hidden');
+        }
+
+        function abrirContrataModal() {
+            document.getElementById('contrata-modal').classList.remove('hidden');
+        }
+        function cerrarContrataModal() {
+            document.getElementById('contrata-modal').classList.add('hidden');
+        }
+
+        function seleccionarContrataRapida(contrataName) {
+            localStorage.setItem('user_preferred_contrata', contrataName);
+            const select = document.getElementById('contrataPrincipal');
+            if (select) {
+                select.value = contrataName;
+                handleContractorChange();
+            }
+            const label = document.getElementById('header-contrata-label');
+            if (label) label.innerText = contrataName;
+            cerrarContrataModal();
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -931,6 +974,20 @@
             if (localStorage.getItem('sun_mode_active') === 'true') {
                 document.body.classList.add('sun-mode');
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
+            }
+
+            // GESTIÓN DE CONTRATA PREFERIDA
+            const savedContrata = localStorage.getItem('user_preferred_contrata');
+            if (savedContrata) {
+                const select = document.getElementById('contrataPrincipal');
+                if (select) {
+                    select.value = savedContrata;
+                    handleContractorChange();
+                }
+                const label = document.getElementById('header-contrata-label');
+                if (label) label.innerText = savedContrata;
+            } else {
+                abrirContrataModal();
             }
 
             loadFormDraft();
@@ -1148,7 +1205,6 @@
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
                 
-                // Habilitar estado infraestructura
                 estadoRadios.forEach(r => {
                     r.disabled = false;
                     r.required = true;
@@ -1159,7 +1215,6 @@
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
                 
-                // Deshabilitar estado infraestructura, desmarcar y quitar requerimiento
                 estadoRadios.forEach(r => {
                     r.checked = false;
                     r.disabled = true;
@@ -1168,7 +1223,6 @@
                     r.closest('label').style.cursor = 'not-allowed';
                 });
             } else {
-                // Por defecto habilitados
                 estadoRadios.forEach(r => {
                     r.disabled = false;
                     r.required = true;
@@ -1247,6 +1301,11 @@
 
                 if (prevTec1Val) selectTec1.value = prevTec1Val;
                 if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
+
+                // Actualizar label superior
+                const label = document.getElementById('header-contrata-label');
+                if (label) label.innerText = contrata;
+                localStorage.setItem('user_preferred_contrata', contrata);
             } else {
                 if (warning) warning.classList.remove('hidden');
             }
@@ -1990,7 +2049,6 @@
                 document.getElementById('duplicate-ot-alert').classList.add('hidden');
                 document.getElementById('rp-course-status-box').classList.add('hidden');
                 
-                // Restaurar estado infraestructura por si venía de avería
                 const estadoRadios = document.querySelectorAll('input[name="estado"]');
                 estadoRadios.forEach(r => {
                     r.disabled = false;
@@ -1998,6 +2056,13 @@
                     r.closest('label').style.opacity = '1';
                     r.closest('label').style.cursor = 'pointer';
                 });
+
+                // Mantener contrata guardada
+                const savedContrata = localStorage.getItem('user_preferred_contrata');
+                if (savedContrata) {
+                    document.getElementById('contrataPrincipal').value = savedContrata;
+                    handleContractorChange();
+                }
 
                 goToStep(1);
             }
@@ -2181,6 +2246,12 @@
                 r.closest('label').style.opacity = '1';
                 r.closest('label').style.cursor = 'pointer';
             });
+
+            const savedContrata = localStorage.getItem('user_preferred_contrata');
+            if (savedContrata) {
+                document.getElementById('contrataPrincipal').value = savedContrata;
+                handleContractorChange();
+            }
 
             goToStep(1);
         }
@@ -2411,6 +2482,12 @@
                 r.closest('label').style.opacity = '1';
                 r.closest('label').style.cursor = 'pointer';
             });
+
+            const savedContrata = localStorage.getItem('user_preferred_contrata');
+            if (savedContrata) {
+                document.getElementById('contrataPrincipal').value = savedContrata;
+                handleContractorChange();
+            }
 
             goToStep(1);
         }
