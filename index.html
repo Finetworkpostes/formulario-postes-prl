@@ -62,7 +62,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -210,7 +210,6 @@
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
             <input type="hidden" id="datoViento" name="datoViento">
-            <!-- Campo oculto para geolocalización de la foto de escalera -->
             <input type="hidden" id="escaleraGeoInfo" name="escaleraGeoInfo" value="Sin geolocalización registrada">
 
             <!-- SECCIÓN 1: DATOS OT -->
@@ -682,20 +681,41 @@
         </form>
     </main>
 
-    <!-- MODAL SELECCIÓN DE CONTRATA (PRIMERA VEZ / CAMBIO RÁPIDO) -->
+    <!-- MODAL SELECCIÓN DE CONTRATA -->
     <div id="contrata-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
             <div class="w-12 h-12 bg-purple-950 border border-purple-500/40 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
                 <i class="fa-solid fa-building"></i>
             </div>
             <h3 class="text-base font-bold text-white">Seleccione su Contrata Principal</h3>
-            <p class="text-xs text-slate-400">Esta opción se guardará automáticamente para que no tenga que volver a seleccionarla.</p>
+            <p class="text-xs text-slate-400">Elija su contrata. Se solicitará la contraseña asignada para verificar el acceso.</p>
             
             <div class="grid grid-cols-2 gap-2 pt-2">
-                <button type="button" onclick="seleccionarContrataRapida('CIRCET')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">CIRCET</button>
-                <button type="button" onclick="seleccionarContrataRapida('INSTELCA')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">INSTELCA</button>
-                <button type="button" onclick="seleccionarContrataRapida('OBREMO')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">OBREMO</button>
-                <button type="button" onclick="seleccionarContrataRapida('ZENER')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">ZENER</button>
+                <button type="button" onclick="intentarSeleccionarContrata('CIRCET')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">CIRCET</button>
+                <button type="button" onclick="intentarSeleccionarContrata('INSTELCA')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">INSTELCA</button>
+                <button type="button" onclick="intentarSeleccionarContrata('OBREMO')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">OBREMO</button>
+                <button type="button" onclick="intentarSeleccionarContrata('ZENER')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">ZENER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONTRASEÑA DE CONTRATA -->
+    <div id="password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-12 h-12 bg-rose-950 border border-rose-500/40 rounded-full flex items-center justify-center mx-auto text-rose-300 text-lg">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">Acceso Privado: <span id="modal-target-contrata" class="text-purple-400 uppercase"></span></h3>
+            <p class="text-xs text-slate-400">Introduce la contraseña exclusiva para acceder a los datos de esta contrata.</p>
+            
+            <div class="space-y-3 pt-1">
+                <input type="password" id="input-contrata-pass" placeholder="Contraseña de contrata..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
+                <div id="pass-error-msg" class="hidden text-[11px] text-rose-400 font-semibold">❌ Contraseña incorrecta. Acceso denegado.</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="cancelarPasswordModal()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs transition">Cancelar</button>
+                <button type="button" onclick="verificarPasswordContrata()" class="py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition">Validar</button>
             </div>
         </div>
     </div>
@@ -768,6 +788,16 @@
         const EMAILJS_SERVICE_ID = 'service_nf3hxml';
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
+        // CONTRASEÑAS FIJAS E INVARIABLES PARA CADA CONTRATA
+        const CONTRATA_PASSWORDS = {
+            "CIRCET": "Circet7590",
+            "INSTELCA": "Instelca2883",
+            "OBREMO": "Obremo4714",
+            "ZENER": "Zener4327"
+        };
+
+        let pendingTargetContrata = "";
+
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -809,7 +839,45 @@
             document.getElementById('contrata-modal').classList.add('hidden');
         }
 
-        function seleccionarContrataRapida(contrataName) {
+        function intentarSeleccionarContrata(contrataName) {
+            cerrarContrataModal();
+            const verifiedKey = `verified_contrata_${contrataName}`;
+            
+            // Si ya fue verificada y guardada en este dispositivo, entra directo sin pedir contraseña
+            if (localStorage.getItem(verifiedKey) === 'true') {
+                aplicarContrataValidada(contrataName);
+            } else {
+                // Si no, solicita contraseña
+                pendingTargetContrata = contrataName;
+                document.getElementById('modal-target-contrata').innerText = contrataName;
+                document.getElementById('input-contrata-pass').value = '';
+                document.getElementById('pass-error-msg').classList.add('hidden');
+                document.getElementById('password-modal').classList.remove('hidden');
+            }
+        }
+
+        function verificarPasswordContrata() {
+            const typedPass = document.getElementById('input-contrata-pass').value.trim();
+            const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
+
+            if (typedPass === correctPass) {
+                localStorage.setItem(`verified_contrata_${pendingTargetContrata}`, 'true');
+                document.getElementById('password-modal').classList.add('hidden');
+                aplicarContrataValidada(pendingTargetContrata);
+            } else {
+                document.getElementById('pass-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function cancelarPasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+            const saved = localStorage.getItem('user_preferred_contrata');
+            if (!saved) {
+                abrirContrataModal();
+            }
+        }
+
+        function aplicarContrataValidada(contrataName) {
             localStorage.setItem('user_preferred_contrata', contrataName);
             const select = document.getElementById('contrataPrincipal');
             if (select) {
@@ -818,7 +886,6 @@
             }
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
-            cerrarContrataModal();
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -1302,7 +1369,6 @@
                 if (prevTec1Val) selectTec1.value = prevTec1Val;
                 if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
 
-                // Actualizar label superior
                 const label = document.getElementById('header-contrata-label');
                 if (label) label.innerText = contrata;
                 localStorage.setItem('user_preferred_contrata', contrata);
@@ -1392,7 +1458,6 @@
             document.getElementById(id).click();
         }
 
-        // --- CAPTURA FOTO ESCALERA CON GEOLOCALIZACIÓN Y HORA ---
         async function handleFileSelectWithGeolocation(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
@@ -2057,7 +2122,6 @@
                     r.closest('label').style.cursor = 'pointer';
                 });
 
-                // Mantener contrata guardada
                 const savedContrata = localStorage.getItem('user_preferred_contrata');
                 if (savedContrata) {
                     document.getElementById('contrataPrincipal').value = savedContrata;
