@@ -237,13 +237,15 @@
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
-                        <select id="contrataPrincipal" name="contrataPrincipal" required onchange="handleContractorChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                        <!-- DESHABILITADO PARA OBLIGAR A USAR EL CAMBIO SEGURO SUPERIOR -->
+                        <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
                             <option value="">Seleccione Contrata...</option>
                             <option value="CIRCET">CIRCET</option>
                             <option value="INSTELCA">INSTELCA</option>
                             <option value="OBREMO">OBREMO</option>
                             <option value="ZENER">ZENER</option>
                         </select>
+                        <p class="text-[10px] text-purple-300">🔒 Para cambiar de contrata pulse en el menú superior ("Cambiar ✏️").</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="fechaHora" class="block text-xs font-medium text-slate-300">Fecha y Hora <span class="text-rose-500">*</span></label>
@@ -285,8 +287,8 @@
             <div id="step-2" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal (Auto-completado)</h2>
                 
-                <div id="contractor-warning" class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
-                    <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal en la Sección 1 para desplegar la lista de técnicos actualizada.
+                <div id="contractor-warning" class="hidden bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal para desplegar la lista de técnicos actualizada.
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -881,7 +883,9 @@
             localStorage.setItem('user_preferred_contrata', contrataName);
             const select = document.getElementById('contrataPrincipal');
             if (select) {
+                select.disabled = false;
                 select.value = contrataName;
+                select.disabled = true; // Lo mantenemos bloqueado para evitar cambios directos
                 handleContractorChange();
             }
             const label = document.getElementById('header-contrata-label');
@@ -1048,7 +1052,9 @@
             if (savedContrata) {
                 const select = document.getElementById('contrataPrincipal');
                 if (select) {
+                    select.disabled = false;
                     select.value = savedContrata;
+                    select.disabled = true; // Bloqueado para forzar seguridad
                     handleContractorChange();
                 }
                 const label = document.getElementById('header-contrata-label');
@@ -1135,6 +1141,7 @@
             const formData = new FormData(form);
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value; // Asegurar guardado de contrata bloqueada
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1167,6 +1174,7 @@
                 if (confirm(`📋 Se ha encontrado un borrador guardado del ${draft.timestamp}. ¿Desea recuperarlo?`)) {
                     const form = document.getElementById('pole-form');
                     for (let key in draft.data) {
+                        if (key === 'contrataPrincipal') continue; // La contrata se gestiona de forma segura por separado
                         const el = form.elements[key];
                         if (el) {
                             if (el.type === 'radio') {
@@ -1178,8 +1186,14 @@
                         }
                     }
 
-                    if (draft.data.contrataPrincipal) {
+                    const savedContrata = localStorage.getItem('user_preferred_contrata');
+                    if (savedContrata) {
+                        const select = document.getElementById('contrataPrincipal');
+                        select.disabled = false;
+                        select.value = savedContrata;
+                        select.disabled = true;
                         handleContractorChange();
+                        
                         setTimeout(() => {
                             if (draft.data.aliasKairosTec1) {
                                 document.getElementById('aliasKairosTec1').value = draft.data.aliasKairosTec1;
@@ -2029,6 +2043,7 @@
                     data[key] = value;
                 }
             });
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
 
             const checkboxesStates = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -2043,7 +2058,6 @@
             data['sentAt'] = new Date().toLocaleString();
             data['croquisPoints'] = croquisPoints;
             data['nOt'] = nOt;
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value || 'OTRAS';
             data['uploadedFiles'] = {}; 
 
             let sentList = [];
@@ -2124,7 +2138,10 @@
 
                 const savedContrata = localStorage.getItem('user_preferred_contrata');
                 if (savedContrata) {
-                    document.getElementById('contrataPrincipal').value = savedContrata;
+                    const select = document.getElementById('contrataPrincipal');
+                    select.disabled = false;
+                    select.value = savedContrata;
+                    select.disabled = true;
                     handleContractorChange();
                 }
 
@@ -2177,6 +2194,7 @@
             const epis = formData.getAll('epis');
             const datoViento = document.getElementById('datoViento').value || 'No medido';
             const estadoInfraPrint = formData.get('estado') || 'No aplica (Avería)';
+            const contrataPrint = document.getElementById('contrataPrincipal').value || '-';
 
             printArea.innerHTML = `
                 <!-- PÁGINA 1 -->
@@ -2196,7 +2214,7 @@
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">1. DATOS DE LA ACTUACIÓN</h3>
                         <div class="print-grid" style="font-size: 8.5px;">
                             <div><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}</div>
-                            <div><strong>Contrata Principal:</strong> ${document.getElementById('contrataPrincipal').value || '-'}</div>
+                            <div><strong>Contrata Principal:</strong> ${contrataPrint}</div>
                             <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
                             <div><strong>Estado Infraestructura:</strong> ${estadoInfraPrint}</div>
                             <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
@@ -2313,7 +2331,10 @@
 
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
-                document.getElementById('contrataPrincipal').value = savedContrata;
+                const select = document.getElementById('contrataPrincipal');
+                select.disabled = false;
+                select.value = savedContrata;
+                select.disabled = true;
                 handleContractorChange();
             }
 
@@ -2385,13 +2406,14 @@
 
             const escaleraGeoInfo = escaleraGeoTextoGlobal || buildData.escaleraGeoFinal || document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
             const estadoInfraEmail = item.formData.estado || 'No aplica (Avería)';
+            const contrataEmail = document.getElementById('contrataPrincipal').value || '-';
 
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
-                subject: `${item.nOt} - ${item.contrata}`,
+                subject: `${item.nOt} - ${contrataEmail}`,
                 
                 ot_number: item.nOt,
-                contrata: item.contrata,
+                contrata: contrataEmail,
                 tipo_actuacion: item.formData.tipo || '-',
                 estado_infra: estadoInfraEmail,
                 fecha: item.formData.fechaHora || '',
@@ -2549,7 +2571,10 @@
 
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
-                document.getElementById('contrataPrincipal').value = savedContrata;
+                const select = document.getElementById('contrataPrincipal');
+                select.disabled = false;
+                select.value = savedContrata;
+                select.disabled = true;
                 handleContractorChange();
             }
 
