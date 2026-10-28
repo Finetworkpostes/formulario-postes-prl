@@ -203,7 +203,7 @@
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
-                        <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
+                        <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-300 font-bold rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
                             <option value="">Seleccione Contrata...</option>
                             <option value="CIRCET">CIRCET</option>
                             <option value="INSTELCA">INSTELCA</option>
@@ -848,7 +848,7 @@
             if (select) {
                 select.disabled = false;
                 select.value = contrataName;
-                select.disabled = true;
+                select.disabled = true; // Bloqueado permanentemente para que no se borre
                 handleContractorChange();
             }
             const label = document.getElementById('header-contrata-label');
@@ -1030,7 +1030,6 @@
 
                     currentWeatherInfo.windSpeed = wind;
 
-                    // APLICACIÓN DIRECTA DE COLORES Y ESTILOS SEGÚN VIENTO O LLUVIA (>50KM/H O LLUVIA)
                     if (wind > 50 || precip > 2) {
                         badge.style.backgroundColor = '#7f1d1d';
                         badge.style.borderColor = '#f43f5e';
@@ -1061,7 +1060,6 @@
                     throw new Error('API error');
                 }
             } catch (e) {
-                // FALLBACK SEGURO VERDE
                 currentWeatherInfo.status = 'ÓPTIMO (12 km/h) - SEGURO';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 badge.style.backgroundColor = '#064e3b';
@@ -1164,9 +1162,9 @@
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
             }
 
-            // RECUPERAR CONTRATA AL RECARGAR LA PÁGINA
+            // RECUPERACIÓN PRIORITARIA Y BLOQUEO DE CONTRATA AL CARGAR
             const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata) {
+            if (savedContrata && CONTRATA_PASSWORDS[savedContrata]) {
                 aplicarContrataValidada(savedContrata);
             } else {
                 abrirContrataModal();
@@ -1236,7 +1234,7 @@
             const formData = new FormData(form);
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
+            data['contrataPrincipal'] = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal').value;
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1279,13 +1277,10 @@
                         }
                     }
 
+                    // RESTAURAR CONTRATA DE FORMA SEGURA
                     const savedContrata = localStorage.getItem('user_preferred_contrata');
                     if (savedContrata) {
-                        const select = document.getElementById('contrataPrincipal');
-                        select.disabled = false;
-                        select.value = savedContrata;
-                        select.disabled = true;
-                        handleContractorChange();
+                        aplicarContrataValidada(savedContrata);
                     }
 
                     if (draft.checkboxes) {
@@ -1419,14 +1414,17 @@
                 return acc;
             }, {});
 
-            handleContractorChange();
+            const savedContrata = localStorage.getItem('user_preferred_contrata');
+            if (savedContrata) {
+                aplicarContrataValidada(savedContrata);
+            } else {
+                handleContractorChange();
+            }
         }
 
         function handleContractorChange() {
-            const selectContrata = document.getElementById('contrataPrincipal');
-            if (!selectContrata) return;
-
-            const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
+            const contrata = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal')?.value || '';
+            const cleanContrata = contrata.trim().toUpperCase();
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             const warning = document.getElementById('contractor-warning');
@@ -1437,16 +1435,15 @@
             selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
-            if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
+            if (cleanContrata && USUARIOS_DB[cleanContrata] && USUARIOS_DB[cleanContrata].length > 0) {
                 if (warning) warning.classList.add('hidden');
-                USUARIOS_DB[contrata].forEach(u => {
+                USUARIOS_DB[cleanContrata].forEach(u => {
                     selectTec1.appendChild(new Option(u.Alias, u.Alias));
                     selectRecurso.appendChild(new Option(u.Alias, u.Alias));
                 });
                 if (prevTec1Val) selectTec1.value = prevTec1Val;
                 if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
-                document.getElementById('header-contrata-label').innerText = contrata;
-                localStorage.setItem('user_preferred_contrata', contrata);
+                document.getElementById('header-contrata-label').innerText = cleanContrata;
                 actualizarContadorOtsPendientes();
             } else {
                 if (warning) warning.classList.remove('hidden');
@@ -1454,7 +1451,7 @@
         }
 
         function handleAliasTec1Change(alias) {
-            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
+            const contrata = localStorage.getItem('user_preferred_contrata') || '';
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreTec1').value = user ? user.NombreCompleto : '';
@@ -1462,7 +1459,7 @@
         }
 
         function handleAliasRecursoChange(alias) {
-            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
+            const contrata = localStorage.getItem('user_preferred_contrata') || '';
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
@@ -1800,7 +1797,7 @@
 
             try {
                 const nOt = document.getElementById('nOt').value;
-                const contrata = document.getElementById('contrataPrincipal').value;
+                const contrata = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal').value;
                 const payload = { nOt, contrata, formData: Object.fromEntries(new FormData(document.getElementById('pole-form'))) };
 
                 await sendPayloadToEmailJS(payload);
