@@ -1,0 +1,16 @@
+{
+  "CIRCET": [
+    { "nOt": "in-4757651-1790011492948", "fechaInstalacion": "2026-10-08" }
+  ],
+  "INSTELCA": [
+    { "nOt": "in-4763236-1790679274639", "fechaInstalacion": "2026-10-05" },
+    { "nOt": "in-4747545-1788874875320", "fechaInstalacion": "2026-10-05" },
+    { "nOt": "in-4767576-1791359008997", "fechaInstalacion": "2026-10-14" },
+    { "nOt": "in-4770987-1792157751164", "fechaInstalacion": "2026-10-21" }
+  ],
+  "OBREMO": [
+    { "nOt": "in-4730634-1786360657309", "fechaInstalacion": "2026-10-13" },
+    { "nOt": "in-4775382-1792568284501", "fechaInstalacion": "2026-10-22" }
+  ],
+  "ZENER": []
+}
