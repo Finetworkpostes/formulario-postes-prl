@@ -224,11 +224,10 @@
                     <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
                 </div>
 
-                <!-- ALERTA DE OT BLOQUEADA POR FECHA -->
-                <div id="blocked-ot-alert" class="hidden bg-rose-950 border-2 border-rose-500 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
+                <div id="blocked-ot-alert" class="hidden bg-rose-950/90 border-2 border-rose-500 rounded-xl p-3 text-xs text-rose-100 flex items-center justify-between gap-2">
                     <div>
                         <i class="fa-solid fa-ban text-rose-400 text-sm mr-1"></i>
-                        <strong>OT BLOQUEADA:</strong> Esta orden supera el plazo de 5 días permitidos. No se puede justificar ni enviar.
+                        <strong>OT BLOQUEADA:</strong> Esta OT excede el plazo de 5 días permitidos y no se puede justificar ni enviar.
                     </div>
                     <button type="button" onclick="document.getElementById('blocked-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Cerrar</button>
                 </div>
@@ -249,7 +248,7 @@
                                 <i class="fa-solid fa-list-check"></i> <span id="label-pendientes-btn">Pendientes (0)</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba bloqueos o duplicidad.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -823,6 +822,7 @@
         const EMAILJS_SERVICE_ID = 'service_nf3hxml';
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
+        // CONTRASEÑAS FIJAS E INVARIABLES PARA CADA CONTRATA
         const CONTRATA_PASSWORDS = {
             "CIRCET": "Circet7590",
             "INSTELCA": "Instelca2883",
@@ -831,7 +831,7 @@
         };
 
         let pendingTargetContrata = "";
-        let pendingOTsFromJSON = {}; 
+        let pendingOTsFromJSON = {}; // Variable global para OTs pendientes
 
         let USUARIOS_DB = {};
         let currentStep = 1;
@@ -860,35 +860,24 @@
         let recognition = null;
         let isRecordingVoice = false;
 
-        /* GESTIÓN DE OTs PENDIENTES Y BLOQUEADAS */
+        /* FUNCIONES: OTs PENDIENTES Y FILTRADO POR ENVIADAS */
         async function fetchOTsPendientes() {
             try {
                 const res = await fetch('instalaciones.json?v=' + new Date().getTime());
                 if (res.ok) {
-                    const data = await res.json();
-                    
-                    // Filtrar dinámicamente las OTs que ya se hayan enviado para que desaparezcan de pendientes
-                    let sentList = [];
-                    try {
-                        sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-                    } catch (e) { sentList = []; }
-
-                    const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
-
-                    pendingOTsFromJSON = {};
-                    for (let contrata in data) {
-                        if (Array.isArray(data[contrata])) {
-                            pendingOTsFromJSON[contrata] = data[contrata].filter(item => {
-                                const otVal = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
-                                return !sentOtSet.has(otVal); // Excluir enviadas
-                            });
-                        }
-                    }
-
+                    pendingOTsFromJSON = await res.json();
                     updatePendientesCounterButton();
                 }
             } catch (e) {
                 console.warn("No se pudo cargar instalaciones.json", e);
+            }
+        }
+
+        function getSentOTsList() {
+            try {
+                return JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) {
+                return [];
             }
         }
 
@@ -902,11 +891,18 @@
                 return;
             }
 
+            const sentList = getSentOTsList();
+            const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
+
             const hoy = new Date();
             hoy.setHours(0,0,0,0);
 
             let countInPeriod = 0;
             pendingOTsFromJSON[contrataActiva].forEach(item => {
+                const nOt = item.nOt || item.OT || item.ot || '';
+                // Si ya fue enviada, no cuenta como pendiente
+                if (sentOtSet.has(nOt.trim().toLowerCase())) return;
+
                 const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
                 if (!fechaStr) return;
 
@@ -916,6 +912,7 @@
                 const diffTime = hoy.getTime() - fechaInst.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+                // Solo cuenta si está dentro del plazo de 5 días (no bloqueada)
                 if (diffDays <= 5) {
                     countInPeriod++;
                 }
@@ -941,8 +938,17 @@
                     otsToShow = pendingOTsFromJSON[contrataActiva];
                 }
 
+                const sentList = getSentOTsList();
+                const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
+
+                // Filtramos para quitar las que ya están en enviados
+                otsToShow = otsToShow.filter(item => {
+                    const nOt = item.nOt || item.OT || item.ot || '';
+                    return !sentOtSet.has(nOt.trim().toLowerCase());
+                });
+
                 if (otsToShow.length === 0) {
-                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong>.</p>`;
+                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong> (o ya han sido enviadas).</p>`;
                     return;
                 }
 
@@ -1002,40 +1008,7 @@
             document.getElementById('ots-pendientes-modal').classList.add('hidden');
         }
 
-        /* COMPROBACIÓN DE OT BLOQUEADA AL ESCRIBIR/PEGAR MANUALMENTE */
-        function checkOtBlockedStatus(otVal) {
-            const cleanOt = otVal.trim().toLowerCase();
-            const alertBox = document.getElementById('blocked-ot-alert');
-            if (!cleanOt || !alertBox) return false;
-
-            const contrataActiva = document.getElementById('contrataPrincipal').value;
-            if (!contrataActiva || !pendingOTsFromJSON[contrataActiva]) return false;
-
-            const found = pendingOTsFromJSON[contrataActiva].find(item => {
-                const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
-                return itemOt === cleanOt;
-            });
-
-            if (found) {
-                const fechaStr = found.fechaInstalacion || found.fecha || found.Fecha || '';
-                if (fechaStr) {
-                    const fechaInst = new Date(fechaStr);
-                    fechaInst.setHours(0,0,0,0);
-                    const hoy = new Date();
-                    hoy.setHours(0,0,0,0);
-
-                    const diffDays = Math.floor((hoy.getTime() - fechaInst.getTime()) / (1000 * 60 * 60 * 24));
-                    if (diffDays > 5) {
-                        alertBox.classList.remove('hidden');
-                        return true; // Está bloqueada
-                    }
-                }
-            }
-            alertBox.classList.add('hidden');
-            return false;
-        }
-
-        /* RESTO DE FUNCIONES */
+        /* RESTO DEL CÓDIGO */
         function abrirEjemploModal() {
             document.getElementById('modal-ejemplo-foto').classList.remove('hidden');
         }
@@ -1237,7 +1210,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
             await cargarListaUsuarios();
-            await fetchOTsPendientes(); 
+            await fetchOTsPendientes();
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
@@ -1441,7 +1414,7 @@
 
                     if (draft.data.nOt) {
                         checkOtDuplication(draft.data.nOt);
-                        checkOtBlockedStatus(draft.data.nOt);
+                        checkOtBlocked(draft.data.nOt);
                         handleOtInput(draft.data.nOt);
                     }
                 } else {
@@ -1458,11 +1431,7 @@
             const dateSpan = document.getElementById('duplicate-date');
             if (!cleanOt || !alertBox) return;
 
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-
+            let sentList = getSentOTsList();
             const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
 
             if (found) {
@@ -1470,6 +1439,44 @@
                 if (dateSpan) dateSpan.innerText = found.sentAt || 'fecha anterior';
             } else {
                 alertBox.classList.add('hidden');
+            }
+        }
+
+        function checkOtBlocked(otVal) {
+            const cleanOt = otVal.trim().toLowerCase();
+            const blockedAlert = document.getElementById('blocked-ot-alert');
+            if (!cleanOt || !blockedAlert) return;
+
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
+            if (!contrataActiva || !pendingOTsFromJSON[contrataActiva]) {
+                blockedAlert.classList.add('hidden');
+                return;
+            }
+
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            let isBlocked = false;
+            pendingOTsFromJSON[contrataActiva].forEach(item => {
+                const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
+                if (itemOt === cleanOt) {
+                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+                    if (fechaStr) {
+                        const fechaInst = new Date(fechaStr);
+                        fechaInst.setHours(0,0,0,0);
+                        const diffTime = hoy.getTime() - fechaInst.getTime();
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays > 5) {
+                            isBlocked = true;
+                        }
+                    }
+                }
+            });
+
+            if (isBlocked) {
+                blockedAlert.classList.remove('hidden');
+            } else {
+                blockedAlert.classList.add('hidden');
             }
         }
 
@@ -1516,12 +1523,8 @@
             }
 
             const inputOT = document.getElementById('nOt');
-            const isBlocked = checkOtBlockedStatus(val);
-
             if (inputOT) {
-                if (isBlocked) {
-                    inputOT.style.borderColor = '#f43f5e';
-                } else if (inputOT.value.length === 24) {
+                if (inputOT.value.length === 24) {
                     inputOT.style.borderColor = '#10b981';
                 } else if (inputOT.value.length > 0) {
                     inputOT.style.borderColor = '#f59e0b';
@@ -1531,6 +1534,7 @@
             }
 
             checkOtDuplication(val);
+            checkOtBlocked(val);
         }
 
         async function cargarListaUsuarios() {
@@ -1994,10 +1998,9 @@
                     alert('⚠️ El número de OT debe tener exactamente 24 caracteres.');
                     return false;
                 }
-
-                // VALIDACIÓN BLOQUEO POR FECHA SUPERIOR A 5 DÍAS
-                if (checkOtBlockedStatus(otInput.value)) {
-                    alert('⚠️ Esta OT está bloqueada porque supera el plazo de 5 días. No se puede enviar.');
+                const blockedAlert = document.getElementById('blocked-ot-alert');
+                if (blockedAlert && !blockedAlert.classList.contains('hidden')) {
+                    alert('⚠️ No se puede continuar. Esta OT está bloqueada por exceder el plazo de 5 días.');
                     return false;
                 }
             }
@@ -2288,24 +2291,16 @@
 
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
-            
-            // ACTUALIZAR PENDIENTES AL ENVIAR (HACE QUE DESAPAREZCA)
-            fetchOTsPendientes();
+            updatePendientesCounterButton(); // Actualiza contador para que desaparezca de pendientes
         }
 
         function updateSentPartsBadge() {
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
+            let sentList = getSentOTsList();
             document.getElementById('sent-parts-count').innerText = sentList.length;
         }
 
         function openSentPartsModal() {
-            let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
+            let sentList = getSentOTsList();
 
             const listContainer = document.getElementById('sent-parts-list');
             if (sentList.length === 0) {
@@ -2332,7 +2327,7 @@
             if (confirm('¿Desea vaciar el historial de enviados?')) {
                 localStorage.removeItem('user_sent_pole_parts');
                 updateSentPartsBadge();
-                fetchOTsPendientes(); // Vuelve a mostrar todas las pendientes si se vacía el histórico
+                updatePendientesCounterButton();
                 openSentPartsModal();
             }
         }
@@ -2709,13 +2704,6 @@
 
             if (!validateCurrentStep(6)) return;
 
-            const nOt = document.getElementById('nOt').value || 'Sin_OT';
-            if (checkOtBlockedStatus(nOt)) {
-                alert('⚠️ Esta OT está bloqueada porque supera el plazo de 5 días. No se puede enviar.');
-                goToStep(1);
-                return;
-            }
-
             const firma = document.getElementById('firmaData').value;
             if (!firma) {
                 alert('⚠️ La firma táctil es obligatoria.');
@@ -2728,4 +2716,86 @@
             
             submitBtn.disabled = true;
             submitText.innerText = 'Enviando...';
-            submitIcon.className = 'fa
+            submitIcon.className = 'fa-solid fa-spinner fa-spin';
+
+            try {
+                const nOt = document.getElementById('nOt').value || 'Sin_OT';
+                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
+                
+                const formElement = document.getElementById('pole-form');
+                const allFormData = new FormData(formElement);
+                const payloadFormData = {};
+                allFormData.forEach((val, key) => {
+                    if (payloadFormData[key]) {
+                        if (!Array.isArray(payloadFormData[key])) payloadFormData[key] = [payloadFormData[key]];
+                        payloadFormData[key].push(val);
+                    } else {
+                        payloadFormData[key] = val;
+                    }
+                });
+
+                payloadFormData['ASUNTO_OT'] = nOt;
+                payloadFormData['CONTRATA_PRINCIPAL'] = contrata;
+                payloadFormData['ALIAS_TECNICO_TEC1'] = document.getElementById('aliasKairosTec1').value;
+                payloadFormData['NOMBRE_TECNICO_TEC1'] = document.getElementById('nombreTec1').value;
+
+                const payloadObj = {
+                    nOt: nOt,
+                    contrata: contrata,
+                    formData: payloadFormData,
+                    uploadedFiles: uploadedFiles
+                };
+
+                if (!navigator.onLine) {
+                    saveToOfflineQueue(payloadObj);
+                    return;
+                }
+
+                await sendPayloadToEmailJS(payloadObj);
+                saveToSentHistoryCompletely(nOt);
+                document.getElementById('modal-ot').innerText = nOt;
+                document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+                document.getElementById('success-modal').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al procesar el envío con EmailJS: ' + (err.text || err.message || JSON.stringify(err)));
+            } finally {
+                submitBtn.disabled = false;
+                submitText.innerText = 'Finalizar y Enviar';
+                submitIcon.className = 'fa-solid fa-paper-plane';
+            }
+        }
+
+        function resetFormAndCloseModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('pole-form').reset();
+            clearCroquisMap();
+            clearSignatureCanvas();
+            localStorage.removeItem('pole_form_draft');
+            document.getElementById('duplicate-ot-alert').classList.add('hidden');
+            document.getElementById('blocked-ot-alert').classList.add('hidden');
+            document.getElementById('rp-course-status-box').classList.add('hidden');
+            
+            const estadoRadios = document.querySelectorAll('input[name="estado"]');
+            estadoRadios.forEach(r => {
+                r.disabled = false;
+                r.required = true;
+                r.closest('label').style.opacity = '1';
+                r.closest('label').style.cursor = 'pointer';
+            });
+
+            const savedContrata = localStorage.getItem('user_preferred_contrata');
+            if (savedContrata) {
+                const select = document.getElementById('contrataPrincipal');
+                select.disabled = false;
+                select.value = savedContrata;
+                select.disabled = true;
+                handleContractorChange();
+            }
+
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
