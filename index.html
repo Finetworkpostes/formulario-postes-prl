@@ -642,7 +642,7 @@
         </div>
     </div>
 
-    <!-- MODAL OTS PENDIENTES JSON (MUESTRA LAS ENVIABLES Y LAS BLOQUEADAS POR 5 DÍAS) -->
+    <!-- MODAL OTS PENDIENTES JSON -->
     <div id="pending-ot-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -651,7 +651,7 @@
                 </h3>
                 <button type="button" onclick="closePendingOtModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <p class="text-xs text-slate-400">Las OTs con más de 5 días de antigüedad aparecen bloqueadas. Las demás permiten seleccionarlas para rellenar el formulario.</p>
+            <p class="text-xs text-slate-400">Detalle de fecha de realización, tiempo restante de envío o días caducados.</p>
             <div id="pending-ot-list" class="max-h-72 overflow-y-auto space-y-2.5 text-xs"></div>
             <div class="pt-2 border-t border-slate-800 flex justify-end">
                 <button type="button" onclick="closePendingOtModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
@@ -716,10 +716,14 @@
         const uploadedFiles = {};
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
 
-        // Datos por defecto de prueba para el botón de OTs pendientes en la cabecera
+        // Datos de prueba con fechas dinámicas relativas a hoy para ver ambos estados en la modal
+        const hoy = new Date();
+        const fechaReciente = new Date(hoy.getTime() - (2 * 24 * 60 * 60 * 1000)).toISOString(); // Hace 2 días (Vigente)
+        const fechaAntigua = new Date(hoy.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();  // Hace 7 días (Caducada)
+
         let pendingOtListJson = [
-            { nOt: "in-4776939-179249036481", fechaCreacion: "2026-10-25", direccion: "Calle Principal 10" },
-            { nOt: "in-4776939-179249036499", fechaCreacion: "2026-10-10", direccion: "Camino Viejo 4 (Caducada)" }
+            { nOt: "in-4776939-179249036481", fechaCreacion: fechaReciente },
+            { nOt: "in-4776939-179249036499", fechaCreacion: fechaAntigua }
         ];
 
         const DEFAULT_USUARIOS = [
@@ -776,7 +780,6 @@
             document.getElementById('header-contrata-label').innerText = contrataName;
         }
 
-        // METEOROLOGÍA CON COLOR DINÁMICO SEGÚN VIENTO/TIEMPO
         async function fetchWeatherByCoordinates(lat, lon) {
             const badge = document.getElementById('weather-badge');
             const icon = document.getElementById('weather-icon');
@@ -829,7 +832,6 @@
             }
         }
 
-        // GESTIÓN DE OTs PENDIENTES JSON & FILTRO 5 DÍAS
         async function cargarOtsPendientesJson() {
             try {
                 const res = await fetch('ots_pendientes.json?v=' + new Date().getTime());
@@ -847,7 +849,6 @@
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
 
-            // Contar las que no han sido enviadas
             const pendientes = pendingOtListJson.filter(item => {
                 const yaEnviada = sentList.some(s => s.nOt && item.nOt && s.nOt.trim().toLowerCase() === item.nOt.trim().toLowerCase());
                 return !yaEnviada;
@@ -869,29 +870,53 @@
                     const yaEnviada = sentList.some(s => s.nOt && item.nOt && s.nOt.trim().toLowerCase() === item.nOt.trim().toLowerCase());
                     if (yaEnviada) return '';
 
-                    let diffDias = 0;
-                    let caducada = false;
-                    if (item.fechaCreacion) {
-                        const fechaOt = new Date(item.fechaCreacion);
-                        diffDias = (ahora - fechaOt) / (1000 * 60 * 60 * 24);
-                        if (diffDias > 5) caducada = true;
-                    }
-
-                    if (caducada) {
-                        return `
-                            <div class="bg-rose-950/40 border border-rose-900/60 rounded-xl p-3 flex items-center justify-between opacity-75">
-                                <div>
-                                    <div class="font-bold text-rose-300">OT: ${item.nOt}</div>
-                                    <div class="text-[11px] text-rose-400">Creada hace ${Math.floor(diffDias)} días (> 5 días) - BLOQUEADA</div>
-                                </div>
-                                <span class="text-[10px] bg-rose-900 text-rose-200 px-2 py-1 rounded font-bold">CADUCADA</span>
-                            </div>`;
-                    } else {
+                    if (!item.fechaCreacion) {
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                                 <div>
                                     <div class="font-bold text-white">OT: ${item.nOt}</div>
-                                    <div class="text-[11px] text-slate-400">${item.direccion || 'Sin dirección'} | Habilitada para enviar</div>
+                                    <div class="text-[11px] text-slate-400">Fecha no especificada</div>
+                                </div>
+                                <button type="button" onclick="seleccionarOtPendiente('${item.nOt}')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-xs shrink-0">Seleccionar</button>
+                            </div>`;
+                    }
+
+                    const fechaOt = new Date(item.fechaCreacion);
+                    const diffMs = ahora - fechaOt;
+                    const diffDias = diffMs / (1000 * 60 * 60 * 24);
+                    const fechaFormateada = fechaOt.toLocaleDateString('es-ES') + ' a las ' + fechaOt.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+
+                    if (diffDias > 5) {
+                        // CADUCADA (> 5 días)
+                        const diasCaducado = Math.floor(diffDias - 5);
+                        return `
+                            <div class="bg-rose-950/40 border border-rose-900/60 rounded-xl p-3 space-y-1 opacity-80">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-rose-300">OT: ${item.nOt}</span>
+                                    <span class="text-[10px] bg-rose-900 text-rose-200 px-2 py-0.5 rounded font-bold">CADUCADA</span>
+                                </div>
+                                <div class="text-[11px] text-rose-300">
+                                    • Se hizo el: ${fechaFormateada}<br>
+                                    • Lleva <strong>${diasCaducado} día${diasCaducado > 1 ? 's' : ''}</strong> caducado (bloqueado)
+                                </div>
+                            </div>`;
+                    } else {
+                        // VIGENTE (<= 5 días)
+                        const msRestantes = (5 * 24 * 60 * 60 * 1000) - diffMs;
+                        const horasRestantes = Math.max(0, Math.floor(msRestantes / (1000 * 60 * 60)));
+                        const diasRestantes = Math.floor(horasRestantes / 24);
+                        const horasSobrantes = horasRestantes % 24;
+                        
+                        let tiempoRestanteStr = diasRestantes > 0 ? `${diasRestantes} días y ${horasSobrantes} horas` : `${horasRestantes} horas`;
+
+                        return `
+                            <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
+                                <div class="space-y-0.5">
+                                    <div class="font-bold text-white">OT: ${item.nOt}</div>
+                                    <div class="text-[11px] text-slate-300">
+                                        • Se hizo el: ${fechaFormateada}<br>
+                                        • Tiempo restante para enviar: <span class="text-emerald-400 font-bold">${tiempoRestanteStr}</span>
+                                    </div>
                                 </div>
                                 <button type="button" onclick="seleccionarOtPendiente('${item.nOt}')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-xs shrink-0">Seleccionar</button>
                             </div>`;
@@ -1172,6 +1197,7 @@
             const listContainer = document.getElementById('sent-parts-list');
             if (sentList.length === 0) listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados.</p>`;
             else listContainer.innerHTML = sentList.map(item => `<div class="bg-slate-800 p-2 rounded flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">${item.sentAt}</span></div>`).join('');
+            document.getElementById('sent-parts-modal').classList.add('hidden'); // Corregido por si acaso
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
