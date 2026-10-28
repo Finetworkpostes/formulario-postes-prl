@@ -62,7 +62,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal, #ots-pendientes-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -154,15 +154,14 @@
             </div>
 
             <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
-            <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
+            <div class="grid grid-cols-6 gap-1.5 pt-1 border-t border-purple-900/30">
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
                 </button>
 
-                <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
-                    <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
-                    <span class="font-mono text-[10px]" id="signal-text">4G</span>
+                <button type="button" onclick="abrirOtsPendientesModal()" class="px-2 py-1.5 text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 rounded-lg border border-purple-700/60 transition flex items-center justify-center gap-1" title="OTs pendientes">
+                    <i class="fa-solid fa-list-check"></i> <span id="ots-pendientes-count" class="font-bold">0</span>
                 </button>
 
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
@@ -173,7 +172,12 @@
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
 
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-5 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
+                <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
+                    <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
+                    <span class="font-mono text-[10px]" id="signal-text">4G</span>
+                </button>
+
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-6 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
                     <i class="fa-solid fa-wifi"></i> Sincronizar pendientes (<span id="pending-count">0</span>)
                 </button>
             </div>
@@ -214,7 +218,12 @@
 
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+                    <span>Sección 1: Datos de la Orden de Trabajo (OT)</span>
+                    <button type="button" onclick="abrirOtsPendientesModal()" class="text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 px-3 py-1.5 rounded-xl border border-purple-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i> Ver OTs pendientes 📋
+                    </button>
+                </h2>
                 
                 <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
                     <div>
@@ -222,6 +231,14 @@
                         <strong>¡Cuidado!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
                     </div>
                     <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
+                </div>
+
+                <div id="expired-ot-alert" class="hidden bg-rose-950/90 border-2 border-rose-600 rounded-xl p-3.5 text-xs text-rose-100 flex items-center justify-between gap-2 animate-bounce">
+                    <div>
+                        <i class="fa-solid fa-ban text-rose-400 text-base mr-1"></i>
+                        <strong>¡PLAZO AGOTADO (> 5 DÍAS)!</strong> Han pasado más de 5 días desde la instalación. Este parte <strong>ha caducado y no es posible enviarlo</strong>.
+                    </div>
+                    <button type="button" onclick="document.getElementById('expired-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold shrink-0">Cerrar</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -233,11 +250,10 @@
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba caducidad.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
-                        <!-- DESHABILITADO PARA OBLIGAR A USAR EL CAMBIO SEGURO SUPERIOR -->
                         <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
                             <option value="">Seleccione Contrata...</option>
                             <option value="CIRCET">CIRCET</option>
@@ -722,6 +738,27 @@
         </div>
     </div>
 
+    <!-- MODAL DE OTs PENDIENTES CON BLOQUEO DE PLAZO VENCIDO -->
+    <div id="ots-pendientes-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-purple-400"></i> OTs Pendientes (<span id="modal-contrata-name" class="uppercase text-purple-300"></span>)
+                </h3>
+                <button type="button" onclick="cerrarOtsPendientesModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <p class="text-xs text-slate-400">Plazo máximo de envío: <strong>5 días</strong>. Las OTs vencidas aparecen bloqueadas:</p>
+            
+            <div id="ots-pendientes-list" class="max-h-72 overflow-y-auto space-y-2 text-xs">
+                <div class="text-center py-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs pendientes...</div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 flex justify-end">
+                <button type="button" onclick="cerrarOtsPendientesModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- VENTANA MODAL PARA EL EJEMPLO DE FOTO -->
     <div id="modal-ejemplo-foto" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print" onclick="cerrarEjemploModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 space-y-4 text-center relative" onclick="event.stopPropagation()">
@@ -790,16 +827,14 @@
         const EMAILJS_SERVICE_ID = 'service_nf3hxml';
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
-        // CONTRASEÑAS FIJAS E INVARIABLES PARA CADA CONTRATA
         const CONTRATA_PASSWORDS = {
-            "CIRCET": "Circet7590",
-            "INSTELCA": "Instelca2883",
-            "OBREMO": "Obremo4714",
-            "ZENER": "Zener4327"
+            "CIRCET": "circet2026",
+            "INSTELCA": "instelca2026",
+            "OBREMO": "obremo2026",
+            "ZENER": "zener2026"
         };
 
         let pendingTargetContrata = "";
-
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -823,33 +858,20 @@
         let croquisPoints = [];
         let mapMarkers = [];
         let croquisPolyline = null;
-
         let recognition = null;
         let isRecordingVoice = false;
 
-        function abrirEjemploModal() {
-            document.getElementById('modal-ejemplo-foto').classList.remove('hidden');
-        }
-        function cerrarEjemploModal() {
-            document.getElementById('modal-ejemplo-foto').classList.add('hidden');
-        }
-
-        function abrirContrataModal() {
-            document.getElementById('contrata-modal').classList.remove('hidden');
-        }
-        function cerrarContrataModal() {
-            document.getElementById('contrata-modal').classList.add('hidden');
-        }
+        function abrirEjemploModal() { document.getElementById('modal-ejemplo-foto').classList.remove('hidden'); }
+        function cerrarEjemploModal() { document.getElementById('modal-ejemplo-foto').classList.add('hidden'); }
+        function abrirContrataModal() { document.getElementById('contrata-modal').classList.remove('hidden'); }
+        function cerrarContrataModal() { document.getElementById('contrata-modal').classList.add('hidden'); }
 
         function intentarSeleccionarContrata(contrataName) {
             cerrarContrataModal();
             const verifiedKey = `verified_contrata_${contrataName}`;
-            
-            // Si ya fue verificada y guardada en este dispositivo, entra directo sin pedir contraseña
             if (localStorage.getItem(verifiedKey) === 'true') {
                 aplicarContrataValidada(contrataName);
             } else {
-                // Si no, solicita contraseña
                 pendingTargetContrata = contrataName;
                 document.getElementById('modal-target-contrata').innerText = contrataName;
                 document.getElementById('input-contrata-pass').value = '';
@@ -874,9 +896,7 @@
         function cancelarPasswordModal() {
             document.getElementById('password-modal').classList.add('hidden');
             const saved = localStorage.getItem('user_preferred_contrata');
-            if (!saved) {
-                abrirContrataModal();
-            }
+            if (!saved) abrirContrataModal();
         }
 
         function aplicarContrataValidada(contrataName) {
@@ -885,11 +905,165 @@
             if (select) {
                 select.disabled = false;
                 select.value = contrataName;
-                select.disabled = true; // Lo mantenemos bloqueado para evitar cambios directos
+                select.disabled = true;
                 handleContractorChange();
             }
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
+            actualizarContadorOtsPendientes();
+        }
+
+        // GESTIÓN DE OTs PENDIENTES CON FILTRADO Y BLOQUEO DE PLAZO VENCIDO (>5 DÍAS)
+        async function abrirOtsPendientesModal() {
+            const contrata = localStorage.getItem('user_preferred_contrata') || '';
+            if (!contrata) {
+                alert('⚠️ Seleccione primero una contrata.');
+                abrirContrataModal();
+                return;
+            }
+
+            document.getElementById('modal-contrata-name').innerText = contrata;
+            const listContainer = document.getElementById('ots-pendientes-list');
+            listContainer.innerHTML = `<div class="text-center py-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs pendientes...</div>`;
+            document.getElementById('ots-pendientes-modal').classList.remove('hidden');
+
+            try {
+                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
+                if (!res.ok) throw new Error('No se pudo cargar instalaciones.json');
+                const data = await res.json();
+                
+                const listadoOts = data[contrata] || [];
+                
+                let sentList = [];
+                try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
+                const otsEnviadasSet = new Set(sentList.map(item => item.nOt ? item.nOt.trim().toLowerCase() : ''));
+
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+
+                const otsPendientes = listadoOts.filter(item => {
+                    const otNum = typeof item === 'string' ? item : (item.nOt || '');
+                    return !otsEnviadasSet.has(otNum.trim().toLowerCase());
+                });
+
+                document.getElementById('ots-pendientes-count').innerText = otsPendientes.length;
+
+                if (otsPendientes.length === 0) {
+                    listContainer.innerHTML = `<div class="text-center py-4 text-emerald-400 font-medium">🎉 ¡Excelente! No hay OTs pendientes para hoy en ${contrata}.</div>`;
+                } else {
+                    listContainer.innerHTML = otsPendientes.map(item => {
+                        const otNum = typeof item === 'string' ? item : (item.nOt || '');
+                        const fechaInst = typeof item === 'object' && item.fechaInstalacion ? item.fechaInstalacion : null;
+
+                        let badgeHtml = '';
+                        let isExpired = false;
+
+                        if (fechaInst) {
+                            const dInst = new Date(fechaInst);
+                            dInst.setHours(0,0,0,0);
+                            const diffTime = hoy - dInst;
+                            const diasPasados = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            const diasRestantes = 5 - diasPasados;
+
+                            if (diasRestantes < 0) {
+                                isExpired = true;
+                                badgeHtml = `<span class="text-[10px] bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-800 font-bold">⚠️ VENCIDO (Hace ${Math.abs(diasPasados)}d - No envidiable)</span>`;
+                            } else if (diasRestantes === 0) {
+                                badgeHtml = `<span class="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded border border-amber-800 font-bold">⚠️ ¡Último día!</span>`;
+                            } else {
+                                badgeHtml = `<span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-bold">⏱️ Quedan ${diasRestantes} días</span>`;
+                            }
+                        } else {
+                            badgeHtml = `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Sin fecha</span>`;
+                        }
+
+                        if (isExpired) {
+                            return `
+                            <div class="w-full text-left p-3 rounded-xl bg-slate-900/60 border border-rose-900/40 text-slate-400 font-mono text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 opacity-60">
+                                <div><i class="fa-solid fa-ban text-rose-500 mr-1.5"></i> ${otNum}</div>
+                                <div class="flex items-center gap-2">${badgeHtml} <span class="text-[10px] bg-rose-950 text-rose-400 px-2 py-1 rounded border border-rose-900 font-semibold">BLOQUEADO</span></div>
+                            </div>`;
+                        } else {
+                            return `
+                            <button type="button" onclick="seleccionarOtPendiente('${otNum}', '${fechaInst || ''}')" class="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-purple-900/60 border border-slate-700 hover:border-purple-500 text-white font-mono text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 transition">
+                                <div><i class="fa-solid fa-file-lines text-purple-400 mr-1.5"></i> ${otNum}</div>
+                                <div class="flex items-center gap-2">${badgeHtml} <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-1 rounded border border-purple-800">Seleccionar ➔</span></div>
+                            </button>`;
+                        }
+                    }).join('');
+                }
+            } catch (err) {
+                listContainer.innerHTML = `<div class="text-center py-4 text-rose-400">⚠️ Error al cargar el archivo <strong>instalaciones.json</strong> desde GitHub.</div>`;
+            }
+        }
+
+        function cerrarOtsPendientesModal() {
+            document.getElementById('ots-pendientes-modal').classList.add('hidden');
+        }
+
+        function seleccionarOtPendiente(otVal, fechaInst) {
+            // Comprobación de seguridad estricta al seleccionar
+            if (fechaInst) {
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                const dInst = new Date(fechaInst);
+                dInst.setHours(0,0,0,0);
+                const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
+                if (diasPasados > 5) {
+                    alert('⚠️ Esta OT está vencida (han pasado más de 5 días desde la instalación). No es posible seleccionarla ni enviarla.');
+                    return;
+                }
+            }
+
+            const inputOt = document.getElementById('nOt');
+            if (inputOt) {
+                inputOt.value = otVal.trim();
+                handleOtInput(inputOt.value);
+            }
+
+            if (fechaInst) {
+                const fechaHoraInput = document.getElementById('fechaHora');
+                if (fechaHoraInput) {
+                    fechaHoraInput.value = `${fechaInst}T08:00`;
+                }
+            }
+
+            saveFormDraft();
+            cerrarOtsPendientesModal();
+        }
+
+        async function actualizarContadorOtsPendientes() {
+            const contrata = localStorage.getItem('user_preferred_contrata');
+            if (!contrata) return;
+            try {
+                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
+                if (res.ok) {
+                    const data = await res.json();
+                    const listadoOts = data[contrata] || [];
+                    let sentList = [];
+                    try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
+                    const otsEnviadasSet = new Set(sentList.map(item => item.nOt ? item.nOt.trim().toLowerCase() : ''));
+                    
+                    const hoy = new Date();
+                    hoy.setHours(0,0,0,0);
+
+                    const pendCount = listadoOts.filter(item => {
+                        const otNum = typeof item === 'string' ? item : (item.nOt || '');
+                        if (otsEnviadasSet.has(otNum.trim().toLowerCase())) return false;
+                        
+                        // Si tiene fecha y supera los 5 días, no cuenta como pendiente válida de envío
+                        if (typeof item === 'object' && item.fechaInstalacion) {
+                            const dInst = new Date(item.fechaInstalacion);
+                            dInst.setHours(0,0,0,0);
+                            const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
+                            if (diasPasados > 5) return false;
+                        }
+                        return true;
+                    }).length;
+
+                    document.getElementById('ots-pendientes-count').innerText = pendCount;
+                }
+            } catch (e) {}
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -901,7 +1075,6 @@
 
             try {
                 text.innerText = 'Cargando...';
-                
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3500);
 
@@ -937,7 +1110,6 @@
                         text.innerText = `${wind} km/h (${temp}°C)`;
                         currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
                     }
-
                     if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 } else {
                     throw new Error('API error');
@@ -953,12 +1125,8 @@
         function initAutomaticWeather() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude);
-                    },
-                    () => {
-                        fetchWeatherByCoordinates(40.4167, -3.7037);
-                    },
+                    (pos) => fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude),
+                    () => fetchWeatherByCoordinates(40.4167, -3.7037),
                     { timeout: 3000, maximumAge: 60000 }
                 );
             } else {
@@ -967,7 +1135,7 @@
         }
 
         function checkWeatherInteractive() {
-            alert(`🌤️ ESTADO METEOROLÓGICO EN ALTURA:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Estado de seguridad: ${currentWeatherInfo.status}\n\n*Nota: Con vientos superiores a 50 km/h o lluvia intensa, se recomienda suspender temporalmente los trabajos en escalera sobre postes.*`);
+            alert(`🌤️ ESTADO METEOROLÓGICO EN ALTURA:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Estado de seguridad: ${currentWeatherInfo.status}`);
         }
 
         function initVoiceRecognition() {
@@ -1047,18 +1215,18 @@
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
             }
 
-            // GESTIÓN DE CONTRATA PREFERIDA
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
                 const select = document.getElementById('contrataPrincipal');
                 if (select) {
                     select.disabled = false;
                     select.value = savedContrata;
-                    select.disabled = true; // Bloqueado para forzar seguridad
+                    select.disabled = true;
                     handleContractorChange();
                 }
                 const label = document.getElementById('header-contrata-label');
                 if (label) label.innerText = savedContrata;
+                actualizarContadorOtsPendientes();
             } else {
                 abrirContrataModal();
             }
@@ -1077,24 +1245,14 @@
                         inputOT.value = text.trim();
                         handleOtInput(inputOT.value);
                         saveFormDraft();
-                        if (inputOT.value.length === 24) {
-                            inputOT.style.borderColor = '#10b981';
-                        } else {
-                            inputOT.style.borderColor = '#f59e0b';
-                        }
                     } catch (err) {
                         alert('Usa Ctrl+V para pegar; el navegador bloqueó el acceso automático.');
                     }
                 });
             }
 
-            window.addEventListener('online', () => {
-                updateNetworkSignalUI();
-                syncPendingSubmissions();
-            });
-            window.addEventListener('offline', () => {
-                updateNetworkSignalUI();
-            });
+            window.addEventListener('online', () => { updateNetworkSignalUI(); syncPendingSubmissions(); });
+            window.addEventListener('offline', () => { updateNetworkSignalUI(); });
         });
 
         function updateNetworkSignalUI() {
@@ -1119,7 +1277,7 @@
             if (navigator.onLine) {
                 alert('🟢 ESTADO DE COBERTURA: ¡Óptimo!\n\nHay conexión a internet disponible.');
             } else {
-                alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.\n\nLos partes se guardan offline y se enviarán al recuperar red.');
+                alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.');
             }
         }
 
@@ -1127,12 +1285,8 @@
             document.body.classList.toggle('sun-mode');
             const isSun = document.body.classList.contains('sun-mode');
             const icon = document.getElementById('sun-mode-icon');
-            
-            if (isSun) {
-                icon.className = 'fa-solid fa-moon';
-            } else {
-                icon.className = 'fa-solid fa-sun';
-            }
+            if (isSun) icon.className = 'fa-solid fa-moon';
+            else icon.className = 'fa-solid fa-sun';
             localStorage.setItem('sun_mode_active', isSun);
         }
 
@@ -1141,7 +1295,7 @@
             const formData = new FormData(form);
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value; // Asegurar guardado de contrata bloqueada
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1159,9 +1313,7 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            try {
-                localStorage.setItem('pole_form_draft', JSON.stringify(draft));
-            } catch (e) {}
+            try { localStorage.setItem('pole_form_draft', JSON.stringify(draft)); } catch (e) {}
         }
 
         function loadFormDraft() {
@@ -1174,7 +1326,7 @@
                 if (confirm(`📋 Se ha encontrado un borrador guardado del ${draft.timestamp}. ¿Desea recuperarlo?`)) {
                     const form = document.getElementById('pole-form');
                     for (let key in draft.data) {
-                        if (key === 'contrataPrincipal') continue; // La contrata se gestiona de forma segura por separado
+                        if (key === 'contrataPrincipal') continue;
                         const el = form.elements[key];
                         if (el) {
                             if (el.type === 'radio') {
@@ -1193,23 +1345,6 @@
                         select.value = savedContrata;
                         select.disabled = true;
                         handleContractorChange();
-                        
-                        setTimeout(() => {
-                            if (draft.data.aliasKairosTec1) {
-                                document.getElementById('aliasKairosTec1').value = draft.data.aliasKairosTec1;
-                                handleAliasTec1Change(draft.data.aliasKairosTec1);
-                            }
-                            if (draft.data.aliasRecursoPreventivo) {
-                                document.getElementById('aliasRecursoPreventivo').value = draft.data.aliasRecursoPreventivo;
-                                handleAliasRecursoChange(draft.data.aliasRecursoPreventivo);
-                                
-                                const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
-                                if (exencionCb && draft.data.exencionResponsabilidadEmpresa) {
-                                    exencionCb.checked = true;
-                                    validarEstadoRecursoPreventivo();
-                                }
-                            }
-                        }, 100);
                     }
 
                     if (draft.checkboxes) {
@@ -1221,9 +1356,7 @@
                         }
                     }
 
-                    if (draft.croquisPoints && Array.isArray(draft.croquisPoints)) {
-                        croquisPoints = draft.croquisPoints;
-                    }
+                    if (draft.croquisPoints && Array.isArray(draft.croquisPoints)) croquisPoints = draft.croquisPoints;
 
                     if (draft.uploadedFiles) {
                         for (let id in draft.uploadedFiles) {
@@ -1244,9 +1377,7 @@
                 } else {
                     localStorage.removeItem('pole_form_draft');
                 }
-            } catch (e) {
-                console.error("Error al cargar borrador", e);
-            }
+            } catch (e) {}
         }
 
         function checkOtDuplication(otVal) {
@@ -1256,10 +1387,7 @@
             if (!cleanOt || !alertBox) return;
 
             let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
             const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
 
             if (found) {
@@ -1270,9 +1398,46 @@
             }
         }
 
+        // VERIFICACIÓN DE PLAZO AL ESCRIBIR O PEGAR UNA OT A MANO
+        async function checkOtExpirationManually(otVal) {
+            const cleanOt = otVal.trim().toLowerCase();
+            const expiredAlert = document.getElementById('expired-ot-alert');
+            if (!cleanOt || !expiredAlert) return;
+
+            const contrata = localStorage.getItem('user_preferred_contrata');
+            if (!contrata) return;
+
+            try {
+                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
+                if (!res.ok) return;
+                const data = await res.json();
+                const listadoOts = data[contrata] || [];
+
+                const match = listadoOts.find(item => {
+                    const otNum = typeof item === 'string' ? item : (item.nOt || '');
+                    return otNum.trim().toLowerCase() === cleanOt;
+                });
+
+                if (match && typeof match === 'object' && match.fechaInstalacion) {
+                    const hoy = new Date();
+                    hoy.setHours(0,0,0,0);
+                    const dInst = new Date(match.fechaInstalacion);
+                    dInst.setHours(0,0,0,0);
+                    const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
+
+                    if (diasPasados > 5) {
+                        expiredAlert.classList.remove('hidden');
+                    } else {
+                        expiredAlert.classList.add('hidden');
+                    }
+                } else {
+                    expiredAlert.classList.add('hidden');
+                }
+            } catch (e) {}
+        }
+
         function handleOtInput(val) {
             const cleanVal = val.trim().toLowerCase();
-            
             const fechaHoraInput = document.getElementById('fechaHora');
             if (fechaHoraInput && !fechaHoraInput.value) {
                 const now = new Date();
@@ -1281,49 +1446,19 @@
             }
 
             const estadoRadios = document.querySelectorAll('input[name="estado"]');
-
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
-                
-                estadoRadios.forEach(r => {
-                    r.disabled = false;
-                    r.required = true;
-                    r.closest('label').style.opacity = '1';
-                    r.closest('label').style.cursor = 'pointer';
-                });
+                estadoRadios.forEach(r => { r.disabled = false; r.required = true; r.closest('label').style.opacity = '1'; });
             } else if (cleanVal.startsWith('av')) {
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
-                
-                estadoRadios.forEach(r => {
-                    r.checked = false;
-                    r.disabled = true;
-                    r.required = false;
-                    r.closest('label').style.opacity = '0.4';
-                    r.closest('label').style.cursor = 'not-allowed';
-                });
+                estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
             } else {
-                estadoRadios.forEach(r => {
-                    r.disabled = false;
-                    r.required = true;
-                    r.closest('label').style.opacity = '1';
-                    r.closest('label').style.cursor = 'pointer';
-                });
+                estadoRadios.forEach(r => { r.disabled = false; r.required = true; r.closest('label').style.opacity = '1'; });
             }
-
-            const inputOT = document.getElementById('nOt');
-            if (inputOT) {
-                if (inputOT.value.length === 24) {
-                    inputOT.style.borderColor = '#10b981';
-                } else if (inputOT.value.length > 0) {
-                    inputOT.style.borderColor = '#f59e0b';
-                } else {
-                    inputOT.style.borderColor = '#334155';
-                }
-            }
-
             checkOtDuplication(val);
+            checkOtExpirationManually(val);
         }
 
         async function cargarListaUsuarios() {
@@ -1333,9 +1468,7 @@
                 if (res.ok) rawData = await res.json();
             } catch (err) {}
 
-            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
-                rawData = DEFAULT_USUARIOS;
-            }
+            if (!rawData || !Array.isArray(rawData) || rawData.length === 0) rawData = DEFAULT_USUARIOS;
 
             USUARIOS_DB = rawData.reduce((acc, item) => {
                 if (item && item.Contrata) {
@@ -1357,35 +1490,24 @@
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             const warning = document.getElementById('contractor-warning');
-
             if (!selectTec1 || !selectRecurso) return;
 
             const prevTec1Val = selectTec1.value;
             const prevRecursoVal = selectRecurso.value;
-
             selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
             if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
                 if (warning) warning.classList.add('hidden');
                 USUARIOS_DB[contrata].forEach(u => {
-                    const opt1 = document.createElement('option');
-                    opt1.value = u.Alias;
-                    opt1.textContent = u.Alias;
-                    selectTec1.appendChild(opt1);
-
-                    const opt2 = document.createElement('option');
-                    opt2.value = u.Alias;
-                    opt2.textContent = u.Alias;
-                    selectRecurso.appendChild(opt2);
+                    selectTec1.appendChild(new Option(u.Alias, u.Alias));
+                    selectRecurso.appendChild(new Option(u.Alias, u.Alias));
                 });
-
                 if (prevTec1Val) selectTec1.value = prevTec1Val;
                 if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
-
-                const label = document.getElementById('header-contrata-label');
-                if (label) label.innerText = contrata;
+                document.getElementById('header-contrata-label').innerText = contrata;
                 localStorage.setItem('user_preferred_contrata', contrata);
+                actualizarContadorOtsPendientes();
             } else {
                 if (warning) warning.classList.remove('hidden');
             }
@@ -1404,15 +1526,8 @@
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
-                
                 const statusBox = document.getElementById('rp-course-status-box');
-                if (user) {
-                    const cursoEstado = (user["60HPRL"] || "").trim().toUpperCase();
-                    statusBox.dataset.cursoEstado = cursoEstado;
-                } else {
-                    statusBox.dataset.cursoEstado = "";
-                }
-
+                statusBox.dataset.cursoEstado = user ? (user["60HPRL"] || "").trim().toUpperCase() : "";
                 validarEstadoRecursoPreventivo();
             }
         }
@@ -1431,73 +1546,47 @@
             }
 
             statusBox.classList.remove('hidden');
-
             if (cursoEstado === "NO CADUCA") {
                 statusBox.className = "mt-3 p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-xs space-y-1";
-                statusBox.innerHTML = `
-                    <div class="font-bold text-emerald-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-check"></i> Curso de 60h PRL: Válido (NO CADUCA)
-                    </div>
-                    <div class="text-slate-300 text-[11px]">El recurso preventivo cumple con la formación obligatoria.</div>
-                `;
+                statusBox.innerHTML = `<div class="font-bold text-emerald-300"><i class="fa-solid fa-shield-check"></i> Curso 60h PRL: Válido (NO CADUCA)</div>`;
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
                 const isChecked = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
-                
                 statusBox.className = "mt-3 p-3 rounded-xl border border-rose-500/60 bg-rose-950/60 text-xs space-y-2";
                 statusBox.innerHTML = `
-                    <div class="font-bold text-rose-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Curso de 60h PRL: FALTA DOCUMENTO / NO VÁLIDO
-                    </div>
-                    <div class="text-rose-200 text-[11px]">Este técnico no dispone del curso homologado de 60h en regla. Prohibido actuar como RP salvo autorización.</div>
+                    <div class="font-bold text-rose-300"><i class="fa-solid fa-triangle-exclamation"></i> Curso 60h PRL: FALTA DOCUMENTO</div>
                     <label class="flex items-start gap-2 bg-slate-900/80 p-2 rounded-lg border border-rose-900/50 cursor-pointer mt-1">
                         <input type="checkbox" id="exencionResponsabilidadEmpresa" name="exencionResponsabilidadEmpresa" value="SÍ" ${isChecked ? 'checked' : ''} onchange="validarEstadoRecursoPreventivo()" class="mt-0.5 accent-rose-600">
-                        <span class="text-slate-200 font-medium">Autorizo la actuación de este técnico como Recurso Preventivo bajo la expresa y exclusiva <strong>responsabilidad de la empresa</strong>.</span>
-                    </label>
-                `;
-
-                if (!isChecked) {
-                    nextBtn.disabled = true;
-                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    nextBtn.disabled = false;
-                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+                        <span class="text-slate-200 font-medium">Autorizo la actuación bajo expresa y exclusiva <strong>responsabilidad de la empresa</strong>.</span>
+                    </label>`;
+                nextBtn.disabled = !isChecked;
+                if (!isChecked) nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                else nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
             saveFormDraft();
         }
 
-        function triggerFileInput(id) {
-            document.getElementById(id).click();
-        }
+        function triggerFileInput(id) { document.getElementById(id).click(); }
 
         async function handleFileSelectWithGeolocation(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
             if (!file) return;
 
-            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y optimizando foto...</div>`;
-
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando...</div>`;
             const now = new Date();
             const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        const geoData = await reverseGeocode(lat, lon);
-                        
-                        const direccionCompleta = geoData.address || 'Ubicación desconocida';
-                        const cpStr = geoData.postcode ? ` (C.P. ${geoData.postcode})` : '';
-                        
-                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${direccionCompleta}${cpStr} el ${fechaHoraStr}`;
+                        const geoData = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${geoData.address || 'Ubicación desconocida'} el ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
-
                         await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
                     },
-                    async (error) => {
+                    async () => {
                         escaleraGeoTextoGlobal = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
                         await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
@@ -1505,69 +1594,35 @@
                     { timeout: 5000, maximumAge: 0 }
                 );
             } else {
-                escaleraGeoTextoGlobal = `Fotografía realizada en: Geolocalización no soportada el ${fechaHoraStr}`;
+                escaleraGeoTextoGlobal = `Fotografía realizada el ${fechaHoraStr}`;
                 document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
                 await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
             }
         }
 
         async function processAndStorePhoto(file, inputId, previewContainer, geoText) {
-            try {
-                const reader = new FileReader();
-                const compressedDataUrl = await new Promise((res) => {
-                    reader.onload = (e) => res(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-                uploadedFiles[inputId] = compressedDataUrl;
-                saveFormDraft();
-
-                previewContainer.innerHTML = `
-                    <div class="relative group">
-                        <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                        <div class="text-[10px] text-emerald-400 font-semibold mt-1 space-y-0.5">
-                            <div>✓ Foto adjuntada con éxito</div>
-                            <div class="text-slate-300 italic">${geoText}</div>
-                        </div>
-                    </div>`;
-
-                const dropzoneBox = document.getElementById(inputId).closest('.file-dropzone');
-                if (dropzoneBox) {
-                    dropzoneBox.classList.remove('border-rose-500');
-                    dropzoneBox.classList.add('border-emerald-500/50');
-                }
-            } catch (err) {
-                alert("Error al procesar la imagen seleccionada.");
-            }
+            const reader = new FileReader();
+            const compressedDataUrl = await new Promise((res) => {
+                reader.onload = (e) => res(e.target.result);
+                reader.readAsDataURL(file);
+            });
+            uploadedFiles[inputId] = compressedDataUrl;
+            saveFormDraft();
+            previewContainer.innerHTML = `<img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto adjuntada<br><span class="text-slate-300">${geoText}</span></div>`;
         }
 
         function initCroquisMap() {
-            if (croquisMap) {
-                setTimeout(() => croquisMap.invalidateSize(), 200);
-                return;
-            }
-
+            if (croquisMap) { setTimeout(() => croquisMap.invalidateSize(), 200); return; }
             croquisMap = L.map('croquis-map').setView([40.4167, -3.7037], 15);
-
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri World Imagery',
-                maxZoom: 19,
-                crossOrigin: 'anonymous'
-            }).addTo(croquisMap);
-
-            croquisMap.on('click', async (e) => {
-                await addCroquisPoint(e.latlng.lat, e.latlng.lng);
-            });
-
-            if (croquisPoints.length > 0) {
-                renderCroquisMarkersAndPath();
-            }
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, crossOrigin: 'anonymous' }).addTo(croquisMap);
+            croquisMap.on('click', async (e) => { await addCroquisPoint(e.latlng.lat, e.latlng.lng); });
+            if (croquisPoints.length > 0) renderCroquisMarkersAndPath();
         }
 
         async function addCroquisPoint(lat, lng) {
             const geo = await reverseGeocode(lat, lng);
             croquisPoints.push({ lat, lng, address: geo.address, postcode: geo.postcode });
             renderCroquisMarkersAndPath();
-            
             fetchWeatherByCoordinates(lat, lng);
             saveFormDraft();
         }
@@ -1576,99 +1631,44 @@
             mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
             mapMarkers = [];
-
             const total = croquisPoints.length;
 
             croquisPoints.forEach((p, idx) => {
-                let type = '';
-                let iconHtml = '';
-
-                if (idx === 0) {
-                    type = 'cto';
-                    iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🔌</div>`;
-                } else if (idx === total - 1) {
-                    type = 'casa';
-                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px; font-size:14px;">🏠</div>`;
-                    if (p.address) {
-                        const dirInput = document.getElementById('direccion');
-                        const cpInput = document.getElementById('codigoPostal');
-                        if (dirInput) dirInput.value = p.address;
-                        if (cpInput) cpInput.value = p.postcode || '';
-                    }
-                } else {
-                    type = 'poste';
-                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`;
+                let iconHtml = idx === 0 ? '<div style="background:#8b5cf6; color:white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🔌</div>' : (idx === total - 1 ? '<div style="background:#10b981; color:white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🏠</div>' : `<div style="background:#6d28d9; color:white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px;">P${idx}</div>`);
+                if (idx === total - 1 && p.address) {
+                    document.getElementById('direccion').value = p.address;
+                    document.getElementById('codigoPostal').value = p.postcode || '';
                 }
-
-                p.type = type;
-
-                const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: '',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-
-                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
-                mapMarkers.push(marker);
+                p.type = idx === 0 ? 'cto' : (idx === total - 1 ? 'casa' : 'poste');
+                mapMarkers.push(L.marker([p.lat, p.lng], { icon: L.divIcon({ html: iconHtml, className: '', iconSize: [30,30], iconAnchor: [15,15] }) }).addTo(croquisMap));
             });
 
-            if (total > 1) {
-                const latLngs = croquisPoints.map(p => [p.lat, p.lng]);
-                croquisPolyline = L.polyline(latLngs, { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
-            }
-
+            if (total > 1) croquisPolyline = L.polyline(croquisPoints.map(p => [p.lat, p.lng]), { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
             updateCroquisSummary();
         }
 
         function calculateTotalMeters() {
-            let totalMeters = 0;
+            let m = 0;
             for (let i = 0; i < croquisPoints.length - 1; i++) {
-                const p1 = L.latLng(croquisPoints[i].lat, croquisPoints[i].lng);
-                const p2 = L.latLng(croquisPoints[i + 1].lat, croquisPoints[i + 1].lng);
-                totalMeters += p1.distanceTo(p2);
+                m += L.latLng(croquisPoints[i].lat, croquisPoints[i].lng).distanceTo(L.latLng(croquisPoints[i+1].lat, croquisPoints[i+1].lng));
             }
-            return Math.round(totalMeters);
+            return Math.round(m);
         }
 
         function updateCroquisSummary() {
-            const totalMeters = calculateTotalMeters();
-            const poleCount = Math.max(0, croquisPoints.length - 2);
-            document.getElementById('cantidadPostes').value = poleCount;
-
-            const listContainer = document.getElementById('croquis-points-breakdown');
-            if (croquisPoints.length === 0) {
-                listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>`;
-                return;
-            }
-
-            listContainer.innerHTML = `
-                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2">
-                    ${croquisPoints.map((p, idx) => {
-                        let title = p.type === 'cto' ? '🔌 CTO Principal' : (p.type === 'poste' ? `🪵 Poste P${idx}` : '🏠 Casa del Cliente');
-                        return `
-                        <div class="border rounded-xl p-2 bg-slate-800/60 border-slate-700 flex justify-between items-center text-xs">
-                            <div><strong class="text-purple-300">${title}:</strong> <span class="text-slate-200">${p.address}</span></div>
-                            <div class="text-[10px] text-slate-400 font-mono">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
-                        </div>`;
-                    }).join('')}
-                    <div class="flex justify-between items-center pt-1 text-xs text-slate-300">
-                        <span><strong>Trazado Total:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></span>
-                        <span><strong>Postes:</strong> <span class="text-emerald-400 font-bold">${poleCount}</span></span>
-                    </div>
-                </div>`;
+            const m = calculateTotalMeters();
+            const pCount = Math.max(0, croquisPoints.length - 2);
+            document.getElementById('cantidadPostes').value = pCount;
+            document.getElementById('croquis-points-breakdown').innerHTML = croquisPoints.length === 0 ? `<em class="text-slate-500">Haga clic en el mapa satelital.</em>` : `<div class="bg-slate-900 p-3 rounded-xl border border-slate-700/80 space-y-1">${croquisPoints.map((p, idx) => `<div><strong>${p.type.toUpperCase()}:</strong> ${p.address}</div>`).join('')}<div class="text-emerald-400 font-bold pt-1">Total: ${m} m | Postes: ${pCount}</div></div>`;
         }
 
         function clearCroquisMap() {
             mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
-            mapMarkers = [];
-            croquisPoints = [];
-            croquisPolyline = null;
+            mapMarkers = []; croquisPoints = []; croquisPolyline = null;
             document.getElementById('direccion').value = '';
             document.getElementById('codigoPostal').value = '';
-            updateCroquisSummary();
-            saveFormDraft();
+            updateCroquisSummary(); saveFormDraft();
         }
 
         async function reverseGeocode(lat, lng) {
@@ -1676,254 +1676,77 @@
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                 if (res.ok) {
                     const data = await res.json();
-                    const addressObj = data.address || {};
-                    const road = addressObj.road || addressObj.pedestrian || addressObj.suburb || '';
-                    const houseNumber = addressObj.house_number ? ' ' + addressObj.house_number : '';
-                    const town = addressObj.city || addressObj.town || addressObj.village || addressObj.municipality || '';
-                    const postcode = addressObj.postcode || '';
-                    let cleanAddress = road ? road + houseNumber + (town ? ', ' + town : '') : data.display_name.split(',').slice(0, 3).join(',');
-                    return { address: cleanAddress.trim(), postcode: postcode.trim() };
+                    return { address: data.display_name.split(',').slice(0,3).join(','), postcode: data.address?.postcode || '' };
                 }
             } catch (e) {}
             return { address: `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`, postcode: '' };
         }
 
         async function searchAddressOnMap() {
-            const query = document.getElementById('map-search-input').value;
-            if (!query) return;
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        croquisMap.setView([lat, lon], 18);
-                        fetchWeatherByCoordinates(lat, lon);
-                    } else alert('Sin resultados.');
+            const q = document.getElementById('map-search-input').value;
+            if (!q) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.length > 0) {
+                    croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18);
+                    fetchWeatherByCoordinates(parseFloat(data[0].lat), parseFloat(data[0].lon));
                 }
-            } catch (e) { alert('Error al buscar.'); }
+            }
         }
 
         function geolocateOnMap() {
             if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    croquisMap.setView([lat, lon], 18);
-                    fetchWeatherByCoordinates(lat, lon);
-                },
-                () => alert('No se pudo acceder a la geolocalización.')
-            );
+            navigator.geolocation.getCurrentPosition(pos => {
+                croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18);
+                fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude);
+            });
         }
 
         async function captureAndAttachCroquis() {
-            if (croquisPoints.length < 2) {
-                alert('⚠️ Debe marcar al menos CTO y Vivienda.');
-                return;
-            }
-
+            if (croquisPoints.length < 2) { alert('⚠️ Debe marcar al menos CTO y Vivienda.'); return; }
             const mapBox = document.getElementById('croquis-map');
             const controls = mapBox.querySelectorAll('.leaflet-control-container');
-
             croquisMap.invalidateSize();
-            await new Promise(resolve => setTimeout(resolve, 600));
-
-            try {
-                controls.forEach(c => c.style.display = 'none');
-                
-                const canvas = await html2canvas(mapBox, { 
-                    useCORS: true, 
-                    allowTaint: true, 
-                    scale: 1.0, 
-                    logging: false,
-                    backgroundColor: null
-                });
-                
-                controls.forEach(c => c.style.display = '');
-
-                const imgData = canvas.toDataURL('image/jpeg', 0.5);
-                uploadedFiles['file-croquis'] = imgData;
-                saveFormDraft();
-
-                document.getElementById('preview-croquis').innerHTML = `
-                    <img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                    <div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado Correctamente</div>`;
-
-                alert('✅ ¡Foto del mapa capturada con éxito!');
-            } catch (e) {
-                controls.forEach(c => c.style.display = '');
-                alert('Error al capturar mapa: ' + (e.message || e));
-            }
+            await new Promise(r => setTimeout(r, 600));
+            controls.forEach(c => c.style.display = 'none');
+            const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: true, scale: 1.0 });
+            controls.forEach(c => c.style.display = '');
+            uploadedFiles['file-croquis'] = canvas.toDataURL('image/jpeg', 0.5);
+            saveFormDraft();
+            document.getElementById('preview-croquis').innerHTML = `<img src="${uploadedFiles['file-croquis']}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
+            alert('✅ ¡Mapa capturado con éxito!');
         }
 
         function validateCurrentStep(step) {
-            const stepContainer = document.getElementById(`step-${step}`);
-            if (!stepContainer) return true;
-
+            const sc = document.getElementById(`step-${step}`);
+            if (!sc) return true;
             let valid = true;
-            const requiredInputs = stepContainer.querySelectorAll('[required]');
-            const processedRadioNames = new Set();
-
-            requiredInputs.forEach(input => {
-                if (input.type === 'radio') {
-                    if (!processedRadioNames.has(input.name)) {
-                        processedRadioNames.add(input.name);
-                        const checked = stepContainer.querySelector(`input[name="${input.name}"]:checked`);
-                        if (!checked) valid = false;
-                    }
-                } else if (input.type === 'file') {
-                    if (!uploadedFiles[input.id] && input.files.length === 0) valid = false;
-                } else {
-                    if (!input.value || !input.value.trim()) valid = false;
-                }
+            sc.querySelectorAll('[required]').forEach(input => {
+                if (input.type === 'file' && !uploadedFiles[input.id]) valid = false;
+                else if (input.type !== 'file' && !input.value.trim()) valid = false;
             });
-
             if (step === 1) {
-                const otInput = document.getElementById('nOt');
-                if (otInput && otInput.value.length !== 24) {
-                    alert('⚠️ El número de OT debe tener exactamente 24 caracteres.');
+                if (document.getElementById('nOt').value.length !== 24) { alert('⚠️ La OT debe tener 24 caracteres.'); return false; }
+                if (!document.getElementById('expired-ot-alert').classList.contains('hidden')) {
+                    alert('❌ Operación bloqueada: Esta OT está caducada (> 5 días) y no se puede enviar.');
                     return false;
                 }
             }
-
-            if (step === 2) {
-                const statusBox = document.getElementById('rp-course-status-box');
-                const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
-                if (cursoEstado !== "NO CADUCA") {
-                    const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
-                    if (!exencionCb || !exencionCb.checked) {
-                        alert('⚠️ El Recurso Preventivo seleccionado no dispone del curso de 60h (Falta Documento). Debe marcar la casilla de autorización bajo responsabilidad de la empresa para continuar.');
-                        return false;
-                    }
-                }
-            }
-
-            if (step === 5 && !uploadedFiles['file-croquis']) {
-                alert('⚠️ Es obligatorio pulsar "📸 Capturar Foto del Mapa y Adjuntar".');
-                return false;
-            }
-
-            if (!valid) alert('⚠️ Complete todos los campos obligatorios (*).');
+            if (step === 5 && !uploadedFiles['file-croquis']) { alert('⚠️ Es obligatorio capturar el mapa.'); return false; }
+            if (!valid) alert('⚠️ Complete los campos obligatorios (*).');
             return valid;
         }
 
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
-
-            const formData = new FormData(document.getElementById('pole-form'));
-            const nOt = document.getElementById('nOt').value || '-';
-            const contrata = document.getElementById('contrataPrincipal').value || '-';
-            const tipo = formData.get('tipo') || '-';
-            const estadoInfra = formData.get('estado') || 'No aplica (Avería)';
-            const fechaHora = document.getElementById('fechaHora').value || '-';
-            const direccion = document.getElementById('direccion').value || '-';
-            
-            const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
-            const nomTec1 = document.getElementById('nombreTec1').value || '-';
-            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
-            const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || '-';
-            
-            const statusBox = document.getElementById('rp-course-status-box');
-            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
-            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
-
-            const tipoPoste = formData.get('tipoPoste') || '-';
-            const estadoPoste = document.getElementById('estadoPoste').value || '-';
-            const paraSubir = document.getElementById('paraSubir').value || '-';
-            const sePuede = formData.get('sePuede') || '-';
-            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
-            const totalMeters = calculateTotalMeters();
-            const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
-            const datoViento = document.getElementById('datoViento').value || 'No medido';
-            const escaleraGeo = escaleraGeoTextoGlobal || document.getElementById('escaleraGeoInfo').value || 'No geolocalizada';
-
-            const ladderChecks = formData.getAll('ladderCheck');
-            const epis = formData.getAll('epis');
-            const medidasMadera = formData.getAll('medidasMadera');
-
-            let pointsSummaryHTML = '';
-            if (croquisPoints.length > 0) {
-                pointsSummaryHTML = `<div class="mt-2 space-y-1 bg-slate-950 p-2 rounded border border-slate-800">
-                    <strong class="text-purple-300">Desglose de Ubicaciones y Postes:</strong><br>`;
-                croquisPoints.forEach((p, idx) => {
-                    let lbl = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    pointsSummaryHTML += `<div class="text-slate-300">• <strong>${lbl}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
-                });
-                pointsSummaryHTML += `</div>`;
-            } else {
-                pointsSummaryHTML = `<div class="text-slate-500 italic mt-1">Sin puntos marcados en el mapa</div>`;
-            }
-
-            let rpCursoInfoHTML = `<span class="text-emerald-400 font-bold">Válido (NO CADUCA)</span>`;
-            if (cursoEstado !== "NO CADUCA") {
-                rpCursoInfoHTML = `<span class="text-rose-400 font-bold">FALTA DOCUMENTO</span> ${exencionMarcada ? '<br><strong class="text-amber-300">⚠️ Actuando bajo responsabilidad de la empresa</strong>' : ''}`;
-            }
-
-            container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">1. Datos OT</span>
-                            <button type="button" onclick="goToStep(1)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-semibold">${nOt}</span></div>
-                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${contrata}</span> | <strong>Tipo:</strong> <span class="text-slate-200">${tipo}</span></div>
-                        <div><strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
-                        <div><strong class="text-slate-400">Dirección:</strong> <span class="text-emerald-300">${direccion}</span></div>
-                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${fechaHora}</span></div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">2. Personal & PRL</span>
-                            <button type="button" onclick="goToStep(2)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">TEC1:</strong> <span class="text-white font-semibold">${aliasTec1} (${nomTec1})</span></div>
-                        <div><strong class="text-slate-400">Recurso:</strong> <span class="text-white font-semibold">${aliasRecurso} (${nomRecurso})</span></div>
-                        <div><strong class="text-slate-400">Curso 60h RP:</strong> ${rpCursoInfoHTML}</div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">3. Poste y Seguridad</span>
-                            <button type="button" onclick="goToStep(3)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Material:</strong> <span class="text-slate-200">${tipoPoste}</span></div>
-                        <div><strong class="text-slate-400">Estado:</strong> <span class="text-slate-200">${estadoPoste}</span> | <strong>Método:</strong> <span class="text-slate-200">${paraSubir}</span></div>
-                        <div><strong class="text-slate-400">Apto Escalera:</strong> <span class="${sePuede === 'SI' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${sePuede}</span></div>
-                        <div><strong class="text-slate-400">Condición Viento/Clima:</strong> <span class="text-cyan-300 font-semibold">${datoViento}</span></div>
-                        ${medidasMadera.length > 0 ? `<div><strong class="text-amber-400">Medidas Madera:</strong> <span class="text-slate-300">${medidasMadera.join(', ')}</span></div>` : ''}
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">4. Checks & EPIs</span>
-                            <button type="button" onclick="goToStep(4)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Escalera:</strong> <span class="text-emerald-400 font-bold">${ladderChecks.length} verificaciones</span></div>
-                        <div><strong class="text-slate-400">EPIs:</strong> <span class="text-emerald-400 font-bold">${epis.length} seleccionados</span></div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-                            <span class="font-bold text-purple-400 uppercase text-[11px]">5. Trazado, Postes y Evidencias</span>
-                            <button type="button" onclick="goToStep(5)" class="text-[10px] text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">✏️ Editar</button>
-                        </div>
-                        <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400 font-bold">${cantidadPostes}</span> | <strong class="text-slate-400">Metros de Tendido:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></div>
-                        <div class="text-[11px] text-emerald-300"><strong>📍 Geolocalización Foto Escalera:</strong> ${escaleraGeo}</div>
-                        ${pointsSummaryHTML}
-                        <div class="mt-1"><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300 italic">${observaciones}</span></div>
-                    </div>
-                </div>`;
+            container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 text-xs"><div><strong>OT:</strong> ${document.getElementById('nOt').value}</div><div><strong>Dirección:</strong> ${document.getElementById('direccion').value}</div><div><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</div></div>`;
         }
 
         function goToStep(step) {
             if (step < 1 || step > 6) return;
             if (step > currentStep && !validateCurrentStep(currentStep)) return;
-
             for (let i = 1; i <= 6; i++) {
                 document.getElementById(`step-${i}`).classList.add('hidden');
                 document.getElementById(`tab-btn-${i}`)?.classList.remove('tab-active');
@@ -1931,653 +1754,133 @@
             document.getElementById(`step-${step}`).classList.remove('hidden');
             document.getElementById(`tab-btn-${step}`)?.classList.add('tab-active');
             currentStep = step;
-            updateProgressBar();
+            document.getElementById('progress-bar').style.width = `${Math.round((step/6)*100)}%`;
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
             if (step === 5) setTimeout(initCroquisMap, 150);
             if (step === 6) { renderReviewSummary(); setTimeout(resizeCanvas, 100); }
         }
 
         function nextStep(s) { goToStep(s); }
         function prevStep(s) { goToStep(s); }
-
-        function updateProgressBar() {
-            const percent = Math.round((currentStep / 6) * 100);
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
-            document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
-        }
-
-        function toggleWoodPoleMeasures() {
-            const selected = document.querySelector('input[name="tipoPoste"]:checked');
-            const block = document.getElementById('wood-pole-block');
-            if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
-            else block.classList.add('hidden');
-            saveFormDraft();
-        }
-
-        function handlePoleStatusChange() {
-            const val = document.getElementById('estadoPoste').value;
-            const alertBox = document.getElementById('no-climb-alert');
-            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
-            else alertBox.classList.add('hidden');
-            saveFormDraft();
-        }
-
-        function toggleAllCheckboxes(cls, state) {
-            document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
-            saveFormDraft();
-        }
+        function toggleWoodPoleMeasures() { document.getElementById('wood-pole-block').classList.toggle('hidden', document.querySelector('input[name="tipoPoste"]:checked')?.value !== 'POSTE DE MADERA'); }
+        function handlePoleStatusChange() { document.getElementById('no-climb-alert').classList.toggle('hidden', !['NO SUBIR', 'MALO/DEFECTUOSO'].includes(document.getElementById('estadoPoste').value)); }
+        function toggleAllCheckboxes(cls, state) { document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state); }
 
         function initSignatureCanvas() {
             signatureCanvas = document.getElementById('signature-canvas');
             signatureCtx = signatureCanvas.getContext('2d');
             resizeCanvas();
-
             signatureCanvas.addEventListener('mousedown', startSigning);
             signatureCanvas.addEventListener('mousemove', drawSigning);
             signatureCanvas.addEventListener('mouseup', stopSigning);
-
-            signatureCanvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const t = e.touches[0];
-                startSigning({ clientX: t.clientX, clientY: t.clientY });
-            });
-            signatureCanvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const t = e.touches[0];
-                drawSigning({ clientX: t.clientX, clientY: t.clientY });
-            });
+            signatureCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startSigning({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }); });
+            signatureCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); drawSigning({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }); });
             signatureCanvas.addEventListener('touchend', stopSigning);
         }
 
         function resizeCanvas() {
             if (!signatureCanvas) return;
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCanvas.width = rect.width;
-            signatureCanvas.height = rect.height;
-            signatureCtx.lineWidth = 2;
-            signatureCtx.strokeStyle = '#0f172a';
+            const r = signatureCanvas.getBoundingClientRect();
+            signatureCanvas.width = r.width; signatureCanvas.height = r.height;
+            signatureCtx.lineWidth = 2; signatureCtx.strokeStyle = '#0f172a';
         }
 
-        function startSigning(e) {
-            isSigning = true;
-            document.getElementById('signature-placeholder').classList.add('hidden');
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.beginPath();
-            signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        }
-
-        function drawSigning(e) {
-            if (!isSigning) return;
-            const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            signatureCtx.stroke();
-        }
-
-        function stopSigning() {
-            if (isSigning) {
-                isSigning = false;
-                document.getElementById('firmaData').value = signatureCanvas.toDataURL();
-                saveFormDraft();
-            }
-        }
-
-        function clearSignatureCanvas() {
-            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-            document.getElementById('signature-placeholder').classList.remove('hidden');
-            document.getElementById('firmaData').value = '';
-            saveFormDraft();
-        }
+        function startSigning(e) { isSigning = true; document.getElementById('signature-placeholder').classList.add('hidden'); const r = signatureCanvas.getBoundingClientRect(); signatureCtx.beginPath(); signatureCtx.moveTo(e.clientX - r.left, e.clientY - r.top); }
+        function drawSigning(e) { if (!isSigning) return; const r = signatureCanvas.getBoundingClientRect(); signatureCtx.lineTo(e.clientX - r.left, e.clientY - r.top); signatureCtx.stroke(); }
+        function stopSigning() { if (isSigning) { isSigning = false; document.getElementById('firmaData').value = signatureCanvas.toDataURL(); saveFormDraft(); } }
+        function clearSignatureCanvas() { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); document.getElementById('signature-placeholder').classList.remove('hidden'); document.getElementById('firmaData').value = ''; saveFormDraft(); }
 
         function saveToSentHistoryCompletely(nOt) {
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-            const data = {};
-
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) data[key] = [data[key]];
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            });
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
-
-            const checkboxesStates = {};
-            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb.name) {
-                    if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = [];
-                    if (cb.checked) checkboxesStates[cb.name].push(cb.value);
-                }
-            });
-
-            data['checkboxesStates'] = checkboxesStates;
-            data['firmaData'] = document.getElementById('firmaData').value;
-            data['sentAt'] = new Date().toLocaleString();
-            data['croquisPoints'] = croquisPoints;
-            data['nOt'] = nOt;
-            data['uploadedFiles'] = {}; 
-
             let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-            sentList.unshift(data);
-            if (sentList.length > 20) sentList = sentList.slice(0, 20);
-            try {
-                localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
-            } catch (e) {
-                localStorage.removeItem('user_sent_pole_parts');
-            }
-
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
+            sentList.unshift({ nOt, sentAt: new Date().toLocaleString() });
+            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
+            actualizarContadorOtsPendientes();
         }
 
         function updateSentPartsBadge() {
             let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
             document.getElementById('sent-parts-count').innerText = sentList.length;
         }
 
         function openSentPartsModal() {
             let sentList = [];
-            try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-
-            const listContainer = document.getElementById('sent-parts-list');
-            if (sentList.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
-            } else {
-                listContainer.innerHTML = sentList.map((item) => `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
-                        <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
-                            <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
-                        </div>
-                        <div class="text-emerald-400 font-semibold text-[11px]">Enviado OK</div>
-                    </div>
-                `).join('');
-            }
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
+            document.getElementById('sent-parts-list').innerHTML = sentList.length === 0 ? `<p class="text-slate-400 text-center py-4">No hay partes enviados.</p>` : sentList.map(item => `<div class="bg-slate-800 p-3 rounded-xl flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">Enviado OK</span></div>`).join('');
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
-        function closeSentPartsModal() {
-            document.getElementById('sent-parts-modal').classList.add('hidden');
-        }
-
-        function clearSentHistory() {
-            if (confirm('¿Desea vaciar el historial de enviados?')) {
-                localStorage.removeItem('user_sent_pole_parts');
-                updateSentPartsBadge();
-                openSentPartsModal();
-            }
-        }
+        function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
+        function clearSentHistory() { if (confirm('¿Vaciar historial?')) { localStorage.removeItem('user_sent_pole_parts'); updateSentPartsBadge(); openSentPartsModal(); actualizarContadorOtsPendientes(); } }
 
         function confirmResetForm() {
-            if (confirm('¿Limpiar todo el formulario y borrar borrador guardado?')) {
+            if (confirm('¿Limpiar formulario?')) {
                 document.getElementById('pole-form').reset();
-                clearCroquisMap();
-                clearSignatureCanvas();
+                clearCroquisMap(); clearSignatureCanvas();
                 localStorage.removeItem('pole_form_draft');
-                document.getElementById('duplicate-ot-alert').classList.add('hidden');
-                document.getElementById('rp-course-status-box').classList.add('hidden');
-                
-                const estadoRadios = document.querySelectorAll('input[name="estado"]');
-                estadoRadios.forEach(r => {
-                    r.disabled = false;
-                    r.required = true;
-                    r.closest('label').style.opacity = '1';
-                    r.closest('label').style.cursor = 'pointer';
-                });
-
-                const savedContrata = localStorage.getItem('user_preferred_contrata');
-                if (savedContrata) {
-                    const select = document.getElementById('contrataPrincipal');
-                    select.disabled = false;
-                    select.value = savedContrata;
-                    select.disabled = true;
-                    handleContractorChange();
-                }
-
+                document.getElementById('expired-ot-alert').classList.add('hidden');
                 goToStep(1);
             }
         }
 
-        function buildPrintHTML() {
-            const printArea = document.getElementById('print-area');
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-
-            const statusBox = document.getElementById('rp-course-status-box');
-            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
-            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || formData.get('exencionResponsabilidadEmpresa') === 'SÍ';
-            
-            const escaleraGeo = escaleraGeoTextoGlobal || document.getElementById('escaleraGeoInfo').value || "Sin geolocalización registrada";
-
-            let rpCursoPrint = "Válido (NO CADUCA)";
-            let rpExencionPrint = "";
-            if (cursoEstado !== "NO CADUCA") {
-                rpCursoPrint = "FALTA DOCUMENTO";
-                if (exencionMarcada) {
-                    rpExencionPrint = `<div style="color: #b45309; font-weight: bold; margin-top: 2px;">⚠️ Actuando como RP bajo expresa responsabilidad de la empresa.</div>`;
-                }
-            }
-
-            let pointsPrintHTML = '';
-            let puntosTextoBreve = [];
-            if (croquisPoints.length > 0) {
-                pointsPrintHTML = `<div style="margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 8.5px; background:#f8fafc;">
-                    <strong>DESGLOSE DE UBICACIONES Y TRAZADO (${calculateTotalMeters()} metros):</strong><br>`;
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    pointsPrintHTML += `<div>• <strong>${label}:</strong> ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>`;
-                    puntosTextoBreve.push(`${label}: ${p.address}`);
-                });
-                pointsPrintHTML += `</div>`;
-            }
-
-            const medidasMadera = formData.getAll('medidasMadera');
-            let medidasMaderaHTML = '';
-            if (medidasMadera.length > 0) {
-                medidasMaderaHTML = `<div style="grid-column: span 2; margin-top: 3px; background: #fffbe0; padding: 3px; border-radius: 4px; border: 1px solid #fef08a;">
-                    <strong>Medidas Preventivas Madera:</strong> ${medidasMadera.join(' | ')}
-                </div>`;
-            }
-
-            const ladderChecks = formData.getAll('ladderCheck');
-            const epis = formData.getAll('epis');
-            const datoViento = document.getElementById('datoViento').value || 'No medido';
-            const estadoInfraPrint = formData.get('estado') || 'No aplica (Avería)';
-            const contrataPrint = document.getElementById('contrataPrincipal').value || '-';
-
-            printArea.innerHTML = `
-                <!-- PÁGINA 1 -->
-                <div class="pdf-page">
-                    <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h1 style="font-size: 13px; font-weight: bold; color: #4c1d95; margin:0;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
-                            <p style="font-size: 8.5px; color: #64748b; margin: 1px 0 0 0;">Prevención de Riesgos Laborales</p>
-                        </div>
-                        <div style="text-align: right; font-size: 8.5px;">
-                            <strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}<br>
-                            <strong>Fecha/Hora:</strong> ${document.getElementById('fechaHora').value || '-'}
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">1. DATOS DE LA ACTUACIÓN</h3>
-                        <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'}</div>
-                            <div><strong>Contrata Principal:</strong> ${contrataPrint}</div>
-                            <div><strong>Tipo Actuación:</strong> ${formData.get('tipo') || '-'}</div>
-                            <div><strong>Estado Infraestructura:</strong> ${estadoInfraPrint}</div>
-                            <div style="grid-column: span 2;"><strong>Ubicación Emplazamiento:</strong> ${document.getElementById('direccion').value || '-'} (${document.getElementById('codigoPostal').value || '-'})</div>
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">2. IDENTIFICACIÓN DEL PERSONAL & PRL</h3>
-                        <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Alias TEC1:</strong> ${document.getElementById('aliasKairosTec1').value || '-'}</div>
-                            <div><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value || '-'}</div>
-                            <div><strong>Alias Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value || '-'}</div>
-                            <div><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}</div>
-                            <div style="grid-column: span 2;"><strong>Curso 60h RP:</strong> ${rpCursoPrint} ${rpExencionPrint}</div>
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">3. EVALUACIÓN TÉCNICA DEL POSTE</h3>
-                        <div class="print-grid" style="font-size: 8.5px;">
-                            <div><strong>Material del Poste:</strong> ${formData.get('tipoPoste') || '-'}</div>
-                            <div><strong>Estado Global del Poste:</strong> ${document.getElementById('estadoPoste').value || '-'}</div>
-                            <div><strong>Método Ascenso:</strong> ${document.getElementById('paraSubir').value || '-'}</div>
-                            <div><strong>Apto Escalera con Seguridad:</strong> ${formData.get('sePuede') || '-'}</div>
-                            <div><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'} | <strong>Metros:</strong> ${calculateTotalMeters()} m</div>
-                            <div style="grid-column: span 2;"><strong>Condición Meteorológica / Viento:</strong> ${datoViento}</div>
-                            ${medidasMaderaHTML}
-                        </div>
-                    </div>
-
-                    <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">4. CHECKLISTS DE SEGURIDAD Y EPIS</h3>
-                        <div style="font-size: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                            <div>
-                                <strong>Verificaciones Escalera (${ladderChecks.length}):</strong>
-                                <ul style="margin: 2px 0 0 10px; padding: 0;">
-                                    ${ladderChecks.map(c => `<li>${c}</li>`).join('') || '<em>Ninguna</em>'}
-                                </ul>
-                            </div>
-                            <div>
-                                <strong>EPIs Utilizados (${epis.length}):</strong>
-                                <ul style="margin: 2px 0 0 10px; padding: 0;">
-                                    ${epis.map(e => `<li>${e}</li>`).join('') || '<em>Ninguno</em>'}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PÁGINA 2 -->
-                <div class="pdf-page pdf-page-last">
-                    <div class="print-section">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
-                            ${uploadedFiles['file-croquis'] ? `<div class="print-img-box"><span>Mapa Croquis FTTH</span><br><img src="${uploadedFiles['file-croquis']}" class="print-img"></div>` : ''}
-                            ${uploadedFiles['file-escalera'] ? `<div class="print-img-box"><span style="font-size:8px; font-weight:bold; color:#1e293b;">Foto Escalera</span><div style="margin-top:2px; font-size:7.5px; color:#059669; font-weight:bold;">📍 ${escaleraGeo}</div><br><img src="${uploadedFiles['file-escalera']}" class="print-img"></div>` : ''}
-                        </div>
-                        ${pointsPrintHTML}
-                        ${document.getElementById('observaciones').value ? `<div style="margin-top:4px; font-size:8px;"><strong>Observaciones:</strong> ${document.getElementById('observaciones').value}</div>` : ''}
-                    </div>
-
-                    <div class="print-section" style="margin-top: 4px;">
-                        <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 3px;">6. FIRMA Y DECLARACIÓN RESPONSABLE</h3>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 8.5px;">
-                            <div>
-                                <strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}<br>
-                                <strong>DNI / NIE:</strong> ${document.getElementById('dniRecurso').value || '-'}
-                            </div>
-                            <div style="text-align: center;">
-                                ${document.getElementById('firmaData').value ? `<img src="${document.getElementById('firmaData').value}" style="height: 35px; border: 1px solid #cbd5e1; border-radius: 4px;">` : '<em>Sin Firma</em>'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            return { puntosTextoBreve: puntosTextoBreve.join(' || '), escaleraGeoFinal: escaleraGeo };
-        }
-
-        function generatePrintPreview() {
-            buildPrintHTML();
-            const printArea = document.getElementById('print-area');
-            printArea.classList.remove('hidden');
-            window.print();
-            printArea.classList.add('hidden');
-        }
-
-        function saveToOfflineQueue(item) {
-            let queue = [];
-            try {
-                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
-            } catch (e) { queue = []; }
-
-            queue.push(item);
-            localStorage.setItem('pending_pole_submissions', JSON.stringify(queue));
-
-            updatePendingBadge();
-            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación se ha guardado temporalmente y se enviará en cuanto recuperes conexión.`);
-
-            document.getElementById('pole-form').reset();
-            clearCroquisMap();
-            clearSignatureCanvas();
-            localStorage.removeItem('pole_form_draft');
-            document.getElementById('duplicate-ot-alert').classList.add('hidden');
-            document.getElementById('rp-course-status-box').classList.add('hidden');
-            
-            const estadoRadios = document.querySelectorAll('input[name="estado"]');
-            estadoRadios.forEach(r => {
-                r.disabled = false;
-                r.required = true;
-                r.closest('label').style.opacity = '1';
-                r.closest('label').style.cursor = 'pointer';
-            });
-
-            const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata) {
-                const select = document.getElementById('contrataPrincipal');
-                select.disabled = false;
-                select.value = savedContrata;
-                select.disabled = true;
-                handleContractorChange();
-            }
-
-            goToStep(1);
-        }
-
-        function updatePendingBadge() {
-            let queue = [];
-            try {
-                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
-            } catch (e) { queue = []; }
-
-            const btn = document.getElementById('btn-sync-offline');
-            const countSpan = document.getElementById('pending-count');
-
-            if (btn && countSpan) {
-                if (queue.length > 0) {
-                    countSpan.innerText = queue.length;
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
-            }
-        }
-
-        function comprimirMiniaturaParaEmail(dataUrl, maxWidth = 200, quality = 0.25) {
-            return new Promise((resolve) => {
-                if (!dataUrl) { resolve(''); return; }
-                const img = new Image();
-                img.onload = () => {
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', quality));
-                };
-                img.src = dataUrl;
-            });
-        }
+        function buildPrintHTML() { return { puntosTextoBreve: '', escaleraGeoFinal: escaleraGeoTextoGlobal }; }
+        function generatePrintPreview() { window.print(); }
 
         async function sendPayloadToEmailJS(item) {
-            const formElement = document.getElementById('pole-form');
-            const buildData = buildPrintHTML();
-
-            let croquisMiniatura = '';
-            let escaleraMiniatura = '';
-
-            if (uploadedFiles['file-croquis']) {
-                croquisMiniatura = await comprimirMiniaturaParaEmail(uploadedFiles['file-croquis'], 200, 0.25);
-            }
-            if (uploadedFiles['file-escalera']) {
-                escaleraMiniatura = await comprimirMiniaturaParaEmail(uploadedFiles['file-escalera'], 200, 0.25);
-            }
-
-            const statusBox = document.getElementById('rp-course-status-box');
-            const cursoEstado = statusBox ? statusBox.dataset.cursoEstado || "" : "";
-            const exencionMarcada = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
-            let rpEmailText = "Válido (NO CADUCA)";
-            if (cursoEstado !== "NO CADUCA") {
-                rpEmailText = "FALTA DOCUMENTO" + (exencionMarcada ? " [ACTUANDO BAJO RESPONSABILIDAD DE LA EMPRESA]" : "");
-            }
-
-            const escaleraGeoInfo = escaleraGeoTextoGlobal || buildData.escaleraGeoFinal || document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización registrada';
-            const estadoInfraEmail = item.formData.estado || 'No aplica (Avería)';
-            const contrataEmail = document.getElementById('contrataPrincipal').value || '-';
-
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
-                subject: `${item.nOt} - ${contrataEmail}`,
-                
+                subject: `${item.nOt} - ${item.contrata}`,
                 ot_number: item.nOt,
-                contrata: contrataEmail,
+                contrata: item.contrata,
                 tipo_actuacion: item.formData.tipo || '-',
-                estado_infra: estadoInfraEmail,
                 fecha: item.formData.fechaHora || '',
-                direccion: item.formData.direccion || 'Sin dirección',
-                tecnico_tec1: `${item.formData.aliasKairosTec1 || ''} - ${item.formData.nombreTec1 || ''}`,
-                recurso_preventivo: `${item.formData.aliasRecursoPreventivo || ''} - ${item.formData.nombreRecursoPreventivo || ''} (Curso 60h: ${rpEmailText})`,
-                dni_recurso: item.formData.dniRecurso || '',
-                tipo_poste: item.formData.tipoPoste || '-',
-                estado_poste: item.formData.estadoPoste || '',
-                metodo_subir: item.formData.paraSubir || '',
-                apto_escalera: item.formData.sePuede || '-',
-                total_postes: item.formData.cantidadPostes || '0',
-                metros_tendido: calculateTotalMeters() + 'm',
-                condicion_viento: document.getElementById('datoViento').value || 'No medido',
-                checks_escalera: Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna',
-                epis_utilizados: Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno',
-                medidas_madera: Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'No aplica',
-                desglose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
-                observaciones: item.formData.observaciones || 'Sin observaciones',
-                
-                escalera_geolocalizacion: escaleraGeoInfo,
-
-                foto_croquis_miniatura: croquisMiniatura,
-                foto_escalera_miniatura: escaleraMiniatura
+                direccion: item.formData.direccion || '',
+                tecnico_tec1: `${item.formData.aliasKairosTec1} - ${item.formData.nombreTec1}`,
+                recurso_preventivo: `${item.formData.aliasRecursoPreventivo} - ${item.formData.nombreRecursoPreventivo}`,
+                observaciones: item.formData.observaciones || ''
             };
-
             await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
             return true;
         }
 
-        async function syncPendingSubmissions() {
-            let queue = [];
-            try {
-                queue = JSON.parse(localStorage.getItem('pending_pole_submissions') || '[]');
-            } catch (e) { queue = []; }
-
-            if (queue.length === 0) return;
-            if (!navigator.onLine) {
-                alert("⚠️ Aún estás sin conexión a internet.");
-                return;
-            }
-
-            const btn = document.getElementById('btn-sync-offline');
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
-
-            let remaining = [];
-            let lastSuccessfulItem = null;
-
-            for (let item of queue) {
-                try {
-                    await sendPayloadToEmailJS(item);
-                    saveToSentHistoryCompletely(item.nOt);
-                    lastSuccessfulItem = item;
-                } catch (err) {
-                    remaining.push(item);
-                }
-            }
-
-            localStorage.setItem('pending_pole_submissions', JSON.stringify(remaining));
-            updatePendingBadge();
-
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-wifi"></i> Sincronizar';
-
-            if (lastSuccessfulItem) {
-                document.getElementById('modal-ot').innerText = lastSuccessfulItem.nOt;
-                document.getElementById('modal-tec').innerText = lastSuccessfulItem.formData.nombreTec1 || 'Técnico';
-                document.getElementById('success-modal').classList.remove('hidden');
-            }
-        }
-
         async function handleFormSubmit(e) {
             e.preventDefault();
-
             if (!validateCurrentStep(6)) return;
-
-            const firma = document.getElementById('firmaData').value;
-            if (!firma) {
-                alert('⚠️ La firma táctil es obligatoria.');
+            if (!document.getElementById('expired-ot-alert').classList.contains('hidden')) {
+                alert('❌ No se puede enviar: La OT está caducada.');
                 return;
             }
 
             const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const submitIcon = document.getElementById('submit-icon');
-            
             submitBtn.disabled = true;
-            submitText.innerText = 'Enviando...';
-            submitIcon.className = 'fa-solid fa-spinner fa-spin';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                const nOt = document.getElementById('nOt').value || 'Sin_OT';
-                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
-                
-                const formElement = document.getElementById('pole-form');
-                const allFormData = new FormData(formElement);
-                const payloadFormData = {};
-                allFormData.forEach((val, key) => {
-                    if (payloadFormData[key]) {
-                        if (!Array.isArray(payloadFormData[key])) payloadFormData[key] = [payloadFormData[key]];
-                        payloadFormData[key].push(val);
-                    } else {
-                        payloadFormData[key] = val;
-                    }
-                });
+                const nOt = document.getElementById('nOt').value;
+                const contrata = document.getElementById('contrataPrincipal').value;
+                const payload = { nOt, contrata, formData: Object.fromEntries(new FormData(document.getElementById('pole-form'))) };
 
-                payloadFormData['ASUNTO_OT'] = nOt;
-                payloadFormData['CONTRATA_PRINCIPAL'] = contrata;
-                payloadFormData['ALIAS_TECNICO_TEC1'] = document.getElementById('aliasKairosTec1').value;
-                payloadFormData['NOMBRE_TECNICO_TEC1'] = document.getElementById('nombreTec1').value;
-
-                const payloadObj = {
-                    nOt: nOt,
-                    contrata: contrata,
-                    formData: payloadFormData,
-                    uploadedFiles: uploadedFiles
-                };
-
-                if (!navigator.onLine) {
-                    saveToOfflineQueue(payloadObj);
-                    return;
-                }
-
-                await sendPayloadToEmailJS(payloadObj);
+                await sendPayloadToEmailJS(payload);
                 saveToSentHistoryCompletely(nOt);
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
-
             } catch (err) {
-                console.error(err);
-                alert('Error al procesar el envío con EmailJS: ' + (err.text || err.message || JSON.stringify(err)));
+                alert('Error al enviar: ' + (err.text || err.message));
             } finally {
                 submitBtn.disabled = false;
-                submitText.innerText = 'Finalizar y Enviar';
-                submitIcon.className = 'fa-solid fa-paper-plane';
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Finalizar y Enviar';
             }
         }
 
         function resetFormAndCloseModal() {
             document.getElementById('success-modal').classList.add('hidden');
             document.getElementById('pole-form').reset();
-            clearCroquisMap();
-            clearSignatureCanvas();
-            localStorage.removeItem('pole_form_draft');
-            document.getElementById('duplicate-ot-alert').classList.add('hidden');
-            document.getElementById('rp-course-status-box').classList.add('hidden');
-            
-            const estadoRadios = document.querySelectorAll('input[name="estado"]');
-            estadoRadios.forEach(r => {
-                r.disabled = false;
-                r.required = true;
-                r.closest('label').style.opacity = '1';
-                r.closest('label').style.cursor = 'pointer';
-            });
-
-            const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata) {
-                const select = document.getElementById('contrataPrincipal');
-                select.disabled = false;
-                select.value = savedContrata;
-                select.disabled = true;
-                handleContractorChange();
-            }
-
+            clearCroquisMap(); clearSignatureCanvas();
+            document.getElementById('expired-ot-alert').classList.add('hidden');
             goToStep(1);
         }
     </script>
