@@ -235,16 +235,15 @@
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                             
-                            <!-- Botón OTs Pendientes -->
-                            <button type="button" onclick="openPendientesModal()" class="px-3.5 py-2.5 bg-brand-800 hover:bg-brand-700 text-white border border-brand-600 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Ver OTs Pendientes de Justificar">
-                                <i class="fa-solid fa-list-check"></i> Pendientes
+                            <!-- Botón OTs Pendientes con contador (Pendientes (x)) -->
+                            <button type="button" id="btn-pendientes-count" onclick="openPendientesModal()" class="px-3.5 py-2.5 bg-brand-800 hover:bg-brand-700 text-white border border-brand-600 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Ver OTs Pendientes de Justificar">
+                                <i class="fa-solid fa-list-check"></i> <span id="label-pendientes-btn">Pendientes (0)</span>
                             </button>
                         </div>
                         <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
-                        <!-- DESHABILITADO PARA OBLIGAR A USAR EL CAMBIO SEGURO SUPERIOR -->
                         <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
                             <option value="">Seleccione Contrata...</option>
                             <option value="CIRCET">CIRCET</option>
@@ -853,16 +852,50 @@
         let recognition = null;
         let isRecordingVoice = false;
 
-        /* FUNCIONES NUEVAS: OTs PENDIENTES */
+        /* FUNCIONES NUEVAS: OTs PENDIENTES Y CONTADOR */
         async function fetchOTsPendientes() {
             try {
                 const res = await fetch('instalaciones.json?v=' + new Date().getTime());
                 if (res.ok) {
                     pendingOTsFromJSON = await res.json();
+                    updatePendientesCounterButton();
                 }
             } catch (e) {
-                console.warn("No se pudo cargar instalaciones.json (verificar que exista o configurar CORS).", e);
+                console.warn("No se pudo cargar instalaciones.json", e);
             }
+        }
+
+        function updatePendientesCounterButton() {
+            const labelBtn = document.getElementById('label-pendientes-btn');
+            if (!labelBtn) return;
+
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
+            if (!contrataActiva || !pendingOTsFromJSON[contrataActiva]) {
+                labelBtn.innerText = 'Pendientes (0)';
+                return;
+            }
+
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            let countInPeriod = 0;
+            pendingOTsFromJSON[contrataActiva].forEach(item => {
+                const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+                if (!fechaStr) return;
+
+                const fechaInst = new Date(fechaStr);
+                fechaInst.setHours(0,0,0,0);
+
+                const diffTime = hoy.getTime() - fechaInst.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                // Solo cuenta si está dentro del plazo de 5 días (no bloqueada)
+                if (diffDays <= 5) {
+                    countInPeriod++;
+                }
+            });
+
+            labelBtn.innerText = `Pendientes (${countInPeriod})`;
         }
 
         function openPendientesModal() {
@@ -960,19 +993,11 @@
 
         function intentarSeleccionarContrata(contrataName) {
             cerrarContrataModal();
-            const verifiedKey = `verified_contrata_${contrataName}`;
-            
-            // Si ya fue verificada y guardada en este dispositivo, entra directo sin pedir contraseña
-            if (localStorage.getItem(verifiedKey) === 'true') {
-                aplicarContrataValidada(contrataName);
-            } else {
-                // Si no, solicita contraseña
-                pendingTargetContrata = contrataName;
-                document.getElementById('modal-target-contrata').innerText = contrataName;
-                document.getElementById('input-contrata-pass').value = '';
-                document.getElementById('pass-error-msg').classList.add('hidden');
-                document.getElementById('password-modal').classList.remove('hidden');
-            }
+            pendingTargetContrata = contrataName;
+            document.getElementById('modal-target-contrata').innerText = contrataName;
+            document.getElementById('input-contrata-pass').value = '';
+            document.getElementById('pass-error-msg').classList.add('hidden');
+            document.getElementById('password-modal').classList.remove('hidden');
         }
 
         function verificarPasswordContrata() {
@@ -980,7 +1005,6 @@
             const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
 
             if (typedPass === correctPass) {
-                localStorage.setItem(`verified_contrata_${pendingTargetContrata}`, 'true');
                 document.getElementById('password-modal').classList.add('hidden');
                 aplicarContrataValidada(pendingTargetContrata);
             } else {
@@ -1002,11 +1026,12 @@
             if (select) {
                 select.disabled = false;
                 select.value = contrataName;
-                select.disabled = true; // Lo mantenemos bloqueado para evitar cambios directos
+                select.disabled = true;
                 handleContractorChange();
             }
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
+            updatePendientesCounterButton(); // Actualiza el contador al cambiar de contrata
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -1153,6 +1178,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
             await cargarListaUsuarios();
+            await fetchOTsPendientes(); // Carga las OTs pendientes y actualiza el contador del botón
             updateProgressBar();
             updatePendingBadge();
             updateSentPartsBadge();
@@ -1171,11 +1197,12 @@
                 if (select) {
                     select.disabled = false;
                     select.value = savedContrata;
-                    select.disabled = true; // Bloqueado para forzar seguridad
+                    select.disabled = true;
                     handleContractorChange();
                 }
                 const label = document.getElementById('header-contrata-label');
                 if (label) label.innerText = savedContrata;
+                updatePendientesCounterButton();
             } else {
                 abrirContrataModal();
             }
@@ -1258,7 +1285,7 @@
             const formData = new FormData(form);
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value; // Asegurar guardado de contrata bloqueada
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1291,7 +1318,7 @@
                 if (confirm(`📋 Se ha encontrado un borrador guardado del ${draft.timestamp}. ¿Desea recuperarlo?`)) {
                     const form = document.getElementById('pole-form');
                     for (let key in draft.data) {
-                        if (key === 'contrataPrincipal') continue; // La contrata se gestiona de forma segura por separado
+                        if (key === 'contrataPrincipal') continue;
                         const el = form.elements[key];
                         if (el) {
                             if (el.type === 'radio') {
@@ -1503,6 +1530,7 @@
                 const label = document.getElementById('header-contrata-label');
                 if (label) label.innerText = contrata;
                 localStorage.setItem('user_preferred_contrata', contrata);
+                updatePendientesCounterButton();
             } else {
                 if (warning) warning.classList.remove('hidden');
             }
