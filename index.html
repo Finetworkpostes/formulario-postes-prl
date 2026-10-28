@@ -153,15 +153,11 @@
                 </div>
             </div>
 
-            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
-            <div class="grid grid-cols-6 gap-1.5 pt-1 border-t border-purple-900/30">
+            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS (SIN BOTÓN DUPLICADO DE PENDIENTES) -->
+            <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Óptimo (12 km/h)</span>
-                </button>
-
-                <button type="button" onclick="abrirOtsPendientesModal()" class="px-2 py-1.5 text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 rounded-lg border border-purple-700/60 transition flex items-center justify-center gap-1" title="OTs pendientes">
-                    <i class="fa-solid fa-list-check"></i> <span id="ots-pendientes-count" class="font-bold">0</span>
                 </button>
 
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
@@ -175,10 +171,6 @@
                 <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
                     <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
                     <span class="font-mono text-[10px]" id="signal-text">4G</span>
-                </button>
-
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-6 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-wifi"></i> Sincronizar pendientes (<span id="pending-count">0</span>)
                 </button>
             </div>
 
@@ -221,7 +213,7 @@
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
                     <span>Sección 1: Datos de la Orden de Trabajo (OT)</span>
                     <button type="button" onclick="abrirOtsPendientesModal()" class="text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 px-3 py-1.5 rounded-xl border border-purple-700 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check"></i> Ver OTs pendientes 📋
+                        <i class="fa-solid fa-list-check"></i> Ver OTs pendientes (<span id="ots-pendientes-count">0</span>) 📋
                     </button>
                 </h2>
                 
@@ -828,10 +820,10 @@
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
         const CONTRATA_PASSWORDS = {
-            "CIRCET": "circet2026",
-            "INSTELCA": "instelca2026",
-            "OBREMO": "obremo2026",
-            "ZENER": "zener2026"
+            "CIRCET": "Circet7590",
+            "INSTELCA": "Instelca2883",
+            "OBREMO": "Obremo4714",
+            "ZENER": "Zener4327"
         };
 
         let pendingTargetContrata = "";
@@ -907,7 +899,6 @@
             actualizarContadorOtsPendientes();
         }
 
-        // GESTIÓN DE OTs PENDIENTES CON FILTRADO Y BLOQUEO DE PLAZO VENCIDO (>5 DÍAS)
         async function abrirOtsPendientesModal() {
             const contrata = localStorage.getItem('user_preferred_contrata') || '';
             if (!contrata) {
@@ -1082,33 +1073,36 @@
 
                     currentWeatherInfo.windSpeed = wind;
 
+                    // CAMBIO DINÁMICO DE COLOR Y RECOMENDACIÓN SEGÚN PRECAUCIÓN
                     if (wind > 50 || precip > 2) {
                         badge.style.borderColor = '#f43f5e';
-                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
+                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.3)';
                         icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
                         text.innerText = `${wind} km/h (¡ALERTA!)`;
-                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm)`;
+                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm) - PELIGRO ALTURA`;
                     } else if (wind > 35) {
                         badge.style.borderColor = '#f59e0b';
-                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.25)';
                         icon.className = 'fa-solid fa-wind text-amber-400';
                         text.innerText = `${wind} km/h (Precaución)`;
-                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h)`;
+                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h) - VIENTO MODERADO`;
                     } else {
                         badge.style.borderColor = '#10b981';
-                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
                         icon.className = 'fa-solid fa-wind text-emerald-400';
                         text.innerText = `Óptimo (${wind} km/h)`;
-                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
+                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C) - SEGURO`;
                     }
                     if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 } else {
                     throw new Error('API error');
                 }
             } catch (e) {
-                // Fallback automático con texto de recomendación y estado óptimo
-                currentWeatherInfo.status = 'ÓPTIMO (12 km/h)';
+                // Fallback automático con estado óptimo verde y recomendación
+                currentWeatherInfo.status = 'ÓPTIMO (12 km/h) - SEGURO';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
+                badge.style.borderColor = '#10b981';
+                badge.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
                 text.innerText = 'Óptimo (12 km/h)';
                 icon.className = 'fa-solid fa-wind text-emerald-400';
             }
@@ -1127,7 +1121,7 @@
         }
 
         function checkWeatherInteractive() {
-            alert(`🌤️ ESTADO METEOROLÓGICO EN ALTURA:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Recomendación PRL: ${currentWeatherInfo.status}`);
+            alert(`🌤️ ESTADO METEOROLÓGICO Y RECOMENDACIÓN PRL:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Recomendación: ${currentWeatherInfo.status}`);
         }
 
         function initVoiceRecognition() {
@@ -1197,7 +1191,6 @@
             initSignatureCanvas();
             await cargarListaUsuarios();
             updateProgressBar();
-            updatePendingBadge();
             updateSentPartsBadge();
             updateNetworkSignalUI();
             initAutomaticWeather();
@@ -1207,7 +1200,7 @@
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
             }
 
-            // CORRECCIÓN 1: RECUPERAR CONTRATA AL RECARGAR LA PÁGINA
+            // RECUPERAR CONTRATA AL RECARGAR LA PÁGINA
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
                 aplicarContrataValidada(savedContrata);
@@ -1235,7 +1228,7 @@
                 });
             }
 
-            window.addEventListener('online', () => { updateNetworkSignalUI(); syncPendingSubmissions(); });
+            window.addEventListener('online', () => { updateNetworkSignalUI(); });
             window.addEventListener('offline', () => { updateNetworkSignalUI(); });
         });
 
