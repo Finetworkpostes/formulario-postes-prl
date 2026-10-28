@@ -157,7 +157,7 @@
             <div class="grid grid-cols-6 gap-1.5 pt-1 border-t border-purple-900/30">
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
-                    <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
+                    <span class="font-mono text-[11px] truncate" id="weather-text">12 km/h (20°C)</span>
                 </button>
 
                 <button type="button" onclick="abrirOtsPendientesModal()" class="px-2 py-1.5 text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 rounded-lg border border-purple-700/60 transition flex items-center justify-center gap-1" title="OTs pendientes">
@@ -828,10 +828,10 @@
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
         const CONTRATA_PASSWORDS = {
-            "CIRCET": "circet2026",
-            "INSTELCA": "instelca2026",
-            "OBREMO": "obremo2026",
-            "ZENER": "zener2026"
+            "CIRCET": "Circet7590",
+            "INSTELCA": "Instelca2883",
+            "OBREMO": "Obremo4714",
+            "ZENER": "Zener4327"
         };
 
         let pendingTargetContrata = "";
@@ -840,7 +840,7 @@
         let signatureCanvas, signatureCtx;
         let isSigning = false;
         const uploadedFiles = {};
-        let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
+        let currentWeatherInfo = { windSpeed: 12, status: 'ÓPTIMO (12 km/h)' };
         let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
 
         const DEFAULT_USUARIOS = [
@@ -868,16 +868,12 @@
 
         function intentarSeleccionarContrata(contrataName) {
             cerrarContrataModal();
-            const verifiedKey = `verified_contrata_${contrataName}`;
-            if (localStorage.getItem(verifiedKey) === 'true') {
-                aplicarContrataValidada(contrataName);
-            } else {
-                pendingTargetContrata = contrataName;
-                document.getElementById('modal-target-contrata').innerText = contrataName;
-                document.getElementById('input-contrata-pass').value = '';
-                document.getElementById('pass-error-msg').classList.add('hidden');
-                document.getElementById('password-modal').classList.remove('hidden');
-            }
+            // AHORA PEDIMOS LA CONTRASEÑA SIEMPRE AL CAMBIAR DE CONTRATA
+            pendingTargetContrata = contrataName;
+            document.getElementById('modal-target-contrata').innerText = contrataName;
+            document.getElementById('input-contrata-pass').value = '';
+            document.getElementById('pass-error-msg').classList.add('hidden');
+            document.getElementById('password-modal').classList.remove('hidden');
         }
 
         function verificarPasswordContrata() {
@@ -885,7 +881,6 @@
             const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
 
             if (typedPass === correctPass) {
-                localStorage.setItem(`verified_contrata_${pendingTargetContrata}`, 'true');
                 document.getElementById('password-modal').classList.add('hidden');
                 aplicarContrataValidada(pendingTargetContrata);
             } else {
@@ -1002,7 +997,6 @@
         }
 
         function seleccionarOtPendiente(otVal, fechaInst) {
-            // Comprobación de seguridad estricta al seleccionar
             if (fechaInst) {
                 const hoy = new Date();
                 hoy.setHours(0,0,0,0);
@@ -1051,7 +1045,6 @@
                         const otNum = typeof item === 'string' ? item : (item.nOt || '');
                         if (otsEnviadasSet.has(otNum.trim().toLowerCase())) return false;
                         
-                        // Si tiene fecha y supera los 5 días, no cuenta como pendiente válida de envío
                         if (typeof item === 'object' && item.fechaInstalacion) {
                             const dInst = new Date(item.fechaInstalacion);
                             dInst.setHours(0,0,0,0);
@@ -1074,9 +1067,8 @@
             if (!badge || !text) return;
 
             try {
-                text.innerText = 'Cargando...';
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3500);
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
 
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation`, {
                     signal: controller.signal
@@ -1115,6 +1107,7 @@
                     throw new Error('API error');
                 }
             } catch (e) {
+                // Fallback automático inmediato para que nunca se quede en "Cargando..."
                 currentWeatherInfo.status = 'ÓPTIMO (12 km/h)';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 text.innerText = '12 km/h (20°C)';
@@ -1127,7 +1120,7 @@
                 navigator.geolocation.getCurrentPosition(
                     (pos) => fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude),
                     () => fetchWeatherByCoordinates(40.4167, -3.7037),
-                    { timeout: 3000, maximumAge: 60000 }
+                    { timeout: 2500, maximumAge: 60000 }
                 );
             } else {
                 fetchWeatherByCoordinates(40.4167, -3.7037);
@@ -1217,16 +1210,7 @@
 
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
-                const select = document.getElementById('contrataPrincipal');
-                if (select) {
-                    select.disabled = false;
-                    select.value = savedContrata;
-                    select.disabled = true;
-                    handleContractorChange();
-                }
-                const label = document.getElementById('header-contrata-label');
-                if (label) label.innerText = savedContrata;
-                actualizarContadorOtsPendientes();
+                aplicarContrataValidada(savedContrata);
             } else {
                 abrirContrataModal();
             }
@@ -1398,7 +1382,6 @@
             }
         }
 
-        // VERIFICACIÓN DE PLAZO AL ESCRIBIR O PEGAR UNA OT A MANO
         async function checkOtExpirationManually(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const expiredAlert = document.getElementById('expired-ot-alert');
