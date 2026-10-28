@@ -62,7 +62,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #pending-parts-modal, #contrata-modal, #password-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -77,11 +77,6 @@
             padding: 12px;
             page-break-after: always;
             break-after: page;
-        }
-
-        .pdf-page-last {
-            page-break-after: avoid;
-            break-after: avoid;
         }
     </style>
 </head>
@@ -120,7 +115,7 @@
             </div>
 
             <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
-            <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
+            <div class="grid grid-cols-6 gap-1.5 pt-1 border-t border-purple-900/30">
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
@@ -131,16 +126,16 @@
                     <span class="font-mono text-[10px]" id="signal-text">4G</span>
                 </button>
 
+                <button type="button" onclick="openPendingPartsModal()" class="px-2 py-1.5 text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-200 rounded-lg border border-amber-700/60 transition flex items-center justify-center gap-1" title="OTs Pendientes">
+                    <i class="fa-solid fa-clock-rotate-left"></i> <span id="pending-parts-count" class="font-bold">0</span>
+                </button>
+
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
                     <i class="fa-solid fa-paper-plane"></i> <span id="sent-parts-count" class="font-bold">0</span>
                 </button>
 
                 <button type="button" onclick="confirmResetForm()" class="px-2 py-1.5 text-xs bg-rose-950/60 hover:bg-rose-900 text-rose-300 rounded-lg border border-rose-800/60 transition flex items-center justify-center" title="Limpiar formulario">
                     <i class="fa-solid fa-trash-can"></i>
-                </button>
-
-                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-5 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-wifi"></i> Sincronizar pendientes (<span id="pending-count">0</span>)
                 </button>
             </div>
 
@@ -177,7 +172,6 @@
             <input type="hidden" id="codigoPostal" name="codigoPostal">
             <input type="hidden" id="datoViento" name="datoViento">
             <input type="hidden" id="escaleraGeoInfo" name="escaleraGeoInfo" value="Sin geolocalización registrada">
-            <!-- INPUT OCULTO DE RESPALDO PARA GARANTIZAR EL VALOR DE LA CONTRATA -->
             <input type="hidden" id="contrataPrincipalHidden" name="contrataPrincipalHidden" value="">
 
             <!-- SECCIÓN 1: DATOS OT -->
@@ -245,7 +239,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end pt-3 border-t border-slate-800">
+                <div class="flex justify-between pt-3 border-t border-slate-800">
+                    <button type="button" onclick="guardarComoPendiente()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-xl text-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar OT Pendiente
+                    </button>
                     <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
@@ -748,6 +745,23 @@
         </div>
     </div>
 
+    <!-- MODAL DE OTs PENDIENTES -->
+    <div id="pending-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> OTs Guardadas como Pendientes
+                </h3>
+                <button type="button" onclick="closePendingPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div id="pending-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                <button type="button" onclick="clearPendingHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Pendientes</button>
+                <button type="button" onclick="closePendingPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ÁREA OCULTA PARA IMPRESIÓN Y GENERACIÓN DE PDF -->
     <div id="print-area" class="hidden print-only"></div>
 
@@ -973,8 +987,8 @@
             initSignatureCanvas();
             await cargarListaUsuarios();
             updateProgressBar();
-            updatePendingBadge();
             updateSentPartsBadge();
+            updatePendingPartsBadge();
             updateNetworkSignalUI();
             initAutomaticWeather();
 
@@ -1007,7 +1021,7 @@
             document.getElementById('pole-form').addEventListener('input', saveFormDraft);
             document.getElementById('pole-form').addEventListener('change', saveFormDraft);
 
-            window.addEventListener('online', () => { updateNetworkSignalUI(); syncPendingSubmissions(); });
+            window.addEventListener('online', () => updateNetworkSignalUI());
             window.addEventListener('offline', () => updateNetworkSignalUI());
         });
 
@@ -1634,6 +1648,97 @@
             saveFormDraft();
         }
 
+        function guardarComoPendiente() {
+            const nOt = document.getElementById('nOt').value.trim();
+            if (!nOt || nOt.length !== 24) {
+                alert('⚠️ Introduce un Nº de OT válido de 24 caracteres para guardar como pendiente.');
+                return;
+            }
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value || document.getElementById('contrataPrincipalHidden').value;
+            data['savedAt'] = new Date().toLocaleString();
+            data['croquisPoints'] = croquisPoints;
+
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            
+            // Evitar duplicados en pendientes
+            pendingList = pendingList.filter(item => item.nOt !== nOt);
+            pendingList.unshift(data);
+            localStorage.setItem('user_pending_pole_parts', JSON.stringify(pendingList));
+            updatePendingPartsBadge();
+            alert(`✅ OT ${nOt} guardada correctamente como pendiente.`);
+        }
+
+        function updatePendingPartsBadge() {
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            document.getElementById('pending-parts-count').innerText = pendingList.length;
+        }
+
+        function openPendingPartsModal() {
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            const listContainer = document.getElementById('pending-parts-list');
+            if (pendingList.length === 0) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay OTs pendientes guardadas.</p>`;
+            } else {
+                listContainer.innerHTML = pendingList.map((item, index) => `
+                    <div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between gap-2 border border-slate-700">
+                        <div>
+                            <strong class="text-amber-300">OT: ${item.nOt}</strong>
+                            <div class="text-[10px] text-slate-400">Guardada: ${item.savedAt}</div>
+                        </div>
+                        <button type="button" onclick="cargarOTPendiente(${index})" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold">Cargar</button>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('pending-parts-modal').classList.remove('hidden');
+        }
+
+        function closePendingPartsModal() { document.getElementById('pending-parts-modal').classList.add('hidden'); }
+
+        function cargarOTPendiente(index) {
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            const item = pendingList[index];
+            if (!item) return;
+
+            const form = document.getElementById('pole-form');
+            for (let key in item) {
+                if (key === 'contrataPrincipal' || key === 'savedAt' || key === 'croquisPoints') continue;
+                const el = form.elements[key];
+                if (el) {
+                    if (el.type === 'radio') {
+                        const radio = form.querySelector(`input[name="${key}"][value="${item[key]}"]`);
+                        if (radio) radio.checked = true;
+                    } else {
+                        el.value = item[key];
+                    }
+                }
+            }
+
+            if (item.contrataPrincipal) {
+                aplicarContrataValidada(item.contrataPrincipal);
+            }
+
+            if (item.croquisPoints && Array.isArray(item.croquisPoints)) {
+                croquisPoints = item.croquisPoints;
+            }
+
+            closePendingPartsModal();
+            alert(`📥 OT ${item.nOt} cargada con éxito en el formulario.`);
+        }
+
+        function clearPendingHistory() {
+            localStorage.removeItem('user_pending_pole_parts');
+            updatePendingPartsBadge();
+            closePendingPartsModal();
+        }
+
         function saveToSentHistoryCompletely(nOt) {
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
@@ -1650,40 +1755,22 @@
             sentList.unshift(data);
             if (sentList.length > 20) sentList = sentList.slice(0, 20);
             localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
+            
+            // Eliminar de pendientes si se envió
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            pendingList = pendingList.filter(item => item.nOt !== nOt);
+            localStorage.setItem('user_pending_pole_parts', JSON.stringify(pendingList));
+
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
-            updatePendingBadge();
+            updatePendingPartsBadge();
         }
 
         function updateSentPartsBadge() {
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
             document.getElementById('sent-parts-count').innerText = sentList.length;
-        }
-
-        function updatePendingBadge() {
-            let pendingList = [];
-            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
-            const count = pendingList.length;
-            const btnSync = document.getElementById('btn-sync-offline');
-            const countSpan = document.getElementById('pending-count');
-            if (count > 0) {
-                btnSync.classList.remove('hidden');
-                countSpan.innerText = count;
-            } else {
-                btnSync.classList.add('hidden');
-            }
-        }
-
-        async function syncPendingSubmissions() {
-            let pendingList = [];
-            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
-            if (pendingList.length === 0) return;
-
-            alert(`🔄 Sincronizando ${pendingList.length} partes pendientes...`);
-            localStorage.removeItem('user_pending_pole_parts');
-            updatePendingBadge();
-            alert('✅ Sincronización completada con éxito.');
         }
 
         function openSentPartsModal() {
@@ -1710,8 +1797,6 @@
 
         function buildPrintHTML() {
             const printArea = document.getElementById('print-area');
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
             const contrataPrint = document.getElementById('contrataPrincipal').value || document.getElementById('contrataPrincipalHidden').value || '-';
 
             printArea.innerHTML = `
@@ -1727,7 +1812,6 @@
                         <p><strong>Observaciones:</strong> ${document.getElementById('observaciones').value || 'Ninguna'}</p>
                     </div>
                 </div>`;
-            return { puntosTextoBreve: '', escaleraGeoFinal: '' };
         }
 
         function generatePrintPreview() {
