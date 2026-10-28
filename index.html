@@ -235,7 +235,7 @@
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                             
-                            <!-- Botón OTs Pendientes (NUEVO) -->
+                            <!-- Botón OTs Pendientes -->
                             <button type="button" onclick="openPendientesModal()" class="px-3.5 py-2.5 bg-brand-800 hover:bg-brand-700 text-white border border-brand-600 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Ver OTs Pendientes de Justificar">
                                 <i class="fa-solid fa-list-check"></i> Pendientes
                             </button>
@@ -824,7 +824,7 @@
         };
 
         let pendingTargetContrata = "";
-        let pendingOTsFromJSON = []; // Variable global para OTs pendientes
+        let pendingOTsFromJSON = {}; // Variable global para OTs pendientes
 
         let USUARIOS_DB = {};
         let currentStep = 1;
@@ -871,8 +871,19 @@
             document.getElementById('ots-pendientes-modal').classList.remove('hidden');
 
             fetchOTsPendientes().then(() => {
-                if (!pendingOTsFromJSON || pendingOTsFromJSON.length === 0) {
+                if (!pendingOTsFromJSON || Object.keys(pendingOTsFromJSON).length === 0) {
                     listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay OTs pendientes de justificar.</p>';
+                    return;
+                }
+
+                const contrataActiva = document.getElementById('contrataPrincipal').value;
+                let otsToShow = [];
+                if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
+                    otsToShow = pendingOTsFromJSON[contrataActiva];
+                }
+
+                if (otsToShow.length === 0) {
+                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong>.</p>`;
                     return;
                 }
 
@@ -880,42 +891,41 @@
                 hoy.setHours(0,0,0,0);
 
                 let html = '';
-                pendingOTsFromJSON.forEach(item => {
+                otsToShow.forEach(item => {
                     const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
-                    const fechaStr = item.fecha || item.Fecha || item.date || '';
+                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
 
                     if (!fechaStr) return;
 
                     const fechaInst = new Date(fechaStr);
-                    fechaInst.setHours(0,0,0,0); // Elimina horas para precisión en el cálculo
+                    fechaInst.setHours(0,0,0,0);
 
                     const diffTime = hoy.getTime() - fechaInst.getTime();
                     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     const fechaFormateada = fechaInst.toLocaleDateString('es-ES');
 
                     if (diffDays > 5) {
-                        // Bloqueado (Más de 5 días)
                         html += `
                         <div class="bg-slate-800/50 border border-rose-900/50 rounded-xl p-3 flex flex-col gap-1 opacity-60">
                             <div class="font-bold text-slate-400">OT: ${nOt}</div>
-                            <div class="text-[11px] text-rose-400">Realizada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
+                            <div class="text-[11px] text-rose-400">Instalada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
                             <div class="text-[10px] text-rose-500 font-bold uppercase mt-1">Bloqueada (Plazo de 5 días excedido)</div>
                         </div>`;
                     } else {
-                        // Permitido (Menos o igual a 5 días)
-                        const diasRestantes = 5 - diffDays;
+                        const diasRealesPasados = diffDays < 0 ? 0 : diffDays; 
+                        const diasRestantes = 5 - diasRealesPasados;
                         const textoRestante = diasRestantes === 0 ? '¡Último día!' : `Quedan ${diasRestantes} días`;
                         
                         html += `
                         <div class="bg-slate-800 border border-emerald-700/50 hover:border-emerald-500 hover:bg-slate-700/80 rounded-xl p-3 flex flex-col gap-1 cursor-pointer transition shadow-md" onclick="selectOTPendiente('${nOt}')">
                             <div class="font-bold text-white">OT: ${nOt}</div>
-                            <div class="text-[11px] text-emerald-400">Realizada el ${fechaFormateada} - ${textoRestante}</div>
+                            <div class="text-[11px] text-emerald-400">Instalada el ${fechaFormateada} - ${textoRestante}</div>
                             <div class="text-[10px] text-emerald-300 font-bold uppercase mt-1 flex items-center gap-1"><i class="fa-solid fa-hand-pointer"></i> Haz clic para seleccionar</div>
                         </div>`;
                     }
                 });
 
-                listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas en el archivo.</p>';
+                listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas con fecha en esta contrata.</p>';
             });
         }
 
@@ -933,7 +943,7 @@
             document.getElementById('ots-pendientes-modal').classList.add('hidden');
         }
 
-        /* RESTO DEL CÓDIGO (Intacto y funcionando) */
+        /* RESTO DEL CÓDIGO */
         function abrirEjemploModal() {
             document.getElementById('modal-ejemplo-foto').classList.remove('hidden');
         }
