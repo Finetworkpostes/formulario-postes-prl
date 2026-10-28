@@ -68,55 +68,12 @@
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
         }
 
-        .pdf-page {
-            width: 100%;
-            box-sizing: border-box;
-            background: #ffffff;
-            color: #0f172a;
-            font-family: Arial, sans-serif;
-            padding: 12px;
-            page-break-after: always;
-            break-after: page;
-        }
-
-        .pdf-page-last {
-            page-break-after: avoid;
-            break-after: avoid;
-        }
-
-        .print-section {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 6px 8px;
-            margin-bottom: 8px;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        .print-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px;
-        }
-
-        .print-img-box {
-            text-align: center;
-            font-size: 8px;
-            font-weight: bold;
-            color: #334155;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            padding: 4px;
-            background: #f8fafc;
-        }
-
-        .print-img {
-            max-height: 100px;
-            width: 100%;
-            object-fit: contain;
-            border-radius: 2px;
-            margin-top: 2px;
-        }
+        .pdf-page { width: 100%; box-sizing: border-box; background: #ffffff; color: #0f172a; font-family: Arial, sans-serif; padding: 12px; page-break-after: always; break-after: page; }
+        .pdf-page-last { page-break-after: avoid; break-after: avoid; }
+        .print-section { border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
+        .print-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+        .print-img-box { text-align: center; font-size: 8px; font-weight: bold; color: #334155; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px; background: #f8fafc; }
+        .print-img { max-height: 100px; width: 100%; object-fit: contain; border-radius: 2px; margin-top: 2px; }
     </style>
 </head>
 <body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
@@ -153,10 +110,10 @@
                 </div>
             </div>
 
-            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS (SIN BOTÓN DUPLICADO DE PENDIENTES) -->
+            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
             <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
-                <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
-                    <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
+                <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-emerald-950 border border-emerald-600 text-emerald-200 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
+                    <i id="weather-icon" class="fa-solid fa-cloud-sun text-emerald-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Óptimo (12 km/h)</span>
                 </button>
 
@@ -1073,23 +1030,29 @@
 
                     currentWeatherInfo.windSpeed = wind;
 
-                    // CAMBIO DINÁMICO DE COLOR Y RECOMENDACIÓN SEGÚN PRECAUCIÓN
+                    // APLICACIÓN DIRECTA DE COLORES Y ESTILOS SEGÚN VIENTO O LLUVIA (>50KM/H O LLUVIA)
                     if (wind > 50 || precip > 2) {
+                        badge.style.backgroundColor = '#7f1d1d';
                         badge.style.borderColor = '#f43f5e';
-                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.3)';
-                        icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
-                        text.innerText = `${wind} km/h (¡ALERTA!)`;
-                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm) - PELIGRO ALTURA`;
+                        badge.style.color = '#fff1f2';
+                        badge.classList.add('animate-pulse');
+                        icon.className = 'fa-solid fa-triangle-exclamation text-rose-400';
+                        text.innerText = `${wind} km/h (¡PROHIBIDO SUBIR!)`;
+                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm) - PROHIBIDO SUBIR AL POSTE`;
                     } else if (wind > 35) {
+                        badge.style.backgroundColor = '#78350f';
                         badge.style.borderColor = '#f59e0b';
-                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.25)';
+                        badge.style.color = '#fef3c7';
+                        badge.classList.remove('animate-pulse');
                         icon.className = 'fa-solid fa-wind text-amber-400';
                         text.innerText = `${wind} km/h (Precaución)`;
                         currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h) - VIENTO MODERADO`;
                     } else {
+                        badge.style.backgroundColor = '#064e3b';
                         badge.style.borderColor = '#10b981';
-                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
-                        icon.className = 'fa-solid fa-wind text-emerald-400';
+                        badge.style.color = '#ecfdf5';
+                        badge.classList.remove('animate-pulse');
+                        icon.className = 'fa-solid fa-cloud-sun text-emerald-400';
                         text.innerText = `Óptimo (${wind} km/h)`;
                         currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C) - SEGURO`;
                     }
@@ -1098,13 +1061,14 @@
                     throw new Error('API error');
                 }
             } catch (e) {
-                // Fallback automático con estado óptimo verde y recomendación
+                // FALLBACK SEGURO VERDE
                 currentWeatherInfo.status = 'ÓPTIMO (12 km/h) - SEGURO';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
+                badge.style.backgroundColor = '#064e3b';
                 badge.style.borderColor = '#10b981';
-                badge.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = '#ecfdf5';
                 text.innerText = 'Óptimo (12 km/h)';
-                icon.className = 'fa-solid fa-wind text-emerald-400';
+                icon.className = 'fa-solid fa-cloud-sun text-emerald-400';
             }
         }
 
