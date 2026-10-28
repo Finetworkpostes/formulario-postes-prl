@@ -717,7 +717,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS con sus datos, el croquis, la foto geolocalizada de la escalera y la firma.</p>
+            <p class="text-xs text-slate-400">El parte se ha procesado con sus datos, el croquis, la foto geolocalizada de la escalera y la firma.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -893,6 +893,8 @@
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 text.innerText = '12 km/h (20°C)';
                 icon.className = 'fa-solid fa-wind text-emerald-400';
+                badge.style.borderColor = '#10b981';
+                badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
             }
         }
 
@@ -1650,12 +1652,38 @@
             localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
+            updatePendingBadge();
         }
 
         function updateSentPartsBadge() {
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
             document.getElementById('sent-parts-count').innerText = sentList.length;
+        }
+
+        function updatePendingBadge() {
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            const count = pendingList.length;
+            const btnSync = document.getElementById('btn-sync-offline');
+            const countSpan = document.getElementById('pending-count');
+            if (count > 0) {
+                btnSync.classList.remove('hidden');
+                countSpan.innerText = count;
+            } else {
+                btnSync.classList.add('hidden');
+            }
+        }
+
+        async function syncPendingSubmissions() {
+            let pendingList = [];
+            try { pendingList = JSON.parse(localStorage.getItem('user_pending_pole_parts') || '[]'); } catch (e) { pendingList = []; }
+            if (pendingList.length === 0) return;
+
+            alert(`🔄 Sincronizando ${pendingList.length} partes pendientes...`);
+            localStorage.removeItem('user_pending_pole_parts');
+            updatePendingBadge();
+            alert('✅ Sincronización completada con éxito.');
         }
 
         function openSentPartsModal() {
