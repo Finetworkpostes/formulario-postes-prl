@@ -21,7 +21,9 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
        (function(){
-          emailjs.init({ publicKey: "7-f689QqADteIO_oU" });
+          emailjs.init({
+            publicKey: "7-f689QqADteIO_oU", 
+          });
        })();
     </script>
 
@@ -56,9 +58,11 @@
         body.sun-mode input, body.sun-mode select, body.sun-mode textarea { background-color: #f8fafc !important; color: #0f172a !important; border-color: #94a3b8 !important; }
         body.sun-mode .bg-slate-800, body.sun-mode .bg-slate-900, body.sun-mode .bg-slate-950 { background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
         body.sun-mode .text-slate-100, body.sun-mode .text-slate-200, body.sun-mode .text-slate-300, body.sun-mode .text-slate-400 { color: #334155 !important; }
+        body.sun-mode label.border { background-color: #f8fafc !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #json-pending-modal, #contrata-modal, #password-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -72,20 +76,33 @@
             font-family: Arial, sans-serif;
             padding: 12px;
             page-break-after: always;
+            break-after: page;
+        }
+
+        .print-section {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
     </style>
 </head>
 <body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
 
-    <!-- Header -->
+    <!-- Header Reestructurado para Móvil -->
     <header class="bg-brand-950 border-b border-purple-900/40 sticky top-0 z-30 shadow-lg no-print">
         <div class="max-w-7xl mx-auto px-3 py-2 space-y-1.5">
+            
+            <!-- FILA 1: TÍTULO, CONTRATA CLICABLE, ICONO SOL/LUNA Y BOTÓN 112 -->
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0">
                     <h1 class="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 truncate">
                         <span class="truncate">Actuación en Poste</span> 
                         <span class="text-[10px] sm:text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30 shrink-0">PRL FTTH</span>
                     </h1>
+                    <!-- SUBTÍTULO CLICABLE PARA CAMBIAR CONTRATA -->
                     <div class="mt-0.5">
                         <button type="button" onclick="abrirContrataModal()" class="text-[11px] text-purple-300 hover:text-purple-200 underline flex items-center gap-1 transition" title="Pulsa para cambiar de contrata">
                             <i class="fa-solid fa-building text-[9px]"></i> Contrata: <span id="header-contrata-label" class="font-bold uppercase">Sin seleccionar</span> <span class="text-[9px] bg-purple-900/60 px-1.5 py-0.2 rounded border border-purple-700/50">Cambiar ✏️</span>
@@ -93,18 +110,21 @@
                     </div>
                 </div>
 
+                <!-- ACCESOS SUPERIORES: ICONO SOL/LUNA + BOTÓN 112 -->
                 <div class="flex items-center gap-2.5 shrink-0">
                     <button type="button" onclick="toggleSunMode()" id="btn-sun-mode" class="text-amber-400 hover:text-amber-300 transition text-lg p-1" title="Cambiar Modo Luz">
                         <i id="sun-mode-icon" class="fa-solid fa-sun"></i>
                     </button>
+
                     <a href="tel:112" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-rose-900/60 transition flex items-center gap-1.5 animate-pulse border border-rose-400 no-underline">
-                        <i class="fa-solid fa-phone-volume text-xs"></i><span>112</span>
+                        <i class="fa-solid fa-phone-volume text-xs"></i>
+                        <span>112</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Botonera superior -->
-            <div class="grid grid-cols-6 gap-1.5 pt-1 border-t border-purple-900/30">
+            <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES -->
+            <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
                 <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
                     <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
                     <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
@@ -115,10 +135,6 @@
                     <span class="font-mono text-[10px]" id="signal-text">4G</span>
                 </button>
 
-                <button type="button" onclick="openJsonPendingModal()" class="px-2 py-1.5 text-xs bg-amber-950/80 hover:bg-amber-900 text-amber-200 rounded-lg border border-amber-700/60 transition flex items-center justify-center gap-1" title="OTs Pendientes (JSON)">
-                    <i class="fa-solid fa-file-arrow-down"></i> <span id="json-pending-count" class="font-bold">0</span>
-                </button>
-
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
                     <i class="fa-solid fa-paper-plane"></i> <span id="sent-parts-count" class="font-bold">0</span>
                 </button>
@@ -127,6 +143,7 @@
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
+
         </div>
         <div class="max-w-7xl mx-auto px-4 pb-1.5">
             <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
@@ -141,6 +158,8 @@
 
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 no-print">
+
+        <!-- Navigation Tabs -->
         <div class="mb-6 overflow-x-auto pb-2 border-b border-slate-800">
             <nav class="flex space-x-2 min-w-max">
                 <button type="button" onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">1. Datos OT</button>
@@ -153,20 +172,15 @@
         </div>
 
         <form id="pole-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+
             <input type="hidden" id="direccion" name="direccion">
             <input type="hidden" id="codigoPostal" name="codigoPostal">
             <input type="hidden" id="datoViento" name="datoViento">
             <input type="hidden" id="escaleraGeoInfo" name="escaleraGeoInfo" value="Sin geolocalización registrada">
-            <input type="hidden" id="contrataPrincipalHidden" name="contrataPrincipalHidden" value="">
 
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
-                    <span>Sección 1: Datos de la Orden de Trabajo (OT)</span>
-                    <button type="button" onclick="openJsonPendingModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-arrow-down"></i> OTs Pendientes (JSON)
-                    </button>
-                </h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 
                 <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
                     <div>
@@ -181,11 +195,8 @@
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-179249036481" maxlength="24" minlength="24" oninput="handleOtInput(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                            <button type="button" id="btnPegarOT" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5">
-                                <i class="fa-solid fa-paste"></i> Pegar
-                            </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería y fecha.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -237,9 +248,11 @@
             <!-- SECCIÓN 2: PERSONAL -->
             <div id="step-2" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 2: Identificación del Personal (Auto-completado)</h2>
+                
                 <div id="contractor-warning" class="hidden bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-xs text-amber-200">
                     <i class="fa-solid fa-circle-info mr-1"></i> Seleccione la Contrata Principal para desplegar la lista de técnicos actualizada.
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300">Técnico Principal (TEC1)</h3>
@@ -270,15 +283,17 @@
                         <div id="rp-course-status-box" class="hidden mt-3 p-3 rounded-xl border text-xs space-y-2"></div>
                     </div>
                 </div>
+
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" id="btn-next-step-2" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" id="btn-next-step-2" onclick="nextStep(3)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Poste <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
             <!-- SECCIÓN 3: POSTE & SEGURIDAD -->
             <div id="step-3" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 3: Evaluación Técnica del Poste</h2>
+                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1.5 md:col-span-3">
                         <label class="block text-xs font-medium text-slate-300">Material del Poste <span class="text-rose-500">*</span></label>
@@ -297,19 +312,31 @@
                             </label>
                         </div>
                     </div>
+
                     <div id="wood-pole-block" class="hidden md:col-span-3 bg-amber-950/30 border border-amber-600/40 rounded-2xl p-4 space-y-3">
                         <div class="text-amber-400 font-semibold text-xs flex items-center gap-2">
                             <i class="fa-solid fa-triangle-exclamation"></i> Medidas Preventivas Obligatorias antes del Ascenso a POSTE DE MADERA:
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500"><span class="text-slate-300">1. Verificar cable, tirante, soportes, herrajes y tubos de protección.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500"><span class="text-slate-300">2. Revisar longitud enterrada conforme al botón/placa identificativa.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500"><span class="text-slate-300">3. Escarbar base (~3cm) y realizar inspección visual.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500"><span class="text-slate-300">4. Empujar fuerte y repetidamente perpendicular a la línea.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Inspección por percusión martillo" class="mt-0.5 accent-amber-500"><span class="text-slate-300">5. Percusión con martillo desde el suelo hasta 2m de altura.</span></label>
-                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer"><input type="checkbox" name="medidasMadera" value="Prueba con herramienta punzante" class="mt-0.5 accent-amber-500"><span class="text-slate-300">6. Punzar oblicuamente (3-4 veces) la base del poste.</span></label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Comprobación herrajes y tubos" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">1. Verificar cable, tirante, soportes, herrajes y tubos de protección.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Verificación longitud enterrada" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">2. Revisar longitud enterrada conforme al botón/placa identificativa.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Inspección visual base ~3cm" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">3. Escarbar base (~3cm) y realizar inspección visual.</span>
+                            </label>
+                            <label class="flex items-start gap-2 bg-slate-900/60 p-2 rounded-lg border border-amber-900/40 cursor-pointer">
+                                <input type="checkbox" name="medidasMadera" value="Prueba de empuje perpendicular" class="mt-0.5 accent-amber-500">
+                                <span class="text-slate-300">4. Empujar fuerte y repetidamente perpendicular a la línea.</span>
+                            </label>
                         </div>
                     </div>
+
                     <div class="space-y-1.5">
                         <label for="estadoPoste" class="block text-xs font-medium text-slate-300">Estado Global del Poste <span class="text-rose-500">*</span></label>
                         <select id="estadoPoste" name="estadoPoste" required onchange="handlePoleStatusChange()" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
@@ -319,6 +346,7 @@
                             <option value="NO SUBIR">NO SUBIR (Peligro Crítico)</option>
                         </select>
                     </div>
+
                     <div class="space-y-1.5">
                         <label for="paraSubir" class="block text-xs font-medium text-slate-300">Método para Subir al Poste <span class="text-rose-500">*</span></label>
                         <select id="paraSubir" name="paraSubir" required class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
@@ -328,44 +356,52 @@
                             <option value="NO PROCEDE">NO PROCEDE</option>
                         </select>
                     </div>
+
                     <div class="space-y-1.5">
                         <label class="block text-xs font-medium text-slate-300">¿Apto para Escalera con Seguridad? <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="SI" required class="accent-emerald-500"><span class="text-xs font-semibold text-emerald-400">SÍ</span></label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer"><input type="radio" name="sePuede" value="NO" required class="accent-rose-500"><span class="text-xs font-semibold text-rose-400">NO</span></label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="SI" required class="accent-emerald-500">
+                                <span class="text-xs font-semibold text-emerald-400">SÍ</span>
+                            </label>
+                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                                <input type="radio" name="sePuede" value="NO" required class="accent-rose-500">
+                                <span class="text-xs font-semibold text-rose-400">NO</span>
+                            </label>
                         </div>
                     </div>
                 </div>
-                <div id="no-climb-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-2xl p-4 text-center space-y-1 animate-pulse">
-                    <i class="fa-solid fa-octagon-exclamation text-rose-400 text-2xl"></i>
-                    <h4 class="text-sm font-bold text-rose-200">¡ALERTA DE SEGURIDAD CRÍTICA!</h4>
-                    <p class="text-xs text-rose-100">Poste marcado como NO SUBIR / DEFECTUOSO. Prohibido el ascenso.</p>
-                </div>
+
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(2)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(4)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
             <!-- SECCIÓN 4: CHECKLISTS & EPIs -->
             <div id="step-4" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 4: Checklists de Seguridad y EPIs</h2>
+                
                 <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
                         <h3 class="text-xs font-bold uppercase text-purple-300">Check Verificación de Escalera</h3>
                         <div class="flex gap-2">
                             <button type="button" onclick="toggleAllCheckboxes('ladder-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
-                            <button type="button" onclick="toggleAllCheckboxes('ladder-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-2 text-xs">
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600"><span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600"><span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600"><span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Suelo despejado y apoyo firme" class="ladder-check accent-purple-600"><span class="text-slate-200">4. Suelo despejado que permite un apoyo firme.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Inclinación correcta (~75º)" class="ladder-check accent-purple-600"><span class="text-slate-200">5. Inclinación correcta (~75º respecto al suelo).</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Longitud adecuada" class="ladder-check accent-purple-600"><span class="text-slate-200">6. Longitud de la escalera adecuada para la altura.</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="ladderCheck" value="Zona de trabajo señalizada" class="ladder-check accent-purple-600"><span class="text-slate-200">7. Zona de trabajo señalizada previamente.</span></label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Revisión vigente y pegatina acreditativa" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">1. Escalera con revisión vigente y pegatina acreditativa.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Estado correcto sin defectos" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">2. Correcto estado y ausencia de defectos estructurales.</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer">
+                            <input type="checkbox" name="ladderCheck" value="Zapatas regulables en terreno inclinado" class="ladder-check accent-purple-600">
+                            <span class="text-slate-200">3. Zapatas regulables si el terreno es inclinado/poco firme.</span>
+                        </label>
                     </div>
                 </div>
 
@@ -374,7 +410,6 @@
                         <h3 class="text-xs font-bold uppercase text-emerald-300">EPIs Utilizados</h3>
                         <div class="flex gap-2">
                             <button type="button" onclick="toggleAllCheckboxes('epi-check', true)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Marcar Todos</button>
-                            <button type="button" onclick="toggleAllCheckboxes('epi-check', false)" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-600">Desmarcar</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
@@ -384,15 +419,12 @@
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="BOTAS DE SEGURIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">BOTAS DE SEGURIDAD</span></label>
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="CHALECO ALTA VISIBILIDAD" class="epi-check accent-emerald-500"><span class="text-slate-200">ALTA VISIBILIDAD</span></label>
                         <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="GUANTES MECÁNICOS" class="epi-check accent-emerald-500"><span class="text-slate-200">GUANTES MECÁNICOS</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="AMARRE POSICIONAMIENTO" class="epi-check accent-emerald-500"><span class="text-slate-200">AMARRE POSICIONAMIENTO</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="LÍNEA DE VIDA" class="epi-check accent-emerald-500"><span class="text-slate-200">LÍNEA DE VIDA</span></label>
-                        <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer"><input type="checkbox" name="epis" value="DOBLE CABO ANCLAJE" class="epi-check accent-emerald-500"><span class="text-slate-200">DOBLE CABO ANCLAJE</span></label>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -404,9 +436,10 @@
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div>
                             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-earth-americas text-brand-400"></i> Croquis Satelital de Tendido FTTH
+                                <i class="fa-solid fa-earth-americas text-brand-400"></i>
+                                Croquis Satelital de Tendido FTTH
                             </h3>
-                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y último Casa (🏠).</p>
+                            <p class="text-xs text-slate-400">Haga clic en el mapa: 1º CTO (🔌), intermedios Postes (🪵) y el último la Casa (🏠).</p>
                         </div>
                         <button type="button" onclick="clearCroquisMap()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 border border-rose-800/50 rounded-xl text-xs font-medium transition shrink-0">
                             <i class="fa-solid fa-trash-can"></i> Borrar Mapa
@@ -414,11 +447,8 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <div class="relative flex-grow">
-                            <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
-                        </div>
-                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
-                        <button type="button" onclick="geolocateOnMap()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shrink-0"><i class="fa-solid fa-location-crosshairs"></i> Mi Ubicación</button>
+                        <input type="text" id="map-search-input" placeholder="Buscar dirección o municipio..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                        <button type="button" onclick="searchAddressOnMap()" class="px-3.5 py-2 bg-brand-700 hover:bg-brand-600 text-white text-xs font-medium rounded-xl transition shrink-0">Buscar</button>
                     </div>
 
                     <div id="croquis-capture-area" class="bg-slate-950 border border-slate-800 rounded-xl p-2 shadow-inner">
@@ -432,43 +462,20 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-4 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-brand-400"></i> Registro Estructurado de Ubicaciones y Coordenadas
-                        </h3>
-                        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1">
-                            <span class="text-xs text-slate-300 font-semibold">Total Postes:</span>
-                            <input type="number" id="cantidadPostes" name="cantidadPostes" readonly min="0" placeholder="0" class="w-12 bg-transparent text-emerald-400 font-bold text-center text-sm outline-none">
-                        </div>
-                    </div>
-                    <div id="croquis-points-breakdown" class="space-y-2 text-xs">
-                        <em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-map text-brand-400"></i> 1. Croquis Alta FTTH <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Se genera automáticamente capturando el mapa interactivo superior.</p>
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center transition bg-slate-900/50">
+                        <label class="block text-xs font-semibold text-slate-200">1. Croquis Alta FTTH <span class="text-rose-500">*</span></label>
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center bg-slate-900/50">
                             <div id="preview-croquis" class="space-y-2">
                                 <i class="fa-solid fa-lock text-3xl text-purple-400/60"></i>
-                                <div class="text-xs text-slate-400 font-medium">Capture el mapa usando el botón morado de arriba</div>
+                                <div class="text-xs text-slate-400 font-medium">Capture el mapa usando el botón superior</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
-                        <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-camera text-brand-400"></i> 2. Foto Escalera en Poste <span class="text-rose-500">*</span>
-                        </label>
-                        <button type="button" onclick="abrirEjemploModal()" class="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-image"></i> 🖼️ Ver ejemplo de foto correcta
-                        </button>
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
+                        <label class="block text-xs font-semibold text-slate-200">2. Foto Escalera en Poste <span class="text-rose-500">*</span></label>
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 rounded-xl p-5 text-center cursor-pointer bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
                             <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelectWithGeolocation(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
@@ -478,19 +485,14 @@
                     </div>
 
                     <div class="space-y-1.5 md:col-span-2">
-                        <div class="flex justify-between items-center">
-                            <label for="observaciones" class="block text-xs font-medium text-slate-300">Observaciones e Incidencias Técnicas</label>
-                            <button type="button" id="btn-voice-dictate" onclick="toggleVoiceDictation()" class="px-2.5 py-1 bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-microphone" id="mic-icon"></i> <span id="mic-text">Dictar por voz</span>
-                            </button>
-                        </div>
+                        <label for="observaciones" class="block text-xs font-medium text-slate-300">Observaciones e Incidencias Técnicas</label>
                         <textarea id="observaciones" name="observaciones" rows="3" placeholder="Notas adicionales..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl p-3 text-sm text-white outline-none"></textarea>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -502,12 +504,10 @@
                 </h2>
 
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check text-brand-400"></i> Desglose Completo de la Actuación
-                        </h3>
-                    </div>
-                    <div id="summary-breakdown-container" class="space-y-4 text-xs"></div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-clipboard-check text-brand-400"></i> Desglose Completo de la Actuación
+                    </h3>
+                    <div id="summary-breakdown-container" class="space-y-3 text-xs"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -532,21 +532,19 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-slate-800">
-                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
+                    <button type="button" onclick="prevStep(5)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
                     <button type="submit" id="submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-safety-600 to-emerald-500 hover:from-safety-500 hover:to-emerald-400 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span>Finalizar y Enviar</span>
+                        <i class="fa-solid fa-paper-plane" id="submit-icon"></i> <span id="submit-text">Finalizar y Enviar</span>
                     </button>
                 </div>
             </div>
+
         </form>
     </main>
 
     <!-- MODAL SELECCIÓN DE CONTRATA -->
     <div id="contrata-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <div class="w-12 h-12 bg-purple-950 border border-purple-500/40 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
-                <i class="fa-solid fa-building"></i>
-            </div>
             <h3 class="text-base font-bold text-white">Seleccione su Contrata Principal</h3>
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <button type="button" onclick="intentarSeleccionarContrata('CIRCET')" class="py-3 px-3 bg-slate-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs border border-slate-700 transition">CIRCET</button>
@@ -557,90 +555,49 @@
         </div>
     </div>
 
-    <!-- MODAL CONTRASEÑA -->
+    <!-- MODAL DE CONTRASEÑA -->
     <div id="password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <div class="w-12 h-12 bg-rose-950 border border-rose-500/40 rounded-full flex items-center justify-center mx-auto text-rose-300 text-lg">
-                <i class="fa-solid fa-lock"></i>
-            </div>
             <h3 class="text-base font-bold text-white">Acceso Privado: <span id="modal-target-contrata" class="text-purple-400 uppercase"></span></h3>
             <input type="password" id="input-contrata-pass" placeholder="Contraseña de contrata..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
             <div id="pass-error-msg" class="hidden text-[11px] text-rose-400 font-semibold">❌ Contraseña incorrecta.</div>
             <div class="grid grid-cols-2 gap-2 pt-2">
-                <button type="button" onclick="cancelarPasswordModal()" class="py-2.5 px-3 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
+                <button type="button" onclick="cancelarPasswordModal()" class="py-2.5 px-3 bg-slate-800 text-slate-300 font-medium rounded-xl text-xs">Cancelar</button>
                 <button type="button" onclick="verificarPasswordContrata()" class="py-2.5 px-3 bg-brand-600 text-white font-bold rounded-xl text-xs">Validar</button>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL OTs PENDIENTES DESDE JSON (CON REGLA DE 5 DÍAS) -->
-    <div id="json-pending-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-file-arrow-down text-amber-400"></i> OTs Pendientes de Enviar (instalaciones.json)
-                </h3>
-                <button type="button" onclick="closeJsonPendingModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
-            <p class="text-xs text-slate-400">Órdenes de trabajo pendientes cargadas del sistema. <strong>Atención:</strong> Las OTs con más de 5 días de antigüedad están bloqueadas por normativa PRL.</p>
-            
-            <div id="json-pending-list" class="overflow-y-auto space-y-2.5 text-xs flex-grow pr-1">
-                <div class="text-center py-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando instalaciones.json...</div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-800 flex justify-end">
-                <button type="button" onclick="closeJsonPendingModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EJEMPLO FOTO -->
-    <div id="modal-ejemplo-foto" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print" onclick="cerrarEjemploModal()">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 space-y-4 text-center relative" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-image text-purple-400"></i> Ejemplo de Foto Correcta</h3>
-                <button type="button" onclick="cerrarEjemploModal()" class="text-slate-400 hover:text-white text-base font-bold px-2">&times;</button>
-            </div>
-            <div>
-                <img src="https://raw.githubusercontent.com/Finetworkpostes/formulario-postes-prl/main/foto_ejemplo_escalera.jpg" alt="Ejemplo" class="w-full max-h-[60vh] object-contain rounded-xl border border-slate-700 mx-auto shadow-lg">
-                <p class="text-xs text-slate-300 mt-3">Asegúrese de que se aprecie la escalera apoyada con seguridad y el técnico equipado con EPIs.</p>
-            </div>
-            <button type="button" onclick="cerrarEjemploModal()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl text-xs transition">Entendido, cerrar</button>
         </div>
     </div>
 
     <!-- Modal Éxito -->
     <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4">
-            <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl"><i class="fa-solid fa-check"></i></div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
-                <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
-                <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
-            </div>
-            <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Nuevo Formulario</button>
+            <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 text-slate-200 font-medium rounded-xl text-sm transition">Nuevo Formulario</button>
         </div>
     </div>
 
-    <!-- Historial Envíos -->
+    <!-- MODAL DE PARTES ENVIADOS -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-paper-plane text-emerald-400"></i> Historial de Partes Enviados</h3>
-                <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
+                <h3 class="text-sm font-bold text-white">Historial de Partes</h3>
+                <button type="button" onclick="closeSentPartsModal()" class="text-slate-400">Cerrar</button>
             </div>
             <div id="sent-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
-            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
-                <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
-            </div>
         </div>
     </div>
 
     <div id="print-area" class="hidden print-only"></div>
 
+    <!-- LOGICA JAVASCRIPT CORREGIDA -->
     <script>
-        const CONTRATA_PASSWORDS = { "CIRCET": "Circet7590", "INSTELCA": "Instelca2883", "OBREMO": "Obremo4714", "ZENER": "Zener4327" };
+        const CONTRATA_PASSWORDS = {
+            "CIRCET": "Circet7590",
+            "INSTELCA": "Instelca2883",
+            "OBREMO": "Obremo4714",
+            "ZENER": "Zener4327"
+        };
+
         let pendingTargetContrata = "";
         let USUARIOS_DB = {};
         let currentStep = 1;
@@ -648,12 +605,12 @@
         let isSigning = false;
         const uploadedFiles = {};
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
-        let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
-        let instalacionesJsonCache = [];
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
+            { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz", "60HPRL": "NO CADUCA" },
             { "Contrata": "INSTELCA", "Alias": "IN002", "NombreCompleto": "Christian Xiki", "60HPRL": "NO CADUCA" },
+            { "Contrata": "INSTELCA", "Alias": "IN003", "NombreCompleto": "Manuel Sánchez Cano", "60HPRL": "FALTA DOCUMENTO" },
             { "Contrata": "OBREMO", "Alias": "O002", "NombreCompleto": "Fernando Torres Gil", "60HPRL": "NO CADUCA" },
             { "Contrata": "ZENER", "Alias": "Z001", "NombreCompleto": "Enrique Pastor Ramos", "60HPRL": "NO CADUCA" }
         ];
@@ -662,11 +619,7 @@
         let croquisPoints = [];
         let mapMarkers = [];
         let croquisPolyline = null;
-        let recognition = null;
-        let isRecordingVoice = false;
 
-        function abrirEjemploModal() { document.getElementById('modal-ejemplo-foto').classList.remove('hidden'); }
-        function cerrarEjemploModal() { document.getElementById('modal-ejemplo-foto').classList.add('hidden'); }
         function abrirContrataModal() { document.getElementById('contrata-modal').classList.remove('hidden'); }
         function cerrarContrataModal() { document.getElementById('contrata-modal').classList.add('hidden'); }
 
@@ -686,7 +639,8 @@
 
         function verificarPasswordContrata() {
             const typedPass = document.getElementById('input-contrata-pass').value.trim();
-            if (typedPass === CONTRATA_PASSWORDS[pendingTargetContrata]) {
+            const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
+            if (typedPass === correctPass) {
                 localStorage.setItem(`verified_contrata_${pendingTargetContrata}`, 'true');
                 document.getElementById('password-modal').classList.add('hidden');
                 aplicarContrataValidada(pendingTargetContrata);
@@ -703,57 +657,93 @@
         function aplicarContrataValidada(contrataName) {
             localStorage.setItem('user_preferred_contrata', contrataName);
             const select = document.getElementById('contrataPrincipal');
-            const hiddenInput = document.getElementById('contrataPrincipalHidden');
-            if (select) { select.disabled = false; select.value = contrataName; select.disabled = true; handleContractorChange(); }
-            if (hiddenInput) hiddenInput.value = contrataName;
+            if (select) {
+                select.disabled = false;
+                select.value = contrataName;
+                select.disabled = true;
+                handleContractorChange();
+            }
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
         }
 
+        // CORRECCIÓN 1: Botón meteorológico con colores dinámicos según el viento/estado
         async function fetchWeatherByCoordinates(lat, lon) {
             const badge = document.getElementById('weather-badge');
             const icon = document.getElementById('weather-icon');
             const text = document.getElementById('weather-text');
+            const hiddenInput = document.getElementById('datoViento');
             if (!badge || !text) return;
+
             try {
+                text.innerText = 'Cargando...';
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation`);
                 if (res.ok) {
                     const data = await res.json();
                     const wind = data.current.wind_speed_10m || 0;
+                    const temp = data.current.temperature_2m || 0;
+                    const precip = data.current.precipitation || 0;
                     currentWeatherInfo.windSpeed = wind;
-                    if (wind > 50) {
-                        badge.style.borderColor = '#f43f5e'; badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
-                        icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce'; text.innerText = `${wind} km/h (¡ALERTA!)`;
+
+                    if (wind > 50 || precip > 2) {
+                        badge.style.borderColor = '#f43f5e';
+                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
+                        icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
+                        text.innerText = `${wind} km/h (¡ALERTA!)`;
+                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm)`;
                     } else if (wind > 35) {
-                        badge.style.borderColor = '#f59e0b'; badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
-                        icon.className = 'fa-solid fa-wind text-amber-400'; text.innerText = `${wind} km/h (Precaución)`;
+                        badge.style.borderColor = '#f59e0b';
+                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+                        icon.className = 'fa-solid fa-wind text-amber-400';
+                        text.innerText = `${wind} km/h (Precaución)`;
+                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h)`;
                     } else {
-                        badge.style.borderColor = '#10b981'; badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                        icon.className = 'fa-solid fa-wind text-emerald-400'; text.innerText = `${wind} km/h (Óptimo)`;
+                        badge.style.borderColor = '#10b981';
+                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                        icon.className = 'fa-solid fa-wind text-emerald-400';
+                        text.innerText = `${wind} km/h (${temp}°C)`;
+                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
                     }
+                    if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
                 }
             } catch (e) {
-                text.innerText = '12 km/h (Óptimo)'; icon.className = 'fa-solid fa-wind text-emerald-400';
+                currentWeatherInfo.status = 'ÓPTIMO (12 km/h)';
+                if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
+                text.innerText = '12 km/h (20°C)';
+                icon.className = 'fa-solid fa-wind text-emerald-400';
+                badge.style.borderColor = '#10b981';
+                badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+            }
+        }
+
+        function initAutomaticWeather() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude),
+                    () => fetchWeatherByCoordinates(40.4167, -3.7037),
+                    { timeout: 3000 }
+                );
+            } else {
+                fetchWeatherByCoordinates(40.4167, -3.7037);
             }
         }
 
         function checkWeatherInteractive() {
-            alert(`🌤️ ESTADO METEOROLÓGICO:\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h`);
+            alert(`🌤️ ESTADO METEOROLÓGICO:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Estado: ${currentWeatherInfo.status}`);
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
             await cargarListaUsuarios();
-            await cargarInstalacionesJsonPendientes();
             updateProgressBar();
             updateSentPartsBadge();
-            updateNetworkSignalUI();
 
             if (localStorage.getItem('sun_mode_active') === 'true') {
                 document.body.classList.add('sun-mode');
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
             }
 
+            // CORRECCIÓN 2: Recuperación robusta y persistente de la contrata al recargar
             const savedContrata = localStorage.getItem('user_preferred_contrata');
             if (savedContrata) {
                 aplicarContrataValidada(savedContrata);
@@ -761,155 +751,47 @@
                 abrirContrataModal();
             }
 
-            navigator.geolocation?.getCurrentPosition(
-                p => fetchWeatherByCoordinates(p.coords.latitude, p.coords.longitude),
-                () => fetchWeatherByCoordinates(40.4167, -3.7037)
-            );
+            loadFormDraft();
+            document.getElementById('pole-form').addEventListener('input', saveFormDraft);
+            document.getElementById('pole-form').addEventListener('change', saveFormDraft);
         });
 
-        async function cargarInstalacionesJsonPendientes() {
+        function saveFormDraft() {
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((val, key) => { data[key] = val; });
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
+            const draft = { data, croquisPoints, uploadedFiles, timestamp: new Date().toLocaleString() };
+            try { localStorage.setItem('pole_form_draft', JSON.stringify(draft)); } catch (e) {}
+        }
+
+        function loadFormDraft() {
             try {
-                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
-                if (res.ok) {
-                    instalacionesJsonCache = await res.json();
-                } else {
-                    instalacionesJsonCache = getMockInstalacionesJson();
+                const saved = localStorage.getItem('pole_form_draft');
+                if (!saved) return;
+                const draft = JSON.parse(saved);
+                if (!draft || !draft.data) return;
+
+                const form = document.getElementById('pole-form');
+                for (let key in draft.data) {
+                    if (key === 'contrataPrincipal') continue;
+                    const el = form.elements[key];
+                    if (el) {
+                        if (el.type === 'radio') {
+                            const radio = form.querySelector(`input[name="${key}"][value="${draft.data[key]}"]`);
+                            if (radio) radio.checked = true;
+                        } else {
+                            el.value = draft.data[key];
+                        }
+                    }
                 }
-            } catch (e) {
-                instalacionesJsonCache = getMockInstalacionesJson();
-            }
-            actualizarContadorJsonPendientes();
-        }
+                
+                // Asegurar contrata tras borrador
+                const savedContrata = localStorage.getItem('user_preferred_contrata');
+                if (savedContrata) aplicarContrataValidada(savedContrata);
 
-        function getMockInstalacionesJson() {
-            // Datos de prueba simulando el instalaciones.json con fechas recientes y antiguas (>5 días)
-            const hoy = new Date();
-            const hace2Dias = new Date(); hace2Dias.setDate(hoy.getDate() - 2);
-            const hace7Dias = new Date(); hace7Dias.setDate(hoy.getDate() - 7);
-            const hace10Dias = new Date(); hace10Dias.setDate(hoy.getDate() - 10);
-
-            return [
-                { nOt: "in-4776939-179249036481", fechaEmision: hace2Dias.toISOString(), direccion: "Calle Mayor 12, Madrid", tipo: "INSTALACIÓN", cliente: "Juan Pérez" },
-                { nOt: "av-8839201-992834019283", fechaEmision: hace7Dias.toISOString(), direccion: "Av. Constitución 45, Toledo", tipo: "AVERÍA", cliente: "María Gómez" },
-                { nOt: "in-1122334-556677889900", fechaEmision: hace10Dias.toISOString(), direccion: "Polígono Industrial Sur, Nave 4", tipo: "INSTALACIÓN", cliente: "Logística Central" }
-            ];
-        }
-
-        function actualizarContadorJsonPendientes() {
-            const hoy = new Date();
-            let disponibles = 0;
-            instalacionesJsonCache.forEach(item => {
-                const fechaEmision = new Date(item.fechaEmision || item.fecha || Date.now());
-                const diferenciaDias = (hoy - fechaEmision) / (1000 * 60 * 60 * 24);
-                if (diferenciaDias <= 5) disponibles++;
-            });
-            document.getElementById('json-pending-count').innerText = disponibles;
-        }
-
-        function openJsonPendingModal() {
-            const listContainer = document.getElementById('json-pending-list');
-            const hoy = new Date();
-
-            if (!instalacionesJsonCache || instalacionesJsonCache.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay OTs pendientes en el archivo instalaciones.json.</p>`;
-            } else {
-                listContainer.innerHTML = instalacionesJsonCache.map((item, idx) => {
-                    const fechaStr = item.fechaEmision || item.fecha || new Date().toISOString();
-                    const fechaEmision = new Date(fechaStr);
-                    const diffTime = hoy - fechaEmision;
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    const isBlocked = diffDays > 5;
-
-                    return `
-                        <div class="bg-slate-800 p-3 rounded-xl border ${isBlocked ? 'border-rose-700/60 bg-rose-950/20' : 'border-slate-700'} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <div class="space-y-0.5">
-                                <div class="flex items-center gap-2">
-                                    <strong class="text-amber-300 font-mono text-xs">${item.nOt}</strong>
-                                    <span class="text-[10px] px-2 py-0.5 rounded font-bold ${isBlocked ? 'bg-rose-900 text-rose-200' : 'bg-emerald-900 text-emerald-200'}">
-                                        ${diffDays} días desde emisión
-                                    </span>
-                                </div>
-                                <div class="text-slate-300 text-[11px]"><i class="fa-solid fa-location-dot text-brand-400 mr-1"></i> ${item.direccion || 'Sin dirección'} (${item.tipo || 'INSTALACIÓN'})</div>
-                            </div>
-                            <div>
-                                ${isBlocked 
-                                    ? `<span class="text-[11px] text-rose-400 font-semibold px-3 py-1.5 bg-rose-950/60 rounded-lg border border-rose-800 inline-block"><i class="fa-solid fa-ban mr-1"></i> Bloqueada (>5 días)</span>`
-                                    : `<button type="button" onclick="seleccionarOtJson(${idx})" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition shadow"><i class="fa-solid fa-arrow-right mr-1"></i> Seleccionar</button>`
-                                }
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            document.getElementById('json-pending-modal').classList.remove('hidden');
-        }
-
-        function closeJsonPendingModal() {
-            document.getElementById('json-pending-modal').classList.add('hidden');
-        }
-
-        function seleccionarOtJson(index) {
-            const item = instalacionesJsonCache[index];
-            if (!item) return;
-
-            const hoy = new Date();
-            const fechaEmision = new Date(item.fechaEmision || item.fecha || Date.now());
-            const diffDays = Math.floor((hoy - fechaEmision) / (1000 * 60 * 60 * 24));
-
-            if (diffDays > 5) {
-                alert('⚠️ Esta OT lleva más de 5 días pendiente y está bloqueada por normativa PRL. No se puede seleccionar.');
-                return;
-            }
-
-            // Rellenar datos en el formulario
-            document.getElementById('nOt').value = item.nOt || '';
-            handleOtInput(item.nOt || '');
-
-            if (item.direccion) {
-                document.getElementById('direccion').value = item.direccion;
-            }
-
-            closeJsonPendingModal();
-            alert(`✅ OT ${item.nOt} cargada correctamente desde instalaciones.json`);
-        }
-
-        function updateNetworkSignalUI() {
-            const icon = document.getElementById('signal-icon');
-            const text = document.getElementById('signal-text');
-            if (navigator.onLine) { icon.className = 'fa-solid fa-signal text-emerald-400'; text.innerText = '4G'; }
-            else { icon.className = 'fa-solid fa-signal-slash text-rose-500 animate-pulse'; text.innerText = 'Off'; }
-        }
-
-        function checkNetworkStatusInteractive() {
-            if (navigator.onLine) alert('🟢 ESTADO DE COBERTURA: ¡Óptimo!');
-            else alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.');
-        }
-
-        function toggleSunMode() {
-            document.body.classList.toggle('sun-mode');
-            const isSun = document.body.classList.contains('sun-mode');
-            document.getElementById('sun-mode-icon').className = isSun ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-            localStorage.setItem('sun_mode_active', isSun);
-        }
-
-        function handleOtInput(val) {
-            const cleanVal = val.trim().toLowerCase();
-            const fechaHoraInput = document.getElementById('fechaHora');
-            if (fechaHoraInput && !fechaHoraInput.value) {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                fechaHoraInput.value = now.toISOString().slice(0, 16);
-            }
-            const estadoRadios = document.querySelectorAll('input[name="estado"]');
-            if (cleanVal.startsWith('in')) {
-                const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
-                if (radioInst) radioInst.checked = true;
-                estadoRadios.forEach(r => { r.disabled = false; r.required = true; r.closest('label').style.opacity = '1'; });
-            } else if (cleanVal.startsWith('av')) {
-                const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
-                if (radioAv) radioAv.checked = true;
-                estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
-            }
+            } catch (e) {}
         }
 
         async function cargarListaUsuarios() {
@@ -918,6 +800,7 @@
                 const res = await fetch('usuarios.json?v=' + new Date().getTime());
                 if (res.ok) rawData = await res.json();
             } catch (err) {}
+
             USUARIOS_DB = rawData.reduce((acc, item) => {
                 if (item && item.Contrata) {
                     const key = item.Contrata.trim().toUpperCase();
@@ -931,25 +814,35 @@
 
         function handleContractorChange() {
             const selectContrata = document.getElementById('contrataPrincipal');
-            const hiddenInput = document.getElementById('contrataPrincipalHidden');
-            const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : (hiddenInput ? hiddenInput.value.trim().toUpperCase() : '');
+            if (!selectContrata) return;
+            const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             if (!selectTec1 || !selectRecurso) return;
 
+            const prevTec1Val = selectTec1.value;
+            const prevRecursoVal = selectRecurso.value;
             selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
             if (contrata && USUARIOS_DB[contrata]) {
                 USUARIOS_DB[contrata].forEach(u => {
-                    const opt1 = document.createElement('option'); opt1.value = u.Alias; opt1.textContent = u.Alias; selectTec1.appendChild(opt1);
-                    const opt2 = document.createElement('option'); opt2.value = u.Alias; opt2.textContent = u.Alias; selectRecurso.appendChild(opt2);
+                    const opt1 = document.createElement('option');
+                    opt1.value = u.Alias; opt1.textContent = u.Alias;
+                    selectTec1.appendChild(opt1);
+                    const opt2 = document.createElement('option');
+                    opt2.value = u.Alias; opt2.textContent = u.Alias;
+                    selectRecurso.appendChild(opt2);
                 });
+                if (prevTec1Val) selectTec1.value = prevTec1Val;
+                if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
+                document.getElementById('header-contrata-label').innerText = contrata;
+                localStorage.setItem('user_preferred_contrata', contrata);
             }
         }
 
         function handleAliasTec1Change(alias) {
-            const contrata = (document.getElementById('contrataPrincipal').value || '').trim().toUpperCase();
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreTec1').value = user ? user.NombreCompleto : '';
@@ -957,25 +850,11 @@
         }
 
         function handleAliasRecursoChange(alias) {
-            const contrata = (document.getElementById('contrataPrincipal').value || '').trim().toUpperCase();
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
             }
-        }
-
-        function triggerFileInput(id) { document.getElementById(id).click(); }
-
-        async function handleFileSelectWithGeolocation(input, previewId) {
-            const file = input.files[0];
-            const previewContainer = document.getElementById(previewId);
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                uploadedFiles[input.id] = e.target.result;
-                previewContainer.innerHTML = `<img src="${e.target.result}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto adjuntada</div>`;
-            };
-            reader.readAsDataURL(file);
         }
 
         function initCroquisMap() {
@@ -986,82 +865,99 @@
         }
 
         async function addCroquisPoint(lat, lng) {
-            croquisPoints.push({ lat, lng, address: `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
+            croquisPoints.push({ lat, lng, address: `Punto (${lat.toFixed(4)}, ${lng.toFixed(4)})` });
             renderCroquisMarkersAndPath();
+            saveFormDraft();
         }
 
         function renderCroquisMarkersAndPath() {
             mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
             mapMarkers = [];
-            const total = croquisPoints.length;
             croquisPoints.forEach((p, idx) => {
-                let iconHtml = idx === 0 ? '🔌' : (idx === total - 1 ? '🏠' : `P${idx}`);
-                const customIcon = L.divIcon({ html: `<div style="background:#8b5cf6; color:white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:10px; font-weight:bold;">${iconHtml}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
-                mapMarkers.push(L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap));
+                const marker = L.marker([p.lat, p.lng]).addTo(croquisMap);
+                mapMarkers.push(marker);
             });
-            if (total > 1) {
+            if (croquisPoints.length > 1) {
                 croquisPolyline = L.polyline(croquisPoints.map(p => [p.lat, p.lng]), { color: '#a855f7', weight: 4 }).addTo(croquisMap);
             }
-            document.getElementById('cantidadPostes').value = Math.max(0, total - 2);
+            document.getElementById('cantidadPostes').value = Math.max(0, croquisPoints.length - 2);
         }
 
         function clearCroquisMap() {
             mapMarkers.forEach(m => croquisMap.removeLayer(m));
             if (croquisPolyline) croquisMap.removeLayer(croquisPolyline);
             mapMarkers = []; croquisPoints = []; croquisPolyline = null;
-            document.getElementById('cantidadPostes').value = 0;
+            saveFormDraft();
         }
 
-        async function searchAddressOnMap() {
-            const query = document.getElementById('map-search-input').value;
-            if (!query) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.length > 0) croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18);
+        function calculateTotalMeters() {
+            let totalMeters = 0;
+            for (let i = 0; i < croquisPoints.length - 1; i++) {
+                totalMeters += L.latLng(croquisPoints[i].lat, croquisPoints[i].lng).distanceTo(L.latLng(croquisPoints[i+1].lat, croquisPoints[i+1].lng));
             }
+            return Math.round(totalMeters);
         }
 
-        function geolocateOnMap() {
-            navigator.geolocation?.getCurrentPosition(pos => croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18));
-        }
-
-        async function captureAndAttachCroquis() {
-            if (croquisPoints.length < 2) { alert('⚠️ Marque al menos CTO y Vivienda.'); return; }
-            const canvas = await html2canvas(document.getElementById('croquis-map'), { useCORS: true });
-            const imgData = canvas.toDataURL('image/jpeg', 0.5);
-            uploadedFiles['file-croquis'] = imgData;
-            document.getElementById('preview-croquis').innerHTML = `<img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Capturado</div>`;
-            alert('✅ ¡Mapa capturado con éxito!');
-        }
-
-        function validateCurrentStep(step) {
-            const container = document.getElementById(`step-${step}`);
-            let valid = true;
-            container.querySelectorAll('[required]').forEach(input => {
-                if (input.type === 'file' && !uploadedFiles[input.id]) valid = false;
-                else if (input.type !== 'file' && !input.value.trim()) valid = false;
-            });
-            if (step === 1 && document.getElementById('nOt').value.length !== 24) { alert('⚠️ El Nº de OT debe tener exactamente 24 caracteres.'); return false; }
-            if (step === 5 && !uploadedFiles['file-croquis']) { alert('⚠️ Es obligatorio capturar el mapa.'); return false; }
-            if (!valid) alert('⚠️ Complete todos los campos obligatorios (*).');
-            return valid;
-        }
-
+        // CORRECCIÓN 3: Desglose completo y detallado en la Sección 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
+            if (!container) return;
+
+            const nOt = document.getElementById('nOt').value || 'No especificado';
+            const contrata = document.getElementById('contrataPrincipal').value || 'No seleccionada';
+            const fechaHora = document.getElementById('fechaHora').value || 'No indicada';
+            const tipo = document.querySelector('input[name="tipo"]:checked')?.value || 'No seleccionado';
+            const estadoInfra = document.querySelector('input[name="estado"]:checked')?.value || 'No seleccionado';
+            
+            const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
+            const nomTec1 = document.getElementById('nombreTec1').value || 'Sin nombre';
+            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
+            const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || 'Sin nombre';
+
+            const tipoPoste = document.querySelector('input[name="tipoPoste"]:checked')?.value || 'No seleccionado';
+            const estadoPoste = document.getElementById('estadoPoste').value || 'No seleccionado';
+            const paraSubir = document.getElementById('paraSubir').value || 'No seleccionado';
+            const sePuede = document.querySelector('input[name="sePuede"]:checked')?.value || 'No seleccionado';
+            
+            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
+            const totalMeters = calculateTotalMeters();
+            const observaciones = document.getElementById('observaciones').value || 'Sin observaciones registradas';
+            const dniRecurso = document.getElementById('dniRecurso').value || 'Pendiente de introducir';
+
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <strong class="text-purple-400">OT:</strong> ${document.getElementById('nOt').value}<br>
-                        <strong class="text-purple-400">Técnico:</strong> ${document.getElementById('nombreTec1').value}
+                        <strong class="text-purple-400 font-bold">📋 1. Datos de la OT:</strong><br>
+                        • <strong>Nº OT:</strong> ${nOt}<br>
+                        • <strong>Contrata:</strong> ${contrata}<br>
+                        • <strong>Fecha/Hora:</strong> ${fechaHora}<br>
+                        • <strong>Tipo:</strong> ${tipo} | <strong>Infraestructura:</strong> ${estadoInfra}
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400 font-bold">👷 2. Personal Asignado:</strong><br>
+                        • <strong>Técnico TEC1:</strong> ${aliasTec1} - ${nomTec1}<br>
+                        • <strong>Recurso Preventivo:</strong> ${aliasRecurso} - ${nomRecurso}<br>
+                        • <strong>DNI Recurso:</strong> ${dniRecurso}
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400 font-bold">🪵 3. Estado del Poste y Acceso:</strong><br>
+                        • <strong>Material:</strong> ${tipoPoste}<br>
+                        • <strong>Estado del Poste:</strong> ${estadoPoste}<br>
+                        • <strong>Método de Ascenso:</strong> ${paraSubir}<br>
+                        • <strong>¿Apto para Escalera?:</strong> <span class="text-emerald-400 font-bold">${sePuede}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400 font-bold">📍 4. Trazado y Observaciones:</strong><br>
+                        • <strong>Postes Intermedios:</strong> ${cantidadPostes}<br>
+                        • <strong>Distancia Trazado:</strong> ${totalMeters} metros<br>
+                        • <strong>Observaciones:</strong> ${observaciones}
                     </div>
                 </div>`;
         }
 
         function goToStep(step) {
-            if (step > currentStep && !validateCurrentStep(currentStep)) return;
+            if (step < 1 || step > 6) return;
             for (let i = 1; i <= 6; i++) {
                 document.getElementById(`step-${i}`).classList.add('hidden');
                 document.getElementById(`tab-btn-${i}`)?.classList.remove('tab-active');
@@ -1069,6 +965,7 @@
             document.getElementById(`step-${step}`).classList.remove('hidden');
             document.getElementById(`tab-btn-${step}`)?.classList.add('tab-active');
             currentStep = step;
+            updateProgressBar();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (step === 5) setTimeout(initCroquisMap, 150);
             if (step === 6) { renderReviewSummary(); setTimeout(resizeCanvas, 100); }
@@ -1077,14 +974,23 @@
         function nextStep(s) { goToStep(s); }
         function prevStep(s) { goToStep(s); }
 
+        function updateProgressBar() {
+            const percent = Math.round((currentStep / 6) * 100);
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
+            document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
+        }
+
         function toggleWoodPoleMeasures() {
-            const sel = document.querySelector('input[name="tipoPoste"]:checked');
-            document.getElementById('wood-pole-block').classList.toggle('hidden', !sel || sel.value !== 'POSTE DE MADERA');
+            const selected = document.querySelector('input[name="tipoPoste"]:checked');
+            const block = document.getElementById('wood-pole-block');
+            if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
+            else block.classList.add('hidden');
         }
 
         function handlePoleStatusChange() {
             const val = document.getElementById('estadoPoste').value;
-            document.getElementById('no-climb-alert').classList.toggle('hidden', val !== 'NO SUBIR' && val !== 'MALO/DEFECTUOSO');
+            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alert('⚠️ Advertencia: Poste marcado como no apto.');
         }
 
         function toggleAllCheckboxes(cls, state) {
@@ -1093,54 +999,62 @@
 
         function initSignatureCanvas() {
             signatureCanvas = document.getElementById('signature-canvas');
-            if (!signatureCanvas) return;
+            if(!signatureCanvas) return;
             signatureCtx = signatureCanvas.getContext('2d');
             resizeCanvas();
 
             signatureCanvas.addEventListener('mousedown', startSigning);
             signatureCanvas.addEventListener('mousemove', drawSigning);
             signatureCanvas.addEventListener('mouseup', stopSigning);
-            signatureCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; startSigning({ clientX: t.clientX, clientY: t.clientY }); });
-            signatureCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); const t = e.touches[0]; drawSigning({ clientX: t.clientX, clientY: t.clientY }); });
+
+            signatureCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                startSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
+            signatureCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                drawSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
             signatureCanvas.addEventListener('touchend', stopSigning);
         }
 
         function resizeCanvas() {
             if (!signatureCanvas) return;
             const rect = signatureCanvas.getBoundingClientRect();
-            signatureCanvas.width = rect.width; signatureCanvas.height = rect.height;
-            signatureCtx.lineWidth = 2; signatureCtx.strokeStyle = '#0f172a';
+            signatureCanvas.width = rect.width;
+            signatureCanvas.height = rect.height;
+            signatureCtx.lineWidth = 2;
+            signatureCtx.strokeStyle = '#0f172a';
         }
 
         function startSigning(e) {
             isSigning = true;
             document.getElementById('signature-placeholder').classList.add('hidden');
             const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.beginPath(); signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
         }
 
         function drawSigning(e) {
             if (!isSigning) return;
             const rect = signatureCanvas.getBoundingClientRect();
-            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top); signatureCtx.stroke();
+            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureCtx.stroke();
         }
 
         function stopSigning() {
-            if (isSigning) { isSigning = false; document.getElementById('firmaData').value = signatureCanvas.toDataURL(); }
+            if (isSigning) {
+                isSigning = false;
+                document.getElementById('firmaData').value = signatureCanvas.toDataURL();
+            }
         }
 
         function clearSignatureCanvas() {
             signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             document.getElementById('signature-placeholder').classList.remove('hidden');
             document.getElementById('firmaData').value = '';
-        }
-
-        function saveToSentHistory(nOt) {
-            let sentList = [];
-            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
-            sentList.unshift({ nOt, sentAt: new Date().toLocaleString() });
-            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
-            updateSentPartsBadge();
         }
 
         function updateSentPartsBadge() {
@@ -1153,24 +1067,35 @@
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
             const listContainer = document.getElementById('sent-parts-list');
-            listContainer.innerHTML = sentList.length === 0 ? `<p class="text-slate-400 text-center py-4">No hay partes enviados.</p>` : sentList.map(item => `<div class="bg-slate-800 p-2 rounded flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">${item.sentAt}</span></div>`).join('');
+            if (sentList.length === 0) listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
+            else listContainer.innerHTML = sentList.map(item => `<div class="bg-slate-800 p-2 rounded flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">${item.sentAt}</span></div>`).join('');
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
         function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
-        function clearSentHistory() { localStorage.removeItem('user_sent_pole_parts'); updateSentPartsBadge(); closeSentPartsModal(); }
 
         function confirmResetForm() {
-            if (confirm('¿Limpiar formulario?')) { document.getElementById('pole-form').reset(); clearCroquisMap(); clearSignatureCanvas(); goToStep(1); }
+            if (confirm('¿Limpiar todo el formulario?')) {
+                document.getElementById('pole-form').reset();
+                clearCroquisMap();
+                clearSignatureCanvas();
+                localStorage.removeItem('pole_form_draft');
+                goToStep(1);
+            }
         }
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            if (!validateCurrentStep(6) || !document.getElementById('firmaData').value) { alert('⚠️ Complete la firma.'); return; }
-            const nOt = document.getElementById('nOt').value;
-            saveToSentHistory(nOt);
-            document.getElementById('modal-ot').innerText = nOt;
-            document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+            const firma = document.getElementById('firmaData').value;
+            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
+
+            const nOt = document.getElementById('nOt').value || 'Sin_OT';
+            let sentList = [];
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
+            sentList.unshift({ nOt, sentAt: new Date().toLocaleString() });
+            localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
+            localStorage.removeItem('pole_form_draft');
+
             document.getElementById('success-modal').classList.remove('hidden');
         }
 
