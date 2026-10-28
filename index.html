@@ -161,8 +161,8 @@
                     <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
                 </button>
 
-                <!-- BOTÓN OTS PENDIENTES JSON (SIEMPRE VISIBLE EN CABECERA CON CONTADOR) -->
-                <button type="button" onclick="openPendingOtModal()" id="btn-pending-ot" class="px-2 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition flex items-center justify-center gap-1" title="Ver OTs Pendientes del JSON">
+                <!-- BOTÓN OTS PENDIENTES JSON (instalaciones.json) -->
+                <button type="button" onclick="openPendingOtModal()" id="btn-pending-ot" class="px-2 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition flex items-center justify-center gap-1" title="Ver OTs Pendientes">
                     <i class="fa-solid fa-clock-rotate-left"></i> <span id="pending-ot-count">0</span>
                 </button>
 
@@ -231,11 +231,11 @@
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-179249036481" maxlength="24" minlength="24" oninput="handleOtInput(this.value)" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
-                            <button type="button" id="btnPegarOT" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Pegar OT desde el portapapeles">
+                            <button type="button" id="btnPegarOT" onclick="pegarOtPortapapeles()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Pegar OT desde el portapapeles">
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Si la OT empieza por <strong class="text-purple-300">in-</strong> se marca Instalación. Si empieza por <strong class="text-purple-300">av-</strong> se marca Avería.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -256,11 +256,11 @@
                         <label class="block text-xs font-medium text-slate-300">Tipo de Actuación <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
                             <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="INSTALACIÓN" required class="accent-purple-600">
+                                <input type="radio" id="radio-instalacion" name="tipo" value="INSTALACIÓN" required class="accent-purple-600">
                                 <span class="text-xs text-slate-200">INSTALACIÓN</span>
                             </label>
                             <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="AVERÍA" required class="accent-purple-600">
+                                <input type="radio" id="radio-averia" name="tipo" value="AVERÍA" required class="accent-purple-600">
                                 <span class="text-xs text-slate-200">AVERÍA</span>
                             </label>
                         </div>
@@ -519,7 +519,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
-                    <!-- DROPZONE 1: Croquis Alta FTTH -->
+                    <!-- DROPZONE 1 -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-map text-brand-400"></i>
@@ -534,7 +534,7 @@
                         </div>
                     </div>
 
-                    <!-- DROPZONE 2: Foto Escalera CON GEOLOCALIZACIÓN -->
+                    <!-- DROPZONE 2 -->
                     <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 space-y-3">
                         <label class="block text-xs font-semibold text-slate-200 flex items-center gap-2">
                             <i class="fa-solid fa-camera text-brand-400"></i>
@@ -642,7 +642,7 @@
         </div>
     </div>
 
-    <!-- MODAL OTS PENDIENTES JSON -->
+    <!-- MODAL OTS PENDIENTES JSON (instalaciones.json) -->
     <div id="pending-ot-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -716,15 +716,8 @@
         const uploadedFiles = {};
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
 
-        // Datos de prueba con fechas dinámicas relativas a hoy para ver ambos estados en la modal
-        const hoy = new Date();
-        const fechaReciente = new Date(hoy.getTime() - (2 * 24 * 60 * 60 * 1000)).toISOString(); // Hace 2 días (Vigente)
-        const fechaAntigua = new Date(hoy.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();  // Hace 7 días (Caducada)
-
-        let pendingOtListJson = [
-            { nOt: "in-4776939-179249036481", fechaCreacion: fechaReciente },
-            { nOt: "in-4776939-179249036499", fechaCreacion: fechaAntigua }
-        ];
+        // ARRAY VACÍO. Solo se llenará si el fetch a instalaciones.json funciona.
+        let pendingOtListJson = [];
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
@@ -834,18 +827,21 @@
 
         async function cargarOtsPendientesJson() {
             try {
-                const res = await fetch('ots_pendientes.json?v=' + new Date().getTime());
+                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data)) pendingOtListJson = data;
+                    if (Array.isArray(data)) {
+                        pendingOtListJson = data;
+                    }
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("No se pudo cargar instalaciones.json");
+            }
             actualizarBotonPendientesJson();
         }
 
         function actualizarBotonPendientesJson() {
             const countSpan = document.getElementById('pending-ot-count');
-            const ahora = new Date();
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
 
@@ -864,24 +860,25 @@
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
 
             if (pendingOtListJson.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay OTs pendientes.</p>`;
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay datos en el archivo <strong>instalaciones.json</strong> o no se pudo leer.</p>`;
             } else {
                 listContainer.innerHTML = pendingOtListJson.map(item => {
                     const yaEnviada = sentList.some(s => s.nOt && item.nOt && s.nOt.trim().toLowerCase() === item.nOt.trim().toLowerCase());
                     if (yaEnviada) return '';
 
-                    if (!item.fechaCreacion) {
+                    const fechaStr = item.fecha || item.fechaCreacion;
+                    if (!fechaStr) {
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                                 <div>
                                     <div class="font-bold text-white">OT: ${item.nOt}</div>
-                                    <div class="text-[11px] text-slate-400">Fecha no especificada</div>
+                                    <div class="text-[11px] text-slate-400">Fecha de instalación no especificada</div>
                                 </div>
                                 <button type="button" onclick="seleccionarOtPendiente('${item.nOt}')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-xs shrink-0">Seleccionar</button>
                             </div>`;
                     }
 
-                    const fechaOt = new Date(item.fechaCreacion);
+                    const fechaOt = new Date(fechaStr);
                     const diffMs = ahora - fechaOt;
                     const diffDias = diffMs / (1000 * 60 * 60 * 24);
                     const fechaFormateada = fechaOt.toLocaleDateString('es-ES') + ' a las ' + fechaOt.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
@@ -896,25 +893,25 @@
                                     <span class="text-[10px] bg-rose-900 text-rose-200 px-2 py-0.5 rounded font-bold">CADUCADA</span>
                                 </div>
                                 <div class="text-[11px] text-rose-300">
-                                    • Se hizo el: ${fechaFormateada}<br>
-                                    • Lleva <strong>${diasCaducado} día${diasCaducado > 1 ? 's' : ''}</strong> caducado (bloqueado)
+                                    • Instalación del: ${fechaFormateada}<br>
+                                    • Lleva <strong>${diasCaducado} día${diasCaducado !== 1 ? 's' : ''}</strong> caducado (bloqueado)
                                 </div>
                             </div>`;
                     } else {
                         // VIGENTE (<= 5 días)
                         const msRestantes = (5 * 24 * 60 * 60 * 1000) - diffMs;
-                        const horasRestantes = Math.max(0, Math.floor(msRestantes / (1000 * 60 * 60)));
-                        const diasRestantes = Math.floor(horasRestantes / 24);
-                        const horasSobrantes = horasRestantes % 24;
+                        const horasRestantesTotal = Math.max(0, Math.floor(msRestantes / (1000 * 60 * 60)));
+                        const diasRestantes = Math.floor(horasRestantesTotal / 24);
+                        const horasSobrantes = horasRestantesTotal % 24;
                         
-                        let tiempoRestanteStr = diasRestantes > 0 ? `${diasRestantes} días y ${horasSobrantes} horas` : `${horasRestantes} horas`;
+                        let tiempoRestanteStr = diasRestantes > 0 ? `${diasRestantes} días y ${horasSobrantes} horas` : `${horasSobrantes} horas`;
 
                         return `
                             <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                                 <div class="space-y-0.5">
                                     <div class="font-bold text-white">OT: ${item.nOt}</div>
                                     <div class="text-[11px] text-slate-300">
-                                        • Se hizo el: ${fechaFormateada}<br>
+                                        • Instalación del: ${fechaFormateada}<br>
                                         • Tiempo restante para enviar: <span class="text-emerald-400 font-bold">${tiempoRestanteStr}</span>
                                     </div>
                                 </div>
@@ -985,6 +982,17 @@
         }
 
         function handleOtInput(val) {
+            const cleanVal = val.trim().toLowerCase();
+            
+            // Autodetectar Instalación vs Avería
+            if (cleanVal.includes('in-')) {
+                const radioIn = document.getElementById('radio-instalacion');
+                if (radioIn) radioIn.checked = true;
+            } else if (cleanVal.includes('av-')) {
+                const radioAv = document.getElementById('radio-averia');
+                if (radioAv) radioAv.checked = true;
+            }
+
             const fechaHoraInput = document.getElementById('fechaHora');
             if (fechaHoraInput && !fechaHoraInput.value) {
                 const now = new Date();
@@ -992,6 +1000,19 @@
                 fechaHoraInput.value = now.toISOString().slice(0, 16);
             }
             checkOtDuplication(val);
+        }
+
+        async function pegarOtPortapapeles() {
+            try {
+                const text = await navigator.clipboard.readText();
+                const input = document.getElementById('nOt');
+                if (input && text) {
+                    input.value = text.trim();
+                    handleOtInput(input.value);
+                }
+            } catch (err) {
+                alert("No se pudo pegar. Asegúrate de dar permisos de portapapeles.");
+            }
         }
 
         async function cargarListaUsuarios() {
@@ -1197,7 +1218,6 @@
             const listContainer = document.getElementById('sent-parts-list');
             if (sentList.length === 0) listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados.</p>`;
             else listContainer.innerHTML = sentList.map(item => `<div class="bg-slate-800 p-2 rounded flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">${item.sentAt}</span></div>`).join('');
-            document.getElementById('sent-parts-modal').classList.add('hidden'); // Corregido por si acaso
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
