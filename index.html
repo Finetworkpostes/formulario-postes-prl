@@ -62,18 +62,61 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal, #ots-pendientes-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #contrata-modal, #password-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
         }
 
-        .pdf-page { width: 100%; box-sizing: border-box; background: #ffffff; color: #0f172a; font-family: Arial, sans-serif; padding: 12px; page-break-after: always; break-after: page; }
-        .pdf-page-last { page-break-after: avoid; break-after: avoid; }
-        .print-section { border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
-        .print-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
-        .print-img-box { text-align: center; font-size: 8px; font-weight: bold; color: #334155; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px; background: #f8fafc; }
-        .print-img { max-height: 100px; width: 100%; object-fit: contain; border-radius: 2px; margin-top: 2px; }
+        .pdf-page {
+            width: 100%;
+            box-sizing: border-box;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: Arial, sans-serif;
+            padding: 12px;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .pdf-page-last {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        .print-section {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .print-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+        }
+
+        .print-img-box {
+            text-align: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 4px;
+            background: #f8fafc;
+        }
+
+        .print-img {
+            max-height: 100px;
+            width: 100%;
+            object-fit: contain;
+            border-radius: 2px;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
@@ -112,9 +155,14 @@
 
             <!-- FILA 2: WIDGET METEOROLÓGICO Y CONTROLES MINIMALISTAS -->
             <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-purple-900/30">
-                <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-emerald-950 border border-emerald-600 text-emerald-200 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
-                    <i id="weather-icon" class="fa-solid fa-cloud-sun text-emerald-400"></i>
-                    <span class="font-mono text-[11px] truncate" id="weather-text">Óptimo (12 km/h)</span>
+                <button type="button" onclick="checkWeatherInteractive()" id="weather-badge" class="col-span-2 px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1.5" title="Estado meteorológico actual">
+                    <i id="weather-icon" class="fa-solid fa-cloud-sun text-slate-400"></i>
+                    <span class="font-mono text-[11px] truncate" id="weather-text">Cargando...</span>
+                </button>
+
+                <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
+                    <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
+                    <span class="font-mono text-[10px]" id="signal-text">4G</span>
                 </button>
 
                 <button type="button" onclick="openSentPartsModal()" class="px-2 py-1.5 text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 rounded-lg border border-emerald-700/60 transition flex items-center justify-center gap-1" title="Partes enviados">
@@ -125,9 +173,8 @@
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
 
-                <button type="button" onclick="checkNetworkStatusInteractive()" id="network-signal-badge" class="px-2 py-1.5 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg transition flex items-center justify-center gap-1" title="Estado de red">
-                    <i id="signal-icon" class="fa-solid fa-signal text-emerald-400"></i>
-                    <span class="font-mono text-[10px]" id="signal-text">4G</span>
+                <button type="button" id="btn-sync-offline" onclick="syncPendingSubmissions()" class="hidden col-span-5 px-2 py-1.5 text-xs bg-amber-600 text-white rounded-lg font-bold animate-pulse flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-wifi"></i> Sincronizar pendientes (<span id="pending-count">0</span>)
                 </button>
             </div>
 
@@ -167,12 +214,7 @@
 
             <!-- SECCIÓN 1: DATOS OT -->
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <span>Sección 1: Datos de la Orden de Trabajo (OT)</span>
-                    <button type="button" onclick="abrirOtsPendientesModal()" class="text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 px-3 py-1.5 rounded-xl border border-purple-700 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check"></i> Ver OTs pendientes (<span id="ots-pendientes-count">0</span>) 📋
-                    </button>
-                </h2>
+                <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 
                 <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
                     <div>
@@ -180,14 +222,6 @@
                         <strong>¡Cuidado!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
                     </div>
                     <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
-                </div>
-
-                <div id="expired-ot-alert" class="hidden bg-rose-950/90 border-2 border-rose-600 rounded-xl p-3.5 text-xs text-rose-100 flex items-center justify-between gap-2 animate-bounce">
-                    <div>
-                        <i class="fa-solid fa-ban text-rose-400 text-base mr-1"></i>
-                        <strong>¡PLAZO AGOTADO (> 5 DÍAS)!</strong> Han pasado más de 5 días desde la instalación. Este parte <strong>ha caducado y no es posible enviarlo</strong>.
-                    </div>
-                    <button type="button" onclick="document.getElementById('expired-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold shrink-0">Cerrar</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -199,11 +233,11 @@
                                 <i class="fa-solid fa-paste"></i> Pegar
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba caducidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba duplicidad.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
-                        <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-300 font-bold rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
+                        <select id="contrataPrincipal" name="contrataPrincipal" required disabled class="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none cursor-not-allowed">
                             <option value="">Seleccione Contrata...</option>
                             <option value="CIRCET">CIRCET</option>
                             <option value="INSTELCA">INSTELCA</option>
@@ -687,27 +721,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE OTs PENDIENTES CON BLOQUEO DE PLAZO VENCIDO -->
-    <div id="ots-pendientes-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-purple-400"></i> OTs Pendientes (<span id="modal-contrata-name" class="uppercase text-purple-300"></span>)
-                </h3>
-                <button type="button" onclick="cerrarOtsPendientesModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
-            <p class="text-xs text-slate-400">Plazo máximo de envío: <strong>5 días</strong>. Las OTs vencidas aparecen bloqueadas:</p>
-            
-            <div id="ots-pendientes-list" class="max-h-72 overflow-y-auto space-y-2 text-xs">
-                <div class="text-center py-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs pendientes...</div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-800 flex justify-end">
-                <button type="button" onclick="cerrarOtsPendientesModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- VENTANA MODAL PARA EL EJEMPLO DE FOTO -->
     <div id="modal-ejemplo-foto" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print" onclick="cerrarEjemploModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 space-y-4 text-center relative" onclick="event.stopPropagation()">
@@ -789,7 +802,7 @@
         let signatureCanvas, signatureCtx;
         let isSigning = false;
         const uploadedFiles = {};
-        let currentWeatherInfo = { windSpeed: 12, status: 'ÓPTIMO (12 km/h)' };
+        let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
         let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
 
         const DEFAULT_USUARIOS = [
@@ -807,6 +820,7 @@
         let croquisPoints = [];
         let mapMarkers = [];
         let croquisPolyline = null;
+
         let recognition = null;
         let isRecordingVoice = false;
 
@@ -817,18 +831,23 @@
 
         function intentarSeleccionarContrata(contrataName) {
             cerrarContrataModal();
-            pendingTargetContrata = contrataName;
-            document.getElementById('modal-target-contrata').innerText = contrataName;
-            document.getElementById('input-contrata-pass').value = '';
-            document.getElementById('pass-error-msg').classList.add('hidden');
-            document.getElementById('password-modal').classList.remove('hidden');
+            const verifiedKey = `verified_contrata_${contrataName}`;
+            if (localStorage.getItem(verifiedKey) === 'true') {
+                aplicarContrataValidada(contrataName);
+            } else {
+                pendingTargetContrata = contrataName;
+                document.getElementById('modal-target-contrata').innerText = contrataName;
+                document.getElementById('input-contrata-pass').value = '';
+                document.getElementById('pass-error-msg').classList.add('hidden');
+                document.getElementById('password-modal').classList.remove('hidden');
+            }
         }
 
         function verificarPasswordContrata() {
             const typedPass = document.getElementById('input-contrata-pass').value.trim();
             const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
-
             if (typedPass === correctPass) {
+                localStorage.setItem(`verified_contrata_${pendingTargetContrata}`, 'true');
                 document.getElementById('password-modal').classList.add('hidden');
                 aplicarContrataValidada(pendingTargetContrata);
             } else {
@@ -838,8 +857,7 @@
 
         function cancelarPasswordModal() {
             document.getElementById('password-modal').classList.add('hidden');
-            const saved = localStorage.getItem('user_preferred_contrata');
-            if (!saved) abrirContrataModal();
+            if (!localStorage.getItem('user_preferred_contrata')) abrirContrataModal();
         }
 
         function aplicarContrataValidada(contrataName) {
@@ -848,162 +866,11 @@
             if (select) {
                 select.disabled = false;
                 select.value = contrataName;
-                select.disabled = true; // Bloqueado permanentemente para que no se borre
+                select.disabled = true;
                 handleContractorChange();
             }
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
-            actualizarContadorOtsPendientes();
-        }
-
-        async function abrirOtsPendientesModal() {
-            const contrata = localStorage.getItem('user_preferred_contrata') || '';
-            if (!contrata) {
-                alert('⚠️ Seleccione primero una contrata.');
-                abrirContrataModal();
-                return;
-            }
-
-            document.getElementById('modal-contrata-name').innerText = contrata;
-            const listContainer = document.getElementById('ots-pendientes-list');
-            listContainer.innerHTML = `<div class="text-center py-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs pendientes...</div>`;
-            document.getElementById('ots-pendientes-modal').classList.remove('hidden');
-
-            try {
-                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
-                if (!res.ok) throw new Error('No se pudo cargar instalaciones.json');
-                const data = await res.json();
-                
-                const listadoOts = data[contrata] || [];
-                
-                let sentList = [];
-                try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
-                const otsEnviadasSet = new Set(sentList.map(item => item.nOt ? item.nOt.trim().toLowerCase() : ''));
-
-                const hoy = new Date();
-                hoy.setHours(0,0,0,0);
-
-                const otsPendientes = listadoOts.filter(item => {
-                    const otNum = typeof item === 'string' ? item : (item.nOt || '');
-                    return !otsEnviadasSet.has(otNum.trim().toLowerCase());
-                });
-
-                document.getElementById('ots-pendientes-count').innerText = otsPendientes.length;
-
-                if (otsPendientes.length === 0) {
-                    listContainer.innerHTML = `<div class="text-center py-4 text-emerald-400 font-medium">🎉 ¡Excelente! No hay OTs pendientes para hoy en ${contrata}.</div>`;
-                } else {
-                    listContainer.innerHTML = otsPendientes.map(item => {
-                        const otNum = typeof item === 'string' ? item : (item.nOt || '');
-                        const fechaInst = typeof item === 'object' && item.fechaInstalacion ? item.fechaInstalacion : null;
-
-                        let badgeHtml = '';
-                        let isExpired = false;
-
-                        if (fechaInst) {
-                            const dInst = new Date(fechaInst);
-                            dInst.setHours(0,0,0,0);
-                            const diffTime = hoy - dInst;
-                            const diasPasados = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                            const diasRestantes = 5 - diasPasados;
-
-                            if (diasRestantes < 0) {
-                                isExpired = true;
-                                badgeHtml = `<span class="text-[10px] bg-rose-950 text-rose-300 px-2 py-0.5 rounded border border-rose-800 font-bold">⚠️ VENCIDO (Hace ${Math.abs(diasPasados)}d - No envidiable)</span>`;
-                            } else if (diasRestantes === 0) {
-                                badgeHtml = `<span class="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded border border-amber-800 font-bold">⚠️ ¡Último día!</span>`;
-                            } else {
-                                badgeHtml = `<span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-bold">⏱️ Quedan ${diasRestantes} días</span>`;
-                            }
-                        } else {
-                            badgeHtml = `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Sin fecha</span>`;
-                        }
-
-                        if (isExpired) {
-                            return `
-                            <div class="w-full text-left p-3 rounded-xl bg-slate-900/60 border border-rose-900/40 text-slate-400 font-mono text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 opacity-60">
-                                <div><i class="fa-solid fa-ban text-rose-500 mr-1.5"></i> ${otNum}</div>
-                                <div class="flex items-center gap-2">${badgeHtml} <span class="text-[10px] bg-rose-950 text-rose-400 px-2 py-1 rounded border border-rose-900 font-semibold">BLOQUEADO</span></div>
-                            </div>`;
-                        } else {
-                            return `
-                            <button type="button" onclick="seleccionarOtPendiente('${otNum}', '${fechaInst || ''}')" class="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-purple-900/60 border border-slate-700 hover:border-purple-500 text-white font-mono text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 transition">
-                                <div><i class="fa-solid fa-file-lines text-purple-400 mr-1.5"></i> ${otNum}</div>
-                                <div class="flex items-center gap-2">${badgeHtml} <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-1 rounded border border-purple-800">Seleccionar ➔</span></div>
-                            </button>`;
-                        }
-                    }).join('');
-                }
-            } catch (err) {
-                listContainer.innerHTML = `<div class="text-center py-4 text-rose-400">⚠️ Error al cargar el archivo <strong>instalaciones.json</strong> desde GitHub.</div>`;
-            }
-        }
-
-        function cerrarOtsPendientesModal() {
-            document.getElementById('ots-pendientes-modal').classList.add('hidden');
-        }
-
-        function seleccionarOtPendiente(otVal, fechaInst) {
-            if (fechaInst) {
-                const hoy = new Date();
-                hoy.setHours(0,0,0,0);
-                const dInst = new Date(fechaInst);
-                dInst.setHours(0,0,0,0);
-                const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
-                if (diasPasados > 5) {
-                    alert('⚠️ Esta OT está vencida (han pasado más de 5 días desde la instalación). No es posible seleccionarla ni enviarla.');
-                    return;
-                }
-            }
-
-            const inputOt = document.getElementById('nOt');
-            if (inputOt) {
-                inputOt.value = otVal.trim();
-                handleOtInput(inputOt.value);
-            }
-
-            if (fechaInst) {
-                const fechaHoraInput = document.getElementById('fechaHora');
-                if (fechaHoraInput) {
-                    fechaHoraInput.value = `${fechaInst}T08:00`;
-                }
-            }
-
-            saveFormDraft();
-            cerrarOtsPendientesModal();
-        }
-
-        async function actualizarContadorOtsPendientes() {
-            const contrata = localStorage.getItem('user_preferred_contrata');
-            if (!contrata) return;
-            try {
-                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
-                if (res.ok) {
-                    const data = await res.json();
-                    const listadoOts = data[contrata] || [];
-                    let sentList = [];
-                    try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
-                    const otsEnviadasSet = new Set(sentList.map(item => item.nOt ? item.nOt.trim().toLowerCase() : ''));
-                    
-                    const hoy = new Date();
-                    hoy.setHours(0,0,0,0);
-
-                    const pendCount = listadoOts.filter(item => {
-                        const otNum = typeof item === 'string' ? item : (item.nOt || '');
-                        if (otsEnviadasSet.has(otNum.trim().toLowerCase())) return false;
-                        
-                        if (typeof item === 'object' && item.fechaInstalacion) {
-                            const dInst = new Date(item.fechaInstalacion);
-                            dInst.setHours(0,0,0,0);
-                            const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
-                            if (diasPasados > 5) return false;
-                        }
-                        return true;
-                    }).length;
-
-                    document.getElementById('ots-pendientes-count').innerText = pendCount;
-                }
-            } catch (e) {}
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -1014,12 +881,11 @@
             if (!badge || !text) return;
 
             try {
+                text.innerText = 'Cargando...';
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation`, {
-                    signal: controller.signal
-                });
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
                 if (res.ok) {
@@ -1027,46 +893,34 @@
                     const wind = data.current.wind_speed_10m || 0;
                     const temp = data.current.temperature_2m || 0;
                     const precip = data.current.precipitation || 0;
-
                     currentWeatherInfo.windSpeed = wind;
 
                     if (wind > 50 || precip > 2) {
-                        badge.style.backgroundColor = '#7f1d1d';
                         badge.style.borderColor = '#f43f5e';
-                        badge.style.color = '#fff1f2';
-                        badge.classList.add('animate-pulse');
-                        icon.className = 'fa-solid fa-triangle-exclamation text-rose-400';
-                        text.innerText = `${wind} km/h (¡PROHIBIDO SUBIR!)`;
-                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm) - PROHIBIDO SUBIR AL POSTE`;
+                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
+                        icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
+                        text.innerText = `${wind} km/h (¡ALERTA!)`;
+                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm)`;
                     } else if (wind > 35) {
-                        badge.style.backgroundColor = '#78350f';
                         badge.style.borderColor = '#f59e0b';
-                        badge.style.color = '#fef3c7';
-                        badge.classList.remove('animate-pulse');
+                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
                         icon.className = 'fa-solid fa-wind text-amber-400';
                         text.innerText = `${wind} km/h (Precaución)`;
-                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h) - VIENTO MODERADO`;
+                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h)`;
                     } else {
-                        badge.style.backgroundColor = '#064e3b';
                         badge.style.borderColor = '#10b981';
-                        badge.style.color = '#ecfdf5';
-                        badge.classList.remove('animate-pulse');
-                        icon.className = 'fa-solid fa-cloud-sun text-emerald-400';
-                        text.innerText = `Óptimo (${wind} km/h)`;
-                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C) - SEGURO`;
+                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                        icon.className = 'fa-solid fa-wind text-emerald-400';
+                        text.innerText = `${wind} km/h (${temp}°C)`;
+                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
                     }
                     if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
-                } else {
-                    throw new Error('API error');
                 }
             } catch (e) {
-                currentWeatherInfo.status = 'ÓPTIMO (12 km/h) - SEGURO';
+                currentWeatherInfo.status = 'ÓPTIMO (12 km/h)';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
-                badge.style.backgroundColor = '#064e3b';
-                badge.style.borderColor = '#10b981';
-                badge.style.color = '#ecfdf5';
-                text.innerText = 'Óptimo (12 km/h)';
-                icon.className = 'fa-solid fa-cloud-sun text-emerald-400';
+                text.innerText = '12 km/h (20°C)';
+                icon.className = 'fa-solid fa-wind text-emerald-400';
             }
         }
 
@@ -1075,7 +929,7 @@
                 navigator.geolocation.getCurrentPosition(
                     (pos) => fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude),
                     () => fetchWeatherByCoordinates(40.4167, -3.7037),
-                    { timeout: 2500, maximumAge: 60000 }
+                    { timeout: 3000, maximumAge: 60000 }
                 );
             } else {
                 fetchWeatherByCoordinates(40.4167, -3.7037);
@@ -1083,7 +937,7 @@
         }
 
         function checkWeatherInteractive() {
-            alert(`🌤️ ESTADO METEOROLÓGICO Y RECOMENDACIÓN PRL:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Recomendación: ${currentWeatherInfo.status}`);
+            alert(`🌤️ ESTADO METEOROLÓGICO EN ALTURA:\n\n• Viento actual: ${currentWeatherInfo.windSpeed} km/h\n• Estado de seguridad: ${currentWeatherInfo.status}`);
         }
 
         function initVoiceRecognition() {
@@ -1093,7 +947,6 @@
             rec.lang = 'es-ES';
             rec.continuous = false;
             rec.interimResults = false;
-
             rec.onresult = (event) => {
                 const speechToText = event.results[0][0].transcript;
                 const obsTextarea = document.getElementById('observaciones');
@@ -1103,7 +956,6 @@
                 }
                 stopVoiceDictationUI();
             };
-
             rec.onerror = () => stopVoiceDictationUI();
             rec.onend = () => stopVoiceDictationUI();
             return rec;
@@ -1111,11 +963,7 @@
 
         function toggleVoiceDictation() {
             if (!recognition) recognition = initVoiceRecognition();
-            if (!recognition) {
-                alert('⚠️ Tu navegador no soporta el dictado por voz automático.');
-                return;
-            }
-
+            if (!recognition) { alert('⚠️ Tu navegador no soporta el dictado por voz.'); return; }
             if (isRecordingVoice) {
                 recognition.stop();
                 stopVoiceDictationUI();
@@ -1131,9 +979,7 @@
                         icon.className = 'fa-solid fa-microphone-slash';
                         text.innerText = 'Escuchando...';
                     }
-                } catch (e) {
-                    stopVoiceDictationUI();
-                }
+                } catch (e) { stopVoiceDictationUI(); }
             }
         }
 
@@ -1153,19 +999,27 @@
             initSignatureCanvas();
             await cargarListaUsuarios();
             updateProgressBar();
+            updatePendingBadge();
             updateSentPartsBadge();
             updateNetworkSignalUI();
             initAutomaticWeather();
-            
+
             if (localStorage.getItem('sun_mode_active') === 'true') {
                 document.body.classList.add('sun-mode');
                 document.getElementById('sun-mode-icon').className = 'fa-solid fa-moon';
             }
 
-            // RECUPERACIÓN PRIORITARIA Y BLOQUEO DE CONTRATA AL CARGAR
             const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata && CONTRATA_PASSWORDS[savedContrata]) {
-                aplicarContrataValidada(savedContrata);
+            if (savedContrata) {
+                const select = document.getElementById('contrataPrincipal');
+                if (select) {
+                    select.disabled = false;
+                    select.value = savedContrata;
+                    select.disabled = true;
+                    handleContractorChange();
+                }
+                const label = document.getElementById('header-contrata-label');
+                if (label) label.innerText = savedContrata;
             } else {
                 abrirContrataModal();
             }
@@ -1175,23 +1029,8 @@
             document.getElementById('pole-form').addEventListener('input', saveFormDraft);
             document.getElementById('pole-form').addEventListener('change', saveFormDraft);
 
-            const btnPegarOT = document.getElementById('btnPegarOT');
-            const inputOT = document.getElementById('nOt');
-            if (btnPegarOT && inputOT) {
-                btnPegarOT.addEventListener('click', async () => {
-                    try {
-                        const text = await navigator.clipboard.readText();
-                        inputOT.value = text.trim();
-                        handleOtInput(inputOT.value);
-                        saveFormDraft();
-                    } catch (err) {
-                        alert('Usa Ctrl+V para pegar; el navegador bloqueó el acceso automático.');
-                    }
-                });
-            }
-
-            window.addEventListener('online', () => { updateNetworkSignalUI(); });
-            window.addEventListener('offline', () => { updateNetworkSignalUI(); });
+            window.addEventListener('online', () => { updateNetworkSignalUI(); syncPendingSubmissions(); });
+            window.addEventListener('offline', () => updateNetworkSignalUI());
         });
 
         function updateNetworkSignalUI() {
@@ -1199,7 +1038,6 @@
             const text = document.getElementById('signal-text');
             const badge = document.getElementById('network-signal-badge');
             if (!icon || !text || !badge) return;
-
             if (navigator.onLine) {
                 icon.className = 'fa-solid fa-signal text-emerald-400';
                 text.innerText = '4G';
@@ -1213,19 +1051,14 @@
 
         function checkNetworkStatusInteractive() {
             updateNetworkSignalUI();
-            if (navigator.onLine) {
-                alert('🟢 ESTADO DE COBERTURA: ¡Óptimo!\n\nHay conexión a internet disponible.');
-            } else {
-                alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.');
-            }
+            if (navigator.onLine) alert('🟢 ESTADO DE COBERTURA: ¡Óptimo!');
+            else alert('🔴 ESTADO DE COBERTURA: Sin conexión a internet.');
         }
 
         function toggleSunMode() {
             document.body.classList.toggle('sun-mode');
             const isSun = document.body.classList.contains('sun-mode');
-            const icon = document.getElementById('sun-mode-icon');
-            if (isSun) icon.className = 'fa-solid fa-moon';
-            else icon.className = 'fa-solid fa-sun';
+            document.getElementById('sun-mode-icon').className = isSun ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
             localStorage.setItem('sun_mode_active', isSun);
         }
 
@@ -1234,7 +1067,7 @@
             const formData = new FormData(form);
             const data = {};
             formData.forEach((val, key) => { data[key] = val; });
-            data['contrataPrincipal'] = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal').value;
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1244,14 +1077,7 @@
                 }
             });
 
-            const draft = {
-                data: data,
-                checkboxes: checkboxes,
-                croquisPoints: croquisPoints,
-                uploadedFiles: uploadedFiles,
-                timestamp: new Date().toLocaleString()
-            };
-
+            const draft = { data, checkboxes, croquisPoints, uploadedFiles, timestamp: new Date().toLocaleString() };
             try { localStorage.setItem('pole_form_draft', JSON.stringify(draft)); } catch (e) {}
         }
 
@@ -1277,10 +1103,29 @@
                         }
                     }
 
-                    // RESTAURAR CONTRATA DE FORMA SEGURA
                     const savedContrata = localStorage.getItem('user_preferred_contrata');
                     if (savedContrata) {
-                        aplicarContrataValidada(savedContrata);
+                        const select = document.getElementById('contrataPrincipal');
+                        select.disabled = false;
+                        select.value = savedContrata;
+                        select.disabled = true;
+                        handleContractorChange();
+                        
+                        setTimeout(() => {
+                            if (draft.data.aliasKairosTec1) {
+                                document.getElementById('aliasKairosTec1').value = draft.data.aliasKairosTec1;
+                                handleAliasTec1Change(draft.data.aliasKairosTec1);
+                            }
+                            if (draft.data.aliasRecursoPreventivo) {
+                                document.getElementById('aliasRecursoPreventivo').value = draft.data.aliasRecursoPreventivo;
+                                handleAliasRecursoChange(draft.data.aliasRecursoPreventivo);
+                                const exencionCb = document.getElementById('exencionResponsabilidadEmpresa');
+                                if (exencionCb && draft.data.exencionResponsabilidadEmpresa) {
+                                    exencionCb.checked = true;
+                                    validarEstadoRecursoPreventivo();
+                                }
+                            }
+                        }, 100);
                     }
 
                     if (draft.checkboxes) {
@@ -1325,50 +1170,12 @@
             let sentList = [];
             try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
             const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
-
             if (found) {
                 alertBox.classList.remove('hidden');
                 if (dateSpan) dateSpan.innerText = found.sentAt || 'fecha anterior';
             } else {
                 alertBox.classList.add('hidden');
             }
-        }
-
-        async function checkOtExpirationManually(otVal) {
-            const cleanOt = otVal.trim().toLowerCase();
-            const expiredAlert = document.getElementById('expired-ot-alert');
-            if (!cleanOt || !expiredAlert) return;
-
-            const contrata = localStorage.getItem('user_preferred_contrata');
-            if (!contrata) return;
-
-            try {
-                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
-                if (!res.ok) return;
-                const data = await res.json();
-                const listadoOts = data[contrata] || [];
-
-                const match = listadoOts.find(item => {
-                    const otNum = typeof item === 'string' ? item : (item.nOt || '');
-                    return otNum.trim().toLowerCase() === cleanOt;
-                });
-
-                if (match && typeof match === 'object' && match.fechaInstalacion) {
-                    const hoy = new Date();
-                    hoy.setHours(0,0,0,0);
-                    const dInst = new Date(match.fechaInstalacion);
-                    dInst.setHours(0,0,0,0);
-                    const diasPasados = Math.floor((hoy - dInst) / (1000 * 60 * 60 * 24));
-
-                    if (diasPasados > 5) {
-                        expiredAlert.classList.remove('hidden');
-                    } else {
-                        expiredAlert.classList.add('hidden');
-                    }
-                } else {
-                    expiredAlert.classList.add('hidden');
-                }
-            } catch (e) {}
         }
 
         function handleOtInput(val) {
@@ -1379,7 +1186,6 @@
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 fechaHoraInput.value = now.toISOString().slice(0, 16);
             }
-
             const estadoRadios = document.querySelectorAll('input[name="estado"]');
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
@@ -1389,11 +1195,8 @@
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
                 estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
-            } else {
-                estadoRadios.forEach(r => { r.disabled = false; r.required = true; r.closest('label').style.opacity = '1'; });
             }
             checkOtDuplication(val);
-            checkOtExpirationManually(val);
         }
 
         async function cargarListaUsuarios() {
@@ -1402,7 +1205,6 @@
                 const res = await fetch('usuarios.json?v=' + new Date().getTime());
                 if (res.ok) rawData = await res.json();
             } catch (err) {}
-
             if (!rawData || !Array.isArray(rawData) || rawData.length === 0) rawData = DEFAULT_USUARIOS;
 
             USUARIOS_DB = rawData.reduce((acc, item) => {
@@ -1413,18 +1215,13 @@
                 }
                 return acc;
             }, {});
-
-            const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata) {
-                aplicarContrataValidada(savedContrata);
-            } else {
-                handleContractorChange();
-            }
+            handleContractorChange();
         }
 
         function handleContractorChange() {
-            const contrata = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal')?.value || '';
-            const cleanContrata = contrata.trim().toUpperCase();
+            const selectContrata = document.getElementById('contrataPrincipal');
+            if (!selectContrata) return;
+            const contrata = selectContrata.value ? selectContrata.value.trim().toUpperCase() : '';
             const selectTec1 = document.getElementById('aliasKairosTec1');
             const selectRecurso = document.getElementById('aliasRecursoPreventivo');
             const warning = document.getElementById('contractor-warning');
@@ -1435,23 +1232,27 @@
             selectTec1.innerHTML = '<option value="">Seleccione Usuario...</option>';
             selectRecurso.innerHTML = '<option value="">Seleccione Usuario...</option>';
 
-            if (cleanContrata && USUARIOS_DB[cleanContrata] && USUARIOS_DB[cleanContrata].length > 0) {
+            if (contrata && USUARIOS_DB[contrata] && USUARIOS_DB[contrata].length > 0) {
                 if (warning) warning.classList.add('hidden');
-                USUARIOS_DB[cleanContrata].forEach(u => {
-                    selectTec1.appendChild(new Option(u.Alias, u.Alias));
-                    selectRecurso.appendChild(new Option(u.Alias, u.Alias));
+                USUARIOS_DB[contrata].forEach(u => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = u.Alias; opt1.textContent = u.Alias;
+                    selectTec1.appendChild(opt1);
+                    const opt2 = document.createElement('option');
+                    opt2.value = u.Alias; opt2.textContent = u.Alias;
+                    selectRecurso.appendChild(opt2);
                 });
                 if (prevTec1Val) selectTec1.value = prevTec1Val;
                 if (prevRecursoVal) selectRecurso.value = prevRecursoVal;
-                document.getElementById('header-contrata-label').innerText = cleanContrata;
-                actualizarContadorOtsPendientes();
+                document.getElementById('header-contrata-label').innerText = contrata;
+                localStorage.setItem('user_preferred_contrata', contrata);
             } else {
                 if (warning) warning.classList.remove('hidden');
             }
         }
 
         function handleAliasTec1Change(alias) {
-            const contrata = localStorage.getItem('user_preferred_contrata') || '';
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreTec1').value = user ? user.NombreCompleto : '';
@@ -1459,7 +1260,7 @@
         }
 
         function handleAliasRecursoChange(alias) {
-            const contrata = localStorage.getItem('user_preferred_contrata') || '';
+            const contrata = document.getElementById('contrataPrincipal').value.trim().toUpperCase();
             if (USUARIOS_DB[contrata]) {
                 const user = USUARIOS_DB[contrata].find(u => u.Alias === alias);
                 document.getElementById('nombreRecursoPreventivo').value = user ? user.NombreCompleto : '';
@@ -1485,21 +1286,26 @@
             statusBox.classList.remove('hidden');
             if (cursoEstado === "NO CADUCA") {
                 statusBox.className = "mt-3 p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-xs space-y-1";
-                statusBox.innerHTML = `<div class="font-bold text-emerald-300"><i class="fa-solid fa-shield-check"></i> Curso 60h PRL: Válido (NO CADUCA)</div>`;
+                statusBox.innerHTML = `<div class="font-bold text-emerald-300"><i class="fa-solid fa-shield-check"></i> Curso de 60h PRL: Válido (NO CADUCA)</div>`;
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
                 const isChecked = document.getElementById('exencionResponsabilidadEmpresa')?.checked || false;
                 statusBox.className = "mt-3 p-3 rounded-xl border border-rose-500/60 bg-rose-950/60 text-xs space-y-2";
                 statusBox.innerHTML = `
-                    <div class="font-bold text-rose-300"><i class="fa-solid fa-triangle-exclamation"></i> Curso 60h PRL: FALTA DOCUMENTO</div>
+                    <div class="font-bold text-rose-300"><i class="fa-solid fa-triangle-exclamation"></i> Curso de 60h PRL: FALTA DOCUMENTO</div>
                     <label class="flex items-start gap-2 bg-slate-900/80 p-2 rounded-lg border border-rose-900/50 cursor-pointer mt-1">
                         <input type="checkbox" id="exencionResponsabilidadEmpresa" name="exencionResponsabilidadEmpresa" value="SÍ" ${isChecked ? 'checked' : ''} onchange="validarEstadoRecursoPreventivo()" class="mt-0.5 accent-rose-600">
-                        <span class="text-slate-200 font-medium">Autorizo la actuación bajo expresa y exclusiva <strong>responsabilidad de la empresa</strong>.</span>
-                    </label>`;
-                nextBtn.disabled = !isChecked;
-                if (!isChecked) nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                else nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        <span class="text-slate-200 font-medium">Autorizo la actuación bajo <strong>responsabilidad de la empresa</strong>.</span>
+                    </label>
+                `;
+                if (!isChecked) {
+                    nextBtn.disabled = true;
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             }
             saveFormDraft();
         }
@@ -1519,7 +1325,7 @@
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
                         const geoData = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${geoData.address || 'Ubicación desconocida'} el ${fechaHoraStr}`;
+                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${geoData.address || 'Ubicación'} el ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
                         await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
                     },
@@ -1527,13 +1333,8 @@
                         escaleraGeoTextoGlobal = `Fotografía realizada en: Ubicación GPS no disponible el ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
                         await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
-                    },
-                    { timeout: 5000, maximumAge: 0 }
+                    }, { timeout: 5000 }
                 );
-            } else {
-                escaleraGeoTextoGlobal = `Fotografía realizada el ${fechaHoraStr}`;
-                document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
-                await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
             }
         }
 
@@ -1571,32 +1372,62 @@
             const total = croquisPoints.length;
 
             croquisPoints.forEach((p, idx) => {
-                let iconHtml = idx === 0 ? '<div style="background:#8b5cf6; color:white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🔌</div>' : (idx === total - 1 ? '<div style="background:#10b981; color:white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🏠</div>' : `<div style="background:#6d28d9; color:white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px;">P${idx}</div>`);
-                if (idx === total - 1 && p.address) {
-                    document.getElementById('direccion').value = p.address;
-                    document.getElementById('codigoPostal').value = p.postcode || '';
+                let type = '';
+                let iconHtml = '';
+                if (idx === 0) { type = 'cto'; iconHtml = `<div style="background:#8b5cf6; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🔌</div>`; }
+                else if (idx === total - 1) {
+                    type = 'casa';
+                    iconHtml = `<div style="background:#10b981; color:white; border:2px solid white; border-radius:50%; width:30px; height:30px; text-align:center; line-height:28px;">🏠</div>`;
+                    if (p.address) {
+                        document.getElementById('direccion').value = p.address;
+                        document.getElementById('codigoPostal').value = p.postcode || '';
+                    }
+                } else {
+                    type = 'poste';
+                    iconHtml = `<div style="background:#6d28d9; color:white; border:2px solid white; border-radius:50%; width:26px; height:26px; text-align:center; line-height:24px; font-size:11px; font-weight:bold;">P${idx}</div>`;
                 }
-                p.type = idx === 0 ? 'cto' : (idx === total - 1 ? 'casa' : 'poste');
-                mapMarkers.push(L.marker([p.lat, p.lng], { icon: L.divIcon({ html: iconHtml, className: '', iconSize: [30,30], iconAnchor: [15,15] }) }).addTo(croquisMap));
+                p.type = type;
+                const customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [30, 30], iconAnchor: [15, 15] });
+                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
+                mapMarkers.push(marker);
             });
 
-            if (total > 1) croquisPolyline = L.polyline(croquisPoints.map(p => [p.lat, p.lng]), { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
+            if (total > 1) {
+                const latLngs = croquisPoints.map(p => [p.lat, p.lng]);
+                croquisPolyline = L.polyline(latLngs, { color: '#a855f7', weight: 4, dashArray: '6, 8' }).addTo(croquisMap);
+            }
             updateCroquisSummary();
         }
 
         function calculateTotalMeters() {
-            let m = 0;
+            let totalMeters = 0;
             for (let i = 0; i < croquisPoints.length - 1; i++) {
-                m += L.latLng(croquisPoints[i].lat, croquisPoints[i].lng).distanceTo(L.latLng(croquisPoints[i+1].lat, croquisPoints[i+1].lng));
+                totalMeters += L.latLng(croquisPoints[i].lat, croquisPoints[i].lng).distanceTo(L.latLng(croquisPoints[i+1].lat, croquisPoints[i+1].lng));
             }
-            return Math.round(m);
+            return Math.round(totalMeters);
         }
 
         function updateCroquisSummary() {
-            const m = calculateTotalMeters();
-            const pCount = Math.max(0, croquisPoints.length - 2);
-            document.getElementById('cantidadPostes').value = pCount;
-            document.getElementById('croquis-points-breakdown').innerHTML = croquisPoints.length === 0 ? `<em class="text-slate-500">Haga clic en el mapa satelital.</em>` : `<div class="bg-slate-900 p-3 rounded-xl border border-slate-700/80 space-y-1">${croquisPoints.map((p, idx) => `<div><strong>${p.type.toUpperCase()}:</strong> ${p.address}</div>`).join('')}<div class="text-emerald-400 font-bold pt-1">Total: ${m} m | Postes: ${pCount}</div></div>`;
+            const totalMeters = calculateTotalMeters();
+            const poleCount = Math.max(0, croquisPoints.length - 2);
+            document.getElementById('cantidadPostes').value = poleCount;
+            const listContainer = document.getElementById('croquis-points-breakdown');
+            if (croquisPoints.length === 0) { listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>`; return; }
+
+            listContainer.innerHTML = `
+                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2">
+                    ${croquisPoints.map((p, idx) => {
+                        let title = p.type === 'cto' ? '🔌 CTO Principal' : (p.type === 'poste' ? `🪵 Poste P${idx}` : '🏠 Casa del Cliente');
+                        return `<div class="border rounded-xl p-2 bg-slate-800/60 border-slate-700 flex justify-between items-center text-xs">
+                            <div><strong class="text-purple-300">${title}:</strong> <span class="text-slate-200">${p.address}</span></div>
+                            <div class="text-[10px] text-slate-400 font-mono">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
+                        </div>`;
+                    }).join('')}
+                    <div class="flex justify-between items-center pt-1 text-xs text-slate-300">
+                        <span><strong>Trazado Total:</strong> <span class="text-emerald-400 font-bold">${totalMeters} m</span></span>
+                        <span><strong>Postes:</strong> <span class="text-emerald-400 font-bold">${poleCount}</span></span>
+                    </div>
+                </div>`;
         }
 
         function clearCroquisMap() {
@@ -1605,7 +1436,8 @@
             mapMarkers = []; croquisPoints = []; croquisPolyline = null;
             document.getElementById('direccion').value = '';
             document.getElementById('codigoPostal').value = '';
-            updateCroquisSummary(); saveFormDraft();
+            updateCroquisSummary();
+            saveFormDraft();
         }
 
         async function reverseGeocode(lat, lng) {
@@ -1613,72 +1445,97 @@
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                 if (res.ok) {
                     const data = await res.json();
-                    return { address: data.display_name.split(',').slice(0,3).join(','), postcode: data.address?.postcode || '' };
+                    const addressObj = data.address || {};
+                    const road = addressObj.road || addressObj.pedestrian || '';
+                    const town = addressObj.city || addressObj.town || addressObj.village || '';
+                    return { address: `${road}${town ? ', ' + town : ''}`, postcode: addressObj.postcode || '' };
                 }
             } catch (e) {}
             return { address: `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`, postcode: '' };
         }
 
         async function searchAddressOnMap() {
-            const q = document.getElementById('map-search-input').value;
-            if (!q) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+            const query = document.getElementById('map-search-input').value;
+            if (!query) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
             if (res.ok) {
                 const data = await res.json();
-                if (data.length > 0) {
-                    croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18);
-                    fetchWeatherByCoordinates(parseFloat(data[0].lat), parseFloat(data[0].lon));
-                }
+                if (data.length > 0) croquisMap.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 18);
             }
         }
 
         function geolocateOnMap() {
-            if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(pos => {
-                croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18);
-                fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude);
-            });
+            if (navigator.geolocation) navigator.geolocation.getCurrentPosition(pos => croquisMap.setView([pos.coords.latitude, pos.coords.longitude], 18));
         }
 
         async function captureAndAttachCroquis() {
             if (croquisPoints.length < 2) { alert('⚠️ Debe marcar al menos CTO y Vivienda.'); return; }
             const mapBox = document.getElementById('croquis-map');
-            const controls = mapBox.querySelectorAll('.leaflet-control-container');
             croquisMap.invalidateSize();
             await new Promise(r => setTimeout(r, 600));
-            controls.forEach(c => c.style.display = 'none');
             const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: true, scale: 1.0 });
-            controls.forEach(c => c.style.display = '');
-            uploadedFiles['file-croquis'] = canvas.toDataURL('image/jpeg', 0.5);
+            const imgData = canvas.toDataURL('image/jpeg', 0.5);
+            uploadedFiles['file-croquis'] = imgData;
             saveFormDraft();
-            document.getElementById('preview-croquis').innerHTML = `<img src="${uploadedFiles['file-croquis']}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado</div>`;
-            alert('✅ ¡Mapa capturado con éxito!');
+            document.getElementById('preview-croquis').innerHTML = `<img src="${imgData}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa Capturado Correctamente</div>`;
+            alert('✅ ¡Foto del mapa capturada con éxito!');
         }
 
         function validateCurrentStep(step) {
-            const sc = document.getElementById(`step-${step}`);
-            if (!sc) return true;
+            const stepContainer = document.getElementById(`step-${step}`);
+            if (!stepContainer) return true;
             let valid = true;
-            sc.querySelectorAll('[required]').forEach(input => {
-                if (input.type === 'file' && !uploadedFiles[input.id]) valid = false;
-                else if (input.type !== 'file' && !input.value.trim()) valid = false;
+            stepContainer.querySelectorAll('[required]').forEach(input => {
+                if (input.type === 'file' && !uploadedFiles[input.id] && input.files.length === 0) valid = false;
+                else if (input.type !== 'file' && (!input.value || !input.value.trim())) valid = false;
             });
-            if (step === 1) {
-                if (document.getElementById('nOt').value.length !== 24) { alert('⚠️ La OT debe tener 24 caracteres.'); return false; }
-                if (!document.getElementById('expired-ot-alert').classList.contains('hidden')) {
-                    alert('❌ Operación bloqueada: Esta OT está caducada (> 5 días) y no se puede enviar.');
-                    return false;
-                }
-            }
+            if (step === 1 && document.getElementById('nOt').value.length !== 24) { alert('⚠️ El Nº de OT debe tener exactamente 24 caracteres.'); return false; }
             if (step === 5 && !uploadedFiles['file-croquis']) { alert('⚠️ Es obligatorio capturar el mapa.'); return false; }
-            if (!valid) alert('⚠️ Complete los campos obligatorios (*).');
+            if (!valid) alert('⚠️ Complete todos los campos obligatorios (*).');
             return valid;
         }
 
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
-            container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1 text-xs"><div><strong>OT:</strong> ${document.getElementById('nOt').value}</div><div><strong>Dirección:</strong> ${document.getElementById('direccion').value}</div><div><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</div></div>`;
+
+            const formData = new FormData(document.getElementById('pole-form'));
+            const nOt = document.getElementById('nOt').value || '-';
+            const contrata = document.getElementById('contrataPrincipal').value || '-';
+            const tipo = formData.get('tipo') || '-';
+            const estadoInfra = formData.get('estado') || 'No aplica';
+            const direccion = document.getElementById('direccion').value || '-';
+            const aliasTec1 = document.getElementById('aliasKairosTec1').value || '-';
+            const nomTec1 = document.getElementById('nombreTec1').value || '-';
+            const aliasRecurso = document.getElementById('aliasRecursoPreventivo').value || '-';
+            const nomRecurso = document.getElementById('nombreRecursoPreventivo').value || '-';
+            const tipoPoste = formData.get('tipoPoste') || '-';
+            const estadoPoste = document.getElementById('estadoPoste').value || '-';
+            const paraSubir = document.getElementById('paraSubir').value || '-';
+            const sePuede = formData.get('sePuede') || '-';
+            const cantidadPostes = document.getElementById('cantidadPostes').value || '0';
+            const totalMeters = calculateTotalMeters();
+            const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400">1. Datos OT:</strong><br>
+                        OT: <strong>${nOt}</strong><br>Contrata: ${contrata} | Tipo: ${tipo}<br>Dirección: ${direccion}
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400">2. Personal:</strong><br>
+                        TEC1: ${aliasTec1} (${nomTec1})<br>Recurso: ${aliasRecurso} (${nomRecurso})
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400">3. Poste y Seguridad:</strong><br>
+                        Material: ${tipoPoste} | Estado: ${estadoPoste}<br>Apto Escalera: <span class="text-emerald-400 font-bold">${sePuede}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <strong class="text-purple-400">4. Trazado y Ubicaciones:</strong><br>
+                        Postes: ${cantidadPostes} | Distancia: ${totalMeters}m<br>Observaciones: ${observaciones}
+                    </div>
+                </div>`;
         }
 
         function goToStep(step) {
@@ -1691,7 +1548,7 @@
             document.getElementById(`step-${step}`).classList.remove('hidden');
             document.getElementById(`tab-btn-${step}`)?.classList.add('tab-active');
             currentStep = step;
-            document.getElementById('progress-bar').style.width = `${Math.round((step/6)*100)}%`;
+            updateProgressBar();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (step === 5) setTimeout(initCroquisMap, 150);
             if (step === 6) { renderReviewSummary(); setTimeout(resizeCanvas, 100); }
@@ -1699,126 +1556,200 @@
 
         function nextStep(s) { goToStep(s); }
         function prevStep(s) { goToStep(s); }
-        function toggleWoodPoleMeasures() { document.getElementById('wood-pole-block').classList.toggle('hidden', document.querySelector('input[name="tipoPoste"]:checked')?.value !== 'POSTE DE MADERA'); }
-        function handlePoleStatusChange() { document.getElementById('no-climb-alert').classList.toggle('hidden', !['NO SUBIR', 'MALO/DEFECTUOSO'].includes(document.getElementById('estadoPoste').value)); }
-        function toggleAllCheckboxes(cls, state) { document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state); }
+
+        function updateProgressBar() {
+            const percent = Math.round((currentStep / 6) * 100);
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Progreso: ${percent}%`;
+            document.getElementById('progress-step-name').innerText = `Sección ${currentStep} de 6`;
+        }
+
+        function toggleWoodPoleMeasures() {
+            const selected = document.querySelector('input[name="tipoPoste"]:checked');
+            const block = document.getElementById('wood-pole-block');
+            if (selected && selected.value === 'POSTE DE MADERA') block.classList.remove('hidden');
+            else block.classList.add('hidden');
+            saveFormDraft();
+        }
+
+        function handlePoleStatusChange() {
+            const val = document.getElementById('estadoPoste').value;
+            const alertBox = document.getElementById('no-climb-alert');
+            if (val === 'NO SUBIR' || val === 'MALO/DEFECTUOSO') alertBox.classList.remove('hidden');
+            else alertBox.classList.add('hidden');
+            saveFormDraft();
+        }
+
+        function toggleAllCheckboxes(cls, state) {
+            document.querySelectorAll(`.${cls}`).forEach(cb => cb.checked = state);
+            saveFormDraft();
+        }
 
         function initSignatureCanvas() {
             signatureCanvas = document.getElementById('signature-canvas');
+            if(!signatureCanvas) return;
             signatureCtx = signatureCanvas.getContext('2d');
             resizeCanvas();
+
             signatureCanvas.addEventListener('mousedown', startSigning);
             signatureCanvas.addEventListener('mousemove', drawSigning);
             signatureCanvas.addEventListener('mouseup', stopSigning);
-            signatureCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startSigning({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }); });
-            signatureCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); drawSigning({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }); });
+
+            signatureCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                startSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
+            signatureCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                drawSigning({ clientX: t.clientX, clientY: t.clientY });
+            });
             signatureCanvas.addEventListener('touchend', stopSigning);
         }
 
         function resizeCanvas() {
             if (!signatureCanvas) return;
-            const r = signatureCanvas.getBoundingClientRect();
-            signatureCanvas.width = r.width; signatureCanvas.height = r.height;
-            signatureCtx.lineWidth = 2; signatureCtx.strokeStyle = '#0f172a';
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCanvas.width = rect.width;
+            signatureCanvas.height = rect.height;
+            signatureCtx.lineWidth = 2;
+            signatureCtx.strokeStyle = '#0f172a';
         }
 
-        function startSigning(e) { isSigning = true; document.getElementById('signature-placeholder').classList.add('hidden'); const r = signatureCanvas.getBoundingClientRect(); signatureCtx.beginPath(); signatureCtx.moveTo(e.clientX - r.left, e.clientY - r.top); }
-        function drawSigning(e) { if (!isSigning) return; const r = signatureCanvas.getBoundingClientRect(); signatureCtx.lineTo(e.clientX - r.left, e.clientY - r.top); signatureCtx.stroke(); }
-        function stopSigning() { if (isSigning) { isSigning = false; document.getElementById('firmaData').value = signatureCanvas.toDataURL(); saveFormDraft(); } }
-        function clearSignatureCanvas() { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); document.getElementById('signature-placeholder').classList.remove('hidden'); document.getElementById('firmaData').value = ''; saveFormDraft(); }
+        function startSigning(e) {
+            isSigning = true;
+            document.getElementById('signature-placeholder').classList.add('hidden');
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function drawSigning(e) {
+            if (!isSigning) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureCtx.stroke();
+        }
+
+        function stopSigning() {
+            if (isSigning) {
+                isSigning = false;
+                document.getElementById('firmaData').value = signatureCanvas.toDataURL();
+                saveFormDraft();
+            }
+        }
+
+        function clearSignatureCanvas() {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            document.getElementById('signature-placeholder').classList.remove('hidden');
+            document.getElementById('firmaData').value = '';
+            saveFormDraft();
+        }
 
         function saveToSentHistoryCompletely(nOt) {
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
+            data['firmaData'] = document.getElementById('firmaData').value;
+            data['sentAt'] = new Date().toLocaleString();
+            data['croquisPoints'] = croquisPoints;
+            data['nOt'] = nOt;
+
             let sentList = [];
-            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
-            sentList.unshift({ nOt, sentAt: new Date().toLocaleString() });
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
+            sentList.unshift(data);
+            if (sentList.length > 20) sentList = sentList.slice(0, 20);
             localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
-            actualizarContadorOtsPendientes();
         }
 
         function updateSentPartsBadge() {
             let sentList = [];
-            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
             document.getElementById('sent-parts-count').innerText = sentList.length;
         }
 
         function openSentPartsModal() {
             let sentList = [];
-            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) {}
-            document.getElementById('sent-parts-list').innerHTML = sentList.length === 0 ? `<p class="text-slate-400 text-center py-4">No hay partes enviados.</p>` : sentList.map(item => `<div class="bg-slate-800 p-3 rounded-xl flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">Enviado OK</span></div>`).join('');
+            try { sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]'); } catch (e) { sentList = []; }
+            const listContainer = document.getElementById('sent-parts-list');
+            if (sentList.length === 0) listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
+            else listContainer.innerHTML = sentList.map(item => `<div class="bg-slate-800 p-2 rounded flex justify-between"><span>OT: ${item.nOt}</span><span class="text-emerald-400">${item.sentAt}</span></div>`).join('');
             document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
         function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
-        function clearSentHistory() { if (confirm('¿Vaciar historial?')) { localStorage.removeItem('user_sent_pole_parts'); updateSentPartsBadge(); openSentPartsModal(); actualizarContadorOtsPendientes(); } }
+        function clearSentHistory() { localStorage.removeItem('user_sent_pole_parts'); updateSentPartsBadge(); closeSentPartsModal(); }
 
         function confirmResetForm() {
-            if (confirm('¿Limpiar formulario?')) {
+            if (confirm('¿Limpiar todo el formulario?')) {
                 document.getElementById('pole-form').reset();
-                clearCroquisMap(); clearSignatureCanvas();
+                clearCroquisMap();
+                clearSignatureCanvas();
                 localStorage.removeItem('pole_form_draft');
-                document.getElementById('expired-ot-alert').classList.add('hidden');
                 goToStep(1);
             }
         }
 
-        function buildPrintHTML() { return { puntosTextoBreve: '', escaleraGeoFinal: escaleraGeoTextoGlobal }; }
-        function generatePrintPreview() { window.print(); }
+        function buildPrintHTML() {
+            const printArea = document.getElementById('print-area');
+            const form = document.getElementById('pole-form');
+            const formData = new FormData(form);
+            const contrataPrint = document.getElementById('contrataPrincipal').value || '-';
 
-        async function sendPayloadToEmailJS(item) {
-            const templateParams = {
-                to_email: DESTINATION_EMAIL,
-                subject: `${item.nOt} - ${item.contrata}`,
-                ot_number: item.nOt,
-                contrata: item.contrata,
-                tipo_actuacion: item.formData.tipo || '-',
-                fecha: item.formData.fechaHora || '',
-                direccion: item.formData.direccion || '',
-                tecnico_tec1: `${item.formData.aliasKairosTec1} - ${item.formData.nombreTec1}`,
-                recurso_preventivo: `${item.formData.aliasRecursoPreventivo} - ${item.formData.nombreRecursoPreventivo}`,
-                observaciones: item.formData.observaciones || ''
-            };
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-            return true;
+            printArea.innerHTML = `
+                <div class="pdf-page">
+                    <h1 style="font-size: 14px; font-weight: bold; color: #4c1d95;">INFORME DE ACTUACIÓN EN POSTE - PRL FTTH</h1>
+                    <p style="font-size: 10px;"><strong>Nº OT:</strong> ${document.getElementById('nOt').value || '-'} | <strong>Contrata:</strong> ${contrataPrint}</p>
+                    <hr style="margin: 10px 0;">
+                    <div style="font-size: 9px; line-height: 1.4;">
+                        <p><strong>Ubicación:</strong> ${document.getElementById('direccion').value || '-'}</p>
+                        <p><strong>Técnico TEC1:</strong> ${document.getElementById('nombreTec1').value || '-'}</p>
+                        <p><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value || '-'}</p>
+                        <p><strong>Total Postes:</strong> ${document.getElementById('cantidadPostes').value || '0'} | <strong>Metros:</strong> ${calculateTotalMeters()}m</p>
+                        <p><strong>Observaciones:</strong> ${document.getElementById('observaciones').value || 'Ninguna'}</p>
+                    </div>
+                </div>`;
+            return { puntosTextoBreve: '', escaleraGeoFinal: '' };
+        }
+
+        function generatePrintPreview() {
+            buildPrintHTML();
+            const printArea = document.getElementById('print-area');
+            printArea.classList.remove('hidden');
+            window.print();
+            printArea.classList.add('hidden');
         }
 
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!validateCurrentStep(6)) return;
-            if (!document.getElementById('expired-ot-alert').classList.contains('hidden')) {
-                alert('❌ No se puede enviar: La OT está caducada.');
-                return;
-            }
+            const firma = document.getElementById('firmaData').value;
+            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
 
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                const nOt = document.getElementById('nOt').value;
-                const contrata = localStorage.getItem('user_preferred_contrata') || document.getElementById('contrataPrincipal').value;
-                const payload = { nOt, contrata, formData: Object.fromEntries(new FormData(document.getElementById('pole-form'))) };
-
-                await sendPayloadToEmailJS(payload);
+                const nOt = document.getElementById('nOt').value || 'Sin_OT';
                 saveToSentHistoryCompletely(nOt);
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
             } catch (err) {
-                alert('Error al enviar: ' + (err.text || err.message));
+                alert('Error al enviar el formulario.');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Finalizar y Enviar';
             }
         }
 
         function resetFormAndCloseModal() {
             document.getElementById('success-modal').classList.add('hidden');
-            document.getElementById('pole-form').reset();
-            clearCroquisMap(); clearSignatureCanvas();
-            document.getElementById('expired-ot-alert').classList.add('hidden');
-            goToStep(1);
+            confirmResetForm();
         }
     </script>
 </body>
