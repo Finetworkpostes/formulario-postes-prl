@@ -293,7 +293,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end pt-3 border-t border-slate-800">
-                    <button type="button" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" id="btn-next-step-1" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -512,7 +512,7 @@
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(3)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(5)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Checklists & EPIs <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -867,6 +867,11 @@
                 if (res.ok) {
                     pendingOTsFromJSON = await res.json();
                     updatePendientesCounterButton();
+                    // Volver a comprobar la OT actual una vez cargado el JSON por si ya había texto escrito
+                    const otInput = document.getElementById('nOt');
+                    if (otInput && otInput.value) {
+                        checkOtBlocked(otInput.value);
+                    }
                 }
             } catch (e) {
                 console.warn("No se pudo cargar instalaciones.json", e);
@@ -1064,6 +1069,11 @@
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
             updatePendientesCounterButton();
+            // Revalidar OT actual por si cambia la contrata
+            const otInput = document.getElementById('nOt');
+            if (otInput && otInput.value) {
+                checkOtBlocked(otInput.value);
+            }
         }
 
         async function fetchWeatherByCoordinates(lat, lon) {
@@ -1445,12 +1455,25 @@
         function checkOtBlocked(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const blockedAlert = document.getElementById('blocked-ot-alert');
-            if (!cleanOt || !blockedAlert) return;
+            const btnNext1 = document.getElementById('btn-next-step-1');
+            
+            if (!cleanOt || !blockedAlert) {
+                if (blockedAlert) blockedAlert.classList.add('hidden');
+                if (btnNext1) {
+                    btnNext1.disabled = false;
+                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                return false;
+            }
 
             const contrataActiva = document.getElementById('contrataPrincipal').value;
             if (!contrataActiva || !pendingOTsFromJSON[contrataActiva]) {
                 blockedAlert.classList.add('hidden');
-                return;
+                if (btnNext1) {
+                    btnNext1.disabled = false;
+                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                return false;
             }
 
             const hoy = new Date();
@@ -1475,14 +1498,29 @@
 
             if (isBlocked) {
                 blockedAlert.classList.remove('hidden');
+                if (btnNext1) {
+                    btnNext1.disabled = true;
+                    btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                return true;
             } else {
                 blockedAlert.classList.add('hidden');
+                if (btnNext1) {
+                    btnNext1.disabled = false;
+                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                return false;
             }
         }
 
         function handleOtInput(val) {
             const cleanVal = val.trim().toLowerCase();
             
+            const isBlockedNow = checkOtBlocked(val);
+            if (isBlockedNow && val.length === 24) {
+                alert("⚠️ ATENCIÓN: Esta OT se encuentra en la lista de bloqueadas (excede el plazo de 5 días). No se puede continuar ni enviar.");
+            }
+
             const fechaHoraInput = document.getElementById('fechaHora');
             if (fechaHoraInput && !fechaHoraInput.value) {
                 const now = new Date();
@@ -1524,7 +1562,9 @@
 
             const inputOT = document.getElementById('nOt');
             if (inputOT) {
-                if (inputOT.value.length === 24) {
+                if (isBlockedNow) {
+                    inputOT.style.borderColor = '#f43f5e';
+                } else if (inputOT.value.length === 24) {
                     inputOT.style.borderColor = '#10b981';
                 } else if (inputOT.value.length > 0) {
                     inputOT.style.borderColor = '#f59e0b';
@@ -1534,7 +1574,6 @@
             }
 
             checkOtDuplication(val);
-            checkOtBlocked(val);
         }
 
         async function cargarListaUsuarios() {
