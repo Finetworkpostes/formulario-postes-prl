@@ -229,7 +229,7 @@
                         <i class="fa-solid fa-ban text-rose-400 text-sm mr-1"></i>
                         <strong>OT BLOQUEADA:</strong> Esta OT excede el plazo de 5 días permitidos y no se puede justificar ni enviar.
                     </div>
-                    <button type="button" onclick="document.getElementById('blocked-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Cerrar</button>
+                    <button type="button" onclick="cerrarAlertaBloqueo()" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Cerrar</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -867,7 +867,6 @@
                 if (res.ok) {
                     pendingOTsFromJSON = await res.json();
                     updatePendientesCounterButton();
-                    // Volver a comprobar la OT actual una vez cargado el JSON por si ya había texto escrito
                     const otInput = document.getElementById('nOt');
                     if (otInput && otInput.value) {
                         checkOtBlocked(otInput.value);
@@ -905,7 +904,6 @@
             let countInPeriod = 0;
             pendingOTsFromJSON[contrataActiva].forEach(item => {
                 const nOt = item.nOt || item.OT || item.ot || '';
-                // Si ya fue enviada, no cuenta como pendiente
                 if (sentOtSet.has(nOt.trim().toLowerCase())) return;
 
                 const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
@@ -917,7 +915,6 @@
                 const diffTime = hoy.getTime() - fechaInst.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-                // Solo cuenta si está dentro del plazo de 5 días (no bloqueada)
                 if (diffDays <= 5) {
                     countInPeriod++;
                 }
@@ -946,7 +943,6 @@
                 const sentList = getSentOTsList();
                 const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
 
-                // Filtramos para quitar las que ya están en enviados
                 otsToShow = otsToShow.filter(item => {
                     const nOt = item.nOt || item.OT || item.ot || '';
                     return !sentOtSet.has(nOt.trim().toLowerCase());
@@ -1013,7 +1009,6 @@
             document.getElementById('ots-pendientes-modal').classList.add('hidden');
         }
 
-        /* RESTO DEL CÓDIGO */
         function abrirEjemploModal() {
             document.getElementById('modal-ejemplo-foto').classList.remove('hidden');
         }
@@ -1069,7 +1064,6 @@
             const label = document.getElementById('header-contrata-label');
             if (label) label.innerText = contrataName;
             updatePendientesCounterButton();
-            // Revalidar OT actual por si cambia la contrata
             const otInput = document.getElementById('nOt');
             if (otInput && otInput.value) {
                 checkOtBlocked(otInput.value);
@@ -1510,6 +1504,16 @@
                     btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
                 return false;
+            }
+        }
+
+        function cerrarAlertaBloqueo() {
+            // Oculta la alerta visual pero mantiene el botón siguiente deshabilitado y bloqueado
+            document.getElementById('blocked-ot-alert').classList.add('hidden');
+            const btnNext1 = document.getElementById('btn-next-step-1');
+            if (btnNext1) {
+                btnNext1.disabled = true;
+                btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
             }
         }
 
@@ -2042,6 +2046,11 @@
                     alert('⚠️ No se puede continuar. Esta OT está bloqueada por exceder el plazo de 5 días.');
                     return false;
                 }
+                const btnNext1 = document.getElementById('btn-next-step-1');
+                if (btnNext1 && btnNext1.disabled) {
+                    alert('⚠️ No se puede continuar. Esta OT está bloqueada por exceder el plazo de 5 días.');
+                    return false;
+                }
             }
 
             if (step === 2) {
@@ -2179,14 +2188,13 @@
         function goToStep(step) {
             if (step < 1 || step > 6) return;
             
-            // Validar bloqueo o campos incompletos si se intenta avanzar a cualquier sección posterior
             if (step > currentStep) {
                 const blockedAlert = document.getElementById('blocked-ot-alert');
-                if (blockedAlert && !blockedAlert.classList.contains('hidden')) {
+                const btnNext1 = document.getElementById('btn-next-step-1');
+                if ((blockedAlert && !blockedAlert.classList.contains('hidden')) || (btnNext1 && btnNext1.disabled)) {
                     alert('⚠️ No se puede avanzar. Esta OT está bloqueada.');
                     return;
                 }
-                // Validar paso por paso desde el actual hasta el destino
                 for (let i = currentStep; i < step; i++) {
                     if (!validateCurrentStep(i)) return;
                 }
@@ -2342,7 +2350,7 @@
 
             localStorage.removeItem('pole_form_draft');
             updateSentPartsBadge();
-            updatePendientesCounterButton(); // Actualiza contador para que desaparezca de pendientes
+            updatePendientesCounterButton();
         }
 
         function updateSentPartsBadge() {
