@@ -2178,7 +2178,16 @@
 
         function goToStep(step) {
             if (step < 1 || step > 6) return;
-            if (step > currentStep && !validateCurrentStep(currentStep)) return;
+            
+            // Si intenta avanzar a una sección posterior y la actual no es válida o está bloqueada
+            if (step > currentStep) {
+                const blockedAlert = document.getElementById('blocked-ot-alert');
+                if (blockedAlert && !blockedAlert.classList.contains('hidden')) {
+                    alert('⚠️ No se puede avanzar. Esta OT está bloqueada.');
+                    return;
+                }
+                if (!validateCurrentStep(currentStep)) return;
+            }
 
             for (let i = 1; i <= 6; i++) {
                 document.getElementById(`step-${i}`).classList.add('hidden');
