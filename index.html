@@ -2179,14 +2179,17 @@
         function goToStep(step) {
             if (step < 1 || step > 6) return;
             
-            // Si intenta avanzar a una sección posterior y la actual no es válida o está bloqueada
+            // Validar bloqueo o campos incompletos si se intenta avanzar a cualquier sección posterior
             if (step > currentStep) {
                 const blockedAlert = document.getElementById('blocked-ot-alert');
                 if (blockedAlert && !blockedAlert.classList.contains('hidden')) {
                     alert('⚠️ No se puede avanzar. Esta OT está bloqueada.');
                     return;
                 }
-                if (!validateCurrentStep(currentStep)) return;
+                // Validar paso por paso desde el actual hasta el destino
+                for (let i = currentStep; i < step; i++) {
+                    if (!validateCurrentStep(i)) return;
+                }
             }
 
             for (let i = 1; i <= 6; i++) {
