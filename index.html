@@ -1326,7 +1326,6 @@
                 btnPegarOT.addEventListener('click', async () => {
                     try {
                         const text = await navigator.clipboard.readText();
-                        // Limpiar espacios al pegar
                         const cleanText = text.replace(/\s+/g, '');
                         inputOT.value = cleanText.trim();
                         handleOtInput(inputOT);
@@ -1474,7 +1473,6 @@
         }
 
         function handleOtInput(inputEl) {
-            // Eliminar espacios automáticamente mientras escribe o pega
             if (inputEl.value.includes(' ')) {
                 inputEl.value = inputEl.value.replace(/\s+/g, '');
             }
@@ -1501,23 +1499,19 @@
             }
         }
 
-        // FUNCIÓN PARA INTERCEPTAR EL AVANCE DEL PASO 1 Y MOSTRAR MODAL DE VERIFICACIÓN OT
         async function intentarAvanzarDesdeStep1() {
             const otInput = document.getElementById('nOt');
             const otVal = otInput ? otInput.value.trim() : '';
 
-            // Validar campos obligatorios del paso 1 primero
             const isValidStep1 = await validateCurrentStep(1);
             if (!isValidStep1) return;
 
-            // Validar condiciones de la OT: sin espacios y exactamente 24 caracteres
             if (otVal.includes(' ') || otVal.length !== 24) {
                 alert('⚠️ El número de OT debe tener exactamente 24 caracteres y NO puede contener espacios.');
                 otInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/30');
                 return;
             }
 
-            // Mostrar modal de verificación de la OT antes de avanzar
             document.getElementById('verify-ot-display').innerText = otVal;
             document.getElementById('ot-verify-modal').classList.remove('hidden');
         }
@@ -1530,7 +1524,6 @@
 
         async function confirmarOtYContinuar() {
             document.getElementById('ot-verify-modal').classList.add('hidden');
-            // Avanzar al paso 2
             await nextStep(2);
         }
 
@@ -2217,3 +2210,67 @@
             const step1Valid = await validateCurrentStep(1);
             if (!step1Valid) return;
             const step6Valid = await validateCurrentStep(6);
+            if (!step6Valid) return;
+
+            const firma = document.getElementById('firmaData').value;
+            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitIcon = document.getElementById('submit-icon');
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            submitIcon.className = 'fa-solid fa-spinner fa-spin';
+            submitText.innerText = 'Enviando parte y guardando...';
+
+            try {
+                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
+                
+                const formElement = document.getElementById('pole-form');
+                const allFormData = new FormData(formElement);
+                const payloadFormData = {};
+                allFormData.forEach((val, key) => { payloadFormData[key] = val; });
+
+                payloadFormData['croquisPoints'] = croquisPoints;
+                payloadFormData['observaciones'] = document.getElementById('observaciones').value;
+                payloadFormData['escalera_geolocalizacion'] = document.getElementById('escaleraGeoInfo').value;
+                payloadFormData['desglloseEditableInput'] = document.getElementById('desglloseEditableInput').value;
+
+                const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
+
+                await sendPayloadToEmailJS(payloadObj);
+                await guardarParteEnSupabase(nOt, payloadFormData);
+
+                localStorage.removeItem('pole_form_draft');
+                await initSentOtCache();
+                await updateSentPartsBadge();
+                updatePendientesCounterButton();
+
+                document.getElementById('modal-ot').innerText = nOt;
+                document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
+                document.getElementById('success-modal').classList.remove('hidden');
+
+            } catch (err) {
+                alert('Error al procesar el envío: ' + (err.text || err.message));
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                submitIcon.className = 'fa-solid fa-paper-plane';
+                submitText.innerText = 'Finalizar y Enviar';
+            }
+        }
+
+        function resetFormAndCloseModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('pole-form').reset();
+            clearCroquisMap();
+            clearSignatureCanvas();
+            localStorage.removeItem('pole_form_draft');
+            updateSentPartsBadge();
+            updatePendientesCounterButton();
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
