@@ -64,7 +64,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal, #ot-verify-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -198,7 +198,7 @@
                     <div class="space-y-1.5 md:col-span-2">
                         <label for="nOt" class="block text-xs font-medium text-slate-300">Nº OT <span class="text-rose-500">*</span></label>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-179249036481" maxlength="24" minlength="24" oninput="handleOtInput(this.value)" class="flex-grow bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none min-w-[200px]">
+                            <input type="text" id="nOt" name="nOt" required placeholder="ej. in-4776939-179249036481" maxlength="24" minlength="24" oninput="handleOtInput(this)" class="flex-grow bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none min-w-[200px]">
                             
                             <button type="button" id="btnPegarOT" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition shrink-0 flex items-center gap-1.5" title="Pegar OT desde el portapapeles">
                                 <i class="fa-solid fa-paste"></i> Pegar
@@ -208,7 +208,7 @@
                                 <i class="fa-solid fa-list-check"></i> <span id="label-pendientes-btn">Pendientes (0)</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Comprobación instantánea en caché local. Longitud requerida: 24 caracteres.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Exactamente 24 caracteres sin espacios permitidos.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -253,7 +253,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end pt-3 border-t border-slate-800">
-                    <button type="button" id="btn-next-step-1" onclick="nextStep(2)" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" id="btn-next-step-1" onclick="intentarAvanzarDesdeStep1()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl text-sm transition text-center">Siguiente: Personal <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -641,6 +641,27 @@
         </form>
     </main>
 
+    <!-- MODAL DE VERIFICACIÓN DE OT -->
+    <div id="ot-verify-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-12 h-12 bg-purple-950 border border-purple-500/40 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
+                <i class="fa-solid fa-clipboard-question"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">Compruebe la OT</h3>
+            <p class="text-xs text-slate-300">Por favor, verifique que el número de orden de trabajo introducido es correcto:</p>
+            
+            <div class="bg-slate-950 border border-purple-900 rounded-xl p-3 font-mono text-sm text-brand-300 tracking-wider" id="verify-ot-display">
+                -
+            </div>
+            <p class="text-[10px] text-slate-400">Condiciones: Exactamente 24 caracteres sin espacios.</p>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="cerrarOtVerifyModal()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs transition">Editar OT</button>
+                <button type="button" onclick="confirmarOtYContinuar()" class="py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition">Es correcta, continuar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SELECCIÓN DE CONTRATA -->
     <div id="contrata-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
@@ -666,7 +687,7 @@
                 <i class="fa-solid fa-lock"></i>
             </div>
             <h3 class="text-base font-bold text-white">Acceso Privado: <span id="modal-target-contrata" class="text-purple-400 uppercase"></span></h3>
-            <p class="text-xs text-slate-400">Introduce la contraseña exclusiva para acceder a los datos de esta contrata.</p>
+            <p class="text-xs text-slate-400">Introduce la contraseña exclusiva para acceder los datos de esta contrata.</p>
             
             <div class="space-y-3 pt-1">
                 <input type="password" id="input-contrata-pass" placeholder="Contraseña de contrata..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
@@ -1070,7 +1091,7 @@
             const inputOT = document.getElementById('nOt');
             if (inputOT) {
                 inputOT.value = nOt;
-                handleOtInput(nOt);
+                handleOtInput(inputOT);
                 saveFormDraft();
             }
         }
@@ -1305,8 +1326,10 @@
                 btnPegarOT.addEventListener('click', async () => {
                     try {
                         const text = await navigator.clipboard.readText();
-                        inputOT.value = text.trim();
-                        handleOtInput(inputOT.value);
+                        // Limpiar espacios al pegar
+                        const cleanText = text.replace(/\s+/g, '');
+                        inputOT.value = cleanText.trim();
+                        handleOtInput(inputOT);
                         saveFormDraft();
                     } catch (err) { alert('Usa Ctrl+V para pegar.'); }
                 });
@@ -1442,7 +1465,7 @@
 
                     if (draft.data.nOt) {
                         checkOtBlockedAndSentInstant(draft.data.nOt);
-                        handleOtInput(draft.data.nOt);
+                        handleOtInput(document.getElementById('nOt'));
                     }
                 } else {
                     localStorage.removeItem('pole_form_draft');
@@ -1450,7 +1473,12 @@
             } catch (e) {}
         }
 
-        function handleOtInput(val) {
+        function handleOtInput(inputEl) {
+            // Eliminar espacios automáticamente mientras escribe o pega
+            if (inputEl.value.includes(' ')) {
+                inputEl.value = inputEl.value.replace(/\s+/g, '');
+            }
+            const val = inputEl.value;
             const cleanVal = val ? String(val).trim().toLowerCase() : '';
             checkOtBlockedAndSentInstant(val);
 
@@ -1471,6 +1499,39 @@
                 if (radioAv) radioAv.checked = true;
                 estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
             }
+        }
+
+        // FUNCIÓN PARA INTERCEPTAR EL AVANCE DEL PASO 1 Y MOSTRAR MODAL DE VERIFICACIÓN OT
+        async function intentarAvanzarDesdeStep1() {
+            const otInput = document.getElementById('nOt');
+            const otVal = otInput ? otInput.value.trim() : '';
+
+            // Validar campos obligatorios del paso 1 primero
+            const isValidStep1 = await validateCurrentStep(1);
+            if (!isValidStep1) return;
+
+            // Validar condiciones de la OT: sin espacios y exactamente 24 caracteres
+            if (otVal.includes(' ') || otVal.length !== 24) {
+                alert('⚠️ El número de OT debe tener exactamente 24 caracteres y NO puede contener espacios.');
+                otInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/30');
+                return;
+            }
+
+            // Mostrar modal de verificación de la OT antes de avanzar
+            document.getElementById('verify-ot-display').innerText = otVal;
+            document.getElementById('ot-verify-modal').classList.remove('hidden');
+        }
+
+        function cerrarOtVerifyModal() {
+            document.getElementById('ot-verify-modal').classList.add('hidden');
+            const otInput = document.getElementById('nOt');
+            if (otInput) otInput.focus();
+        }
+
+        async function confirmarOtYContinuar() {
+            document.getElementById('ot-verify-modal').classList.add('hidden');
+            // Avanzar al paso 2
+            await nextStep(2);
         }
 
         function cerrarAlertaDuplicada() {
@@ -2156,67 +2217,3 @@
             const step1Valid = await validateCurrentStep(1);
             if (!step1Valid) return;
             const step6Valid = await validateCurrentStep(6);
-            if (!step6Valid) return;
-
-            const firma = document.getElementById('firmaData').value;
-            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
-
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const submitIcon = document.getElementById('submit-icon');
-
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            submitIcon.className = 'fa-solid fa-spinner fa-spin';
-            submitText.innerText = 'Enviando parte y guardando...';
-
-            try {
-                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
-                
-                const formElement = document.getElementById('pole-form');
-                const allFormData = new FormData(formElement);
-                const payloadFormData = {};
-                allFormData.forEach((val, key) => { payloadFormData[key] = val; });
-
-                payloadFormData['croquisPoints'] = croquisPoints;
-                payloadFormData['observaciones'] = document.getElementById('observaciones').value;
-                payloadFormData['escalera_geolocalizacion'] = document.getElementById('escaleraGeoInfo').value;
-                payloadFormData['desglloseEditableInput'] = document.getElementById('desglloseEditableInput').value;
-
-                const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
-
-                await sendPayloadToEmailJS(payloadObj);
-                await guardarParteEnSupabase(nOt, payloadFormData);
-
-                localStorage.removeItem('pole_form_draft');
-                await initSentOtCache();
-                await updateSentPartsBadge();
-                updatePendientesCounterButton();
-
-                document.getElementById('modal-ot').innerText = nOt;
-                document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
-                document.getElementById('success-modal').classList.remove('hidden');
-
-            } catch (err) {
-                alert('Error al procesar el envío: ' + (err.text || err.message));
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                submitIcon.className = 'fa-solid fa-paper-plane';
-                submitText.innerText = 'Finalizar y Enviar';
-            }
-        }
-
-        function resetFormAndCloseModal() {
-            document.getElementById('success-modal').classList.add('hidden');
-            document.getElementById('pole-form').reset();
-            clearCroquisMap();
-            clearSignatureCanvas();
-            localStorage.removeItem('pole_form_draft');
-            updateSentPartsBadge();
-            updatePendientesCounterButton();
-            goToStep(1);
-        }
-    </script>
-</body>
-</html>
