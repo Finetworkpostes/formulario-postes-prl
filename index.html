@@ -890,7 +890,7 @@
             return null;
         }
 
- async function updateSentPartsBadge() {
+async function updateSentPartsBadge() {
             const countSpan = document.getElementById('sent-parts-count');
             if (!countSpan) return;
 
@@ -901,13 +901,23 @@
                     return;
                 }
 
-                const { count, error } = await supabaseClient
-                    .from('partes_actuacion')
-                    .select('*', { count: 'exact', head: true })
-                    .ilike('contrata', contrataActiva.trim());
+                const limpiaContrata = contrataActiva.trim();
 
-                if (!error && count !== null) {
-                    countSpan.innerText = count;
+                // Consultamos a Supabase buscando ambas variantes (con guion y sin guion) para asegurar el conteo
+                const { data, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('n_ot, contrata');
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Filtramos localmente para contar con total precisión sin importar el guion
+                    const filtrados = data.filter(item => {
+                        const c = (item.contrata || '').replace('-', '').trim().toUpperCase();
+                        return c === limpiaContrata.toUpperCase();
+                    });
+
+                    countSpan.innerText = filtrados.length;
                 } else {
                     countSpan.innerText = '0';
                 }
