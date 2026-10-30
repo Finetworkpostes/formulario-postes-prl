@@ -160,7 +160,7 @@
                 <button type="button" onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">3. Poste</button>
                 <button type="button" onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">4. Checklists & EPIs</button>
                 <button type="button" onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">5. Croquis & Fotos</button>
-                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Confirmación & Firma</button>
+                <button type="button" onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-4 py-2 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 border border-transparent text-slate-400 transition">6. Confirmación & Edición</button>
             </nav>
         </div>
 
@@ -207,7 +207,7 @@
                                 <i class="fa-solid fa-list-check"></i> <span id="label-pendientes-btn">Pendientes (0)</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1">Longitud exacta requerida (24 caracteres). Autodetecta instalación/avería, fecha y comprueba bloqueos o duplicidad.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Comprobación instantánea en caché local. Longitud requerida: 24 caracteres.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label for="contrataPrincipal" class="block text-xs font-medium text-slate-300">Contrata Principal <span class="text-rose-500">*</span></label>
@@ -582,42 +582,59 @@
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Edición <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
-            <!-- SECCIÓN 6: CONFIRMACIÓN Y FIRMA -->
+            <!-- SECCIÓN 6: CONFIRMACIÓN Y EDICIÓN -->
             <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <span>Sección 6: Resumen, Desglose Editable y Firma</span>
-                    <span class="text-xs font-normal text-slate-400">Verifique y edite si es necesario</span>
+                    <span>Sección 6: Resumen, Edición de Datos y Firma</span>
+                    <span class="text-xs font-normal text-purple-400">✏️ Puedes modificar cualquier campo aquí antes de enviar</span>
                 </h2>
 
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check text-brand-400"></i>
-                            Desglose de Ubicaciones (Editable)
+                            <i class="fa-solid fa-pen-to-square text-brand-400"></i>
+                            Panel de Revisión y Edición Rápida
                         </h3>
-                        <span class="text-[11px] text-purple-400 font-semibold">✏️ Puedes modificar los textos directamente abajo</span>
+                        <span class="text-[11px] text-slate-400">Modifica los campos necesarios</span>
                     </div>
                     
-                    <!-- CUADRO EDITABLE DEL DESGLOSE -->
-                    <div class="space-y-2">
-                        <label for="desglloseEditableInput" class="block text-xs font-medium text-slate-300">Texto generado para el correo y el resumen:</label>
-                        <textarea id="desglloseEditableInput" name="desglloseEditableInput" rows="4" class="w-full bg-slate-900 border border-purple-500/60 focus:border-purple-400 rounded-xl p-3 text-xs text-white font-mono outline-none shadow-md"></textarea>
-                        <p class="text-[10px] text-slate-400">Este texto se actualizará automáticamente con el mapa, pero puedes editarlo o corregir cualquier dirección libremente antes de enviar.</p>
+                    <!-- CAMPOS EDITABLES DE RESUMEN -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="space-y-1">
+                            <label class="block text-slate-300 font-semibold">Nº OT:</label>
+                            <input type="text" id="edit-ot" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-white font-mono outline-none" oninput="document.getElementById('nOt').value=this.value">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-slate-300 font-semibold">Técnico TEC1 (Nombre):</label>
+                            <input type="text" id="edit-tec1" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-white outline-none" oninput="document.getElementById('nombreTec1').value=this.value">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-slate-300 font-semibold">Recurso Preventivo (Nombre):</label>
+                            <input type="text" id="edit-recurso" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-white outline-none" oninput="document.getElementById('nombreRecursoPreventivo').value=this.value">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-slate-300 font-semibold">DNI Recurso Preventivo:</label>
+                            <input type="text" id="edit-dni" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-white uppercase outline-none" oninput="document.getElementById('dniRecurso').value=this.value">
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="block text-slate-300 font-semibold">Desglose de Ubicaciones / Trazado (Editable):</label>
+                            <textarea id="desglloseEditableInput" name="desglloseEditableInput" rows="4" class="w-full bg-slate-900 border border-purple-500/60 focus:border-purple-400 rounded-xl p-3 text-xs text-white font-mono outline-none shadow-md"></textarea>
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="block text-slate-300 font-semibold">Observaciones:</label>
+                            <textarea id="edit-obs" rows="2" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl p-3 text-white outline-none" oninput="document.getElementById('observaciones').value=this.value"></textarea>
+                        </div>
                     </div>
 
-                    <div id="summary-breakdown-container" class="space-y-4 text-xs pt-2 border-t border-slate-800"></div>
+                    <div id="summary-breakdown-container" class="space-y-3 text-xs pt-3 border-t border-slate-800"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     <div class="space-y-4">
-                        <div class="space-y-1.5">
-                            <label for="dniRecurso" class="block text-xs font-medium text-slate-300">DNI / NIE Recurso Preventivo <span class="text-rose-500">*</span></label>
-                            <input type="text" id="dniRecurso" name="dniRecurso" required placeholder="12345678X" class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none uppercase">
-                        </div>
                         <div class="bg-purple-950/30 border border-purple-800/40 rounded-xl p-3 text-xs text-purple-100">
                             <strong>Declaración Responsable:</strong> Certifico que las verificaciones registradas corresponden con la realidad de los trabajos en altura.
                         </div>
@@ -789,6 +806,9 @@
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
         let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
 
+        // CACHÉ LOCAL OCULTA DE OTs ENVIADAS (para validación instantánea sin llamadas lentas)
+        let sentOtCache = new Set();
+
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
             { "Contrata": "CIRCET", "Alias": "C002", "NombreCompleto": "Alberto Gómez Ruiz", "60HPRL": "NO CADUCA" },
@@ -829,6 +849,25 @@
             });
         }
 
+        // CARGAR CACHÉ LOCAL DE OTs ENVIADAS AL INICIO
+        async function initSentOtCache() {
+            try {
+                const { data, error } = await supabaseClient.from('partes_actuacion').select('n_ot, created_at');
+                if (error) throw error;
+                if (data) {
+                    sentOtCache.clear();
+                    window.sentOtDetailsMap = {};
+                    data.forEach(item => {
+                        if (item.n_ot) {
+                            const key = item.n_ot.trim().toLowerCase();
+                            sentOtCache.add(key);
+                            window.sentOtDetailsMap[key] = item.created_at;
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+
         async function fetchOTsPendientes() {
             try {
                 const res = await fetch('instalaciones.json?v=' + new Date().getTime());
@@ -837,24 +876,80 @@
                     updatePendientesCounterButton();
                     const otInput = document.getElementById('nOt');
                     if (otInput && otInput.value) {
-                        await checkOtBlockedAndSent(otInput.value);
+                        checkOtBlockedAndSentInstant(otInput.value);
                     }
                 }
             } catch (e) {}
         }
 
-        async function checkIfOtAlreadySentInSupabase(nOt) {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('partes_actuacion')
-                    .select('n_ot, created_at')
-                    .ilike('n_ot', nOt.trim())
-                    .limit(1);
+        // COMPROBACIÓN INSTANTÁNEA USANDO LA CACHÉ LOCAL
+        function checkOtBlockedAndSentInstant(otVal) {
+            const cleanOt = otVal ? otVal.trim().toLowerCase() : '';
+            const duplicateAlert = document.getElementById('duplicate-ot-alert');
+            const blockedAlert = document.getElementById('blocked-ot-alert');
+            const dateSpan = document.getElementById('duplicate-date');
+            const btnNext1 = document.getElementById('btn-next-step-1');
+            
+            if (!cleanOt) {
+                if (duplicateAlert) duplicateAlert.classList.add('hidden');
+                if (blockedAlert) blockedAlert.classList.add('hidden');
+                if (btnNext1) { btnNext1.disabled = false; btnNext1.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                return false;
+            }
 
-                if (error) throw error;
-                if (data && data.length > 0) return data[0];
-            } catch (e) {}
-            return null;
+            // Comprobación instantánea con la caché local
+            if (sentOtCache.has(cleanOt)) {
+                if (duplicateAlert) {
+                    duplicateAlert.classList.remove('hidden');
+                    const createdAt = window.sentOtDetailsMap && window.sentOtDetailsMap[cleanOt];
+                    if (dateSpan) dateSpan.innerText = createdAt ? new Date(createdAt).toLocaleString() : 'Fecha anterior';
+                }
+                if (blockedAlert) blockedAlert.classList.add('hidden');
+                if (btnNext1) {
+                    btnNext1.disabled = true;
+                    btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                return true;
+            } else if (duplicateAlert) {
+                duplicateAlert.classList.add('hidden');
+            }
+
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
+            if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
+                const encontrada = pendingOTsFromJSON[contrataActiva].find(item => {
+                    const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
+                    return itemOt === cleanOt;
+                });
+
+                if (encontrada) {
+                    const fechaStr = encontrada.fechaInstalacion || encontrada.fecha || encontrada.Fecha || '';
+                    if (fechaStr) {
+                        const fechaInst = new Date(fechaStr);
+                        fechaInst.setHours(0,0,0,0);
+                        const hoy = new Date();
+                        hoy.setHours(0,0,0,0);
+
+                        const diffTime = hoy.getTime() - fechaInst.getTime();
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays > 5) {
+                            if (blockedAlert) blockedAlert.classList.remove('hidden');
+                            if (btnNext1) {
+                                btnNext1.disabled = true;
+                                btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if (blockedAlert) blockedAlert.classList.add('hidden');
+            if (btnNext1) {
+                btnNext1.disabled = false;
+                btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            return false;
         }
 
         async function updateSentPartsBadge() {
@@ -900,16 +995,13 @@
             }
 
             try {
-                const { data: sentParts } = await supabaseClient.from('partes_actuacion').select('n_ot');
-                const sentOtSet = new Set((sentParts || []).map(item => (item.n_ot || '').trim().toLowerCase()));
-
                 const hoy = new Date();
                 hoy.setHours(0,0,0,0);
 
                 let countInPeriod = 0;
                 pendingOTsFromJSON[contrataActiva].forEach(item => {
                     const nOt = item.nOt || item.OT || item.ot || '';
-                    if (sentOtSet.has(nOt.trim().toLowerCase())) return;
+                    if (sentOtCache.has(nOt.trim().toLowerCase())) return;
 
                     const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
                     if (!fechaStr) return;
@@ -946,15 +1038,9 @@
                 otsToShow = pendingOTsFromJSON[contrataActiva];
             }
 
-            let sentOtSet = new Set();
-            try {
-                const { data: sentParts } = await supabaseClient.from('partes_actuacion').select('n_ot');
-                sentOtSet = new Set((sentParts || []).map(item => (item.n_ot || '').trim().toLowerCase()));
-            } catch (e) {}
-
             otsToShow = otsToShow.filter(item => {
                 const nOt = item.nOt || item.OT || item.ot || '';
-                return !sentOtSet.has(nOt.trim().toLowerCase());
+                return !sentOtCache.has(nOt.trim().toLowerCase());
             });
 
             if (otsToShow.length === 0) {
@@ -1201,6 +1287,7 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             initSignatureCanvas();
+            await initSentOtCache();
             await cargarListaUsuarios();
             await fetchOTsPendientes();
             await updateSentPartsBadge();
@@ -1242,7 +1329,7 @@
                     try {
                         const text = await navigator.clipboard.readText();
                         inputOT.value = text.trim();
-                        await handleOtInput(inputOT.value);
+                        handleOtInput(inputOT.value);
                         saveFormDraft();
                     } catch (err) { alert('Usa Ctrl+V para pegar.'); }
                 });
@@ -1377,7 +1464,7 @@
                     }
 
                     if (draft.data.nOt) {
-                        checkOtBlockedAndSent(draft.data.nOt);
+                        checkOtBlockedAndSentInstant(draft.data.nOt);
                         handleOtInput(draft.data.nOt);
                     }
                 } else {
@@ -1386,85 +1473,9 @@
             } catch (e) {}
         }
 
-        async function checkOtBlockedAndSent(otVal) {
-            const cleanOt = otVal ? otVal.trim().toLowerCase() : '';
-            const duplicateAlert = document.getElementById('duplicate-ot-alert');
-            const blockedAlert = document.getElementById('blocked-ot-alert');
-            const dateSpan = document.getElementById('duplicate-date');
-            const btnNext1 = document.getElementById('btn-next-step-1');
-            
-            if (!cleanOt) {
-                if (duplicateAlert) duplicateAlert.classList.add('hidden');
-                if (blockedAlert) blockedAlert.classList.add('hidden');
-                if (btnNext1) { btnNext1.disabled = false; btnNext1.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                return false;
-            }
-
-            const existingPart = await checkIfOtAlreadySentInSupabase(cleanOt);
-            if (existingPart) {
-                if (duplicateAlert) {
-                    duplicateAlert.classList.remove('hidden');
-                    if (dateSpan) dateSpan.innerText = new Date(existingPart.created_at).toLocaleString();
-                }
-                if (blockedAlert) blockedAlert.classList.add('hidden');
-                if (btnNext1) {
-                    btnNext1.disabled = true;
-                    btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-                return true;
-            } else if (duplicateAlert) {
-                duplicateAlert.classList.add('hidden');
-            }
-
-            const contrataActiva = document.getElementById('contrataPrincipal').value;
-            if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
-                const encontrada = pendingOTsFromJSON[contrataActiva].find(item => {
-                    const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
-                    return itemOt === cleanOt;
-                });
-
-                if (encontrada) {
-                    const fechaStr = encontrada.fechaInstalacion || encontrada.fecha || encontrada.Fecha || '';
-                    if (fechaStr) {
-                        const fechaInst = new Date(fechaStr);
-                        fechaInst.setHours(0,0,0,0);
-                        const hoy = new Date();
-                        hoy.setHours(0,0,0,0);
-
-                        const diffTime = hoy.getTime() - fechaInst.getTime();
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                        if (diffDays > 5) {
-                            if (blockedAlert) blockedAlert.classList.remove('hidden');
-                            if (btnNext1) {
-                                btnNext1.disabled = true;
-                                btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
-                            }
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            if (blockedAlert) blockedAlert.classList.add('hidden');
-            if (btnNext1) {
-                btnNext1.disabled = false;
-                btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-            return false;
-        }
-
-        function cerrarAlertaDuplicada() {
-            document.getElementById('duplicate-ot-alert').classList.add('hidden');
-        }
-
-        function cerrarAlertaBloqueo() {
-            document.getElementById('blocked-ot-alert').classList.add('hidden');
-        }
-
-        async function handleOtInput(val) {
-            const cleanVal = val.trim().toLowerCase();
-            await checkOtBlockedAndSent(val);
+        function handleOtInput(val) {
+            const cleanVal = val ? val.trim().toLowerCase() : '';
+            checkOtBlockedAndSentInstant(val);
 
             const fechaHoraInput = document.getElementById('fechaHora');
             if (fechaHoraInput && !fechaHoraInput.value) {
@@ -1483,6 +1494,14 @@
                 if (radioAv) radioAv.checked = true;
                 estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
             }
+        }
+
+        function cerrarAlertaDuplicada() {
+            document.getElementById('duplicate-ot-alert').classList.add('hidden');
+        }
+
+        function cerrarAlertaBloqueo() {
+            document.getElementById('blocked-ot-alert').classList.add('hidden');
         }
 
         async function cargarListaUsuarios() {
@@ -1718,7 +1737,6 @@
         function updateCroquisSummary() {
             document.getElementById('cantidadPostes').value = Math.max(0, croquisPoints.length - 2);
             
-            // Generar texto editable automático para el textarea de desglose
             let lineas = [];
             if (croquisPoints.length > 0) {
                 croquisPoints.forEach((p, idx) => {
@@ -1735,14 +1753,15 @@
             }
 
             const listContainer = document.getElementById('croquis-points-breakdown');
+            if (!listContainer) return;
             if (croquisPoints.length === 0) {
                 listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>`;
                 return;
             }
             listContainer.innerHTML = `
-                <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2">
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
                     ${croquisPoints.map((p, idx) => `
-                        <div class="border rounded-xl p-2 bg-slate-800/60 border-slate-700 flex justify-between items-center text-xs">
+                        <div class="border rounded-xl p-2 bg-slate-900 border-slate-800 flex justify-between items-center text-xs">
                             <div><strong class="text-purple-300">${p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`)}:</strong> <span class="text-slate-200">${p.address}</span></div>
                             <div class="text-[10px] text-slate-400 font-mono">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
                         </div>`).join('')}
@@ -1831,7 +1850,7 @@
             if (step === 1) {
                 const otInputVal = document.getElementById('nOt').value;
                 if (otInputVal) {
-                    const isBlockedOrSent = await checkOtBlockedAndSent(otInputVal);
+                    const isBlockedOrSent = checkOtBlockedAndSentInstant(otInputVal);
                     if (isBlockedOrSent) {
                         alert('⚠️ Esta OT está bloqueada o ya fue enviada.');
                         return false;
@@ -1845,7 +1864,13 @@
             return valid;
         }
 
-        function renderReviewSummary() {
+        function populateStep6Inputs() {
+            document.getElementById('edit-ot').value = document.getElementById('nOt').value || '';
+            document.getElementById('edit-tec1').value = document.getElementById('nombreTec1').value || '';
+            document.getElementById('edit-recurso').value = document.getElementById('nombreRecursoPreventivo').value || '';
+            document.getElementById('edit-dni').value = document.getElementById('dniRecurso').value || '';
+            document.getElementById('edit-obs').value = document.getElementById('observaciones').value || '';
+
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
 
@@ -1854,44 +1879,24 @@
             const estadoInfra = formElement.querySelector('input[name="estado"]:checked')?.value || '-';
             const tipoPoste = formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-';
             const aptoEscalera = formElement.querySelector('input[name="sePuede"]:checked')?.value || '-';
-
             const ladderChecks = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
             const epis = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
-            const medidasMadera = Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'N/A';
-
             const geoEscaleraTexto = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización de escalera';
-            const textoDesgloseActual = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
 
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">1. Datos OT y Personal</div>
-                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-mono">${document.getElementById('nOt').value || '-'}</span></div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <div class="font-bold text-purple-300">Datos Fijos Registrados:</div>
                         <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${document.getElementById('contrataPrincipal').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${document.getElementById('fechaHora').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Tipo:</strong> <span class="text-emerald-400 font-bold">${tipoAct}</span> | <strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
-                        <div><strong class="text-slate-400">Técnico TEC1:</strong> <span class="text-slate-200">${document.getElementById('nombreTec1').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Recurso Preventivo:</strong> <span class="text-slate-200">${document.getElementById('nombreRecursoPreventivo').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">DNI Recurso:</strong> <span class="text-white font-mono">${document.getElementById('dniRecurso').value || 'Pendiente de rellenar'}</span></div>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
-                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">2. Evaluación del Poste</div>
+                        <div><strong class="text-slate-400">Tipo:</strong> <span class="text-emerald-400 font-bold">${tipoAct}</span> | <strong class="text-slate-400">Infra:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
                         <div><strong class="text-slate-400">Material Poste:</strong> <span class="text-white">${tipoPoste}</span></div>
-                        <div><strong class="text-slate-400">Estado Global:</strong> <span class="text-slate-200">${document.getElementById('estadoPoste').value || '-'}</span></div>
-                        <div><strong class="text-slate-400">Método Subir:</strong> <span class="text-slate-200">${document.getElementById('paraSubir').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Estado Poste:</strong> <span class="text-slate-200">${document.getElementById('estadoPoste').value || '-'}</span></div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
+                        <div class="font-bold text-purple-300">Seguridad & Ubicación:</div>
                         <div><strong class="text-slate-400">¿Apto Escalera?:</strong> <span class="text-emerald-400 font-bold">${aptoEscalera}</span></div>
                         <div><strong class="text-slate-400">Total Postes:</strong> <span class="text-emerald-400">${document.getElementById('cantidadPostes').value || '0'} postes</span> | <strong class="text-slate-400">Metros:</strong> <span class="text-emerald-400">${calculateTotalMeters()}m</span></div>
-                        ${tipoPoste === 'POSTE DE MADERA' ? `<div><strong class="text-slate-400">Medidas Madera:</strong> <span class="text-slate-300">${medidasMadera}</span></div>` : ''}
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2">
-                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">3. Checklists, EPIs y Ubicaciones</div>
-                        <div><strong class="text-slate-400">Check Escalera:</strong> <span class="text-slate-300">${ladderChecks}</span></div>
-                        <div><strong class="text-slate-400">EPIs Utilizados:</strong> <span class="text-slate-300">${epis}</span></div>
-                        <div><strong class="text-slate-400">Desglose a enviar:</strong> <pre class="text-brand-300 font-mono whitespace-pre-wrap mt-1">${textoDesgloseActual}</pre></div>
-                        <div><strong class="text-slate-400">Geolocalización Escalera:</strong> <span class="text-amber-300 font-mono">${geoEscaleraTexto}</span></div>
-                        <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300">${document.getElementById('observaciones').value || 'Ninguna'}</span></div>
+                        <div><strong class="text-slate-400">Geolocalización Escalera:</strong> <span class="text-amber-300 font-mono text-[10px]">${geoEscaleraTexto}</span></div>
                     </div>
                 </div>`;
         }
@@ -1915,7 +1920,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (step === 5) setTimeout(initCroquisMap, 150);
-            if (step === 6) { renderReviewSummary(); setTimeout(resizeCanvas, 100); }
+            if (step === 6) { populateStep6Inputs(); setTimeout(resizeCanvas, 100); }
         }
 
         function nextStep(s) { goToStep(s); }
@@ -2013,6 +2018,9 @@
                     datos_completos: { ...datosFormulario, contrataPrincipal: contrataActivaReal }
                 }]);
                 if (error) throw error;
+
+                // Actualizar caché local
+                sentOtCache.add(nOt.trim().toLowerCase());
                 return true;
             } catch (err) {
                 console.error("Error guardando en Supabase:", err);
@@ -2091,7 +2099,6 @@
             let croquisMiniatura = uploadedFiles['file-croquis'] || '';
             let escaleraMiniatura = uploadedFiles['file-escalera'] || '';
 
-            // Convertir saltos de línea del textarea editable a <br> para que EmailJS los pinte en formato HTML perfecto
             const desgloseCrudo = document.getElementById('desglloseEditableInput').value || 'Sin trazado registrado';
             const trazadoEmailHTML = desgloseCrudo.replace(/\n/g, '<br>');
 
@@ -2139,8 +2146,7 @@
             e.preventDefault();
             const nOt = document.getElementById('nOt').value || 'Sin_OT';
 
-            const isAlreadySent = await checkIfOtAlreadySentInSupabase(nOt);
-            if (isAlreadySent) {
+            if (sentOtCache.has(nOt.trim().toLowerCase())) {
                 alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
                 goToStep(1);
                 return;
