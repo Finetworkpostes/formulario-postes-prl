@@ -785,6 +785,7 @@
 
         // CACHÉ LOCAL OCULTA DE OTs ENVIADAS (para validación instantánea sin llamadas lentas)
         let sentOtCache = new Set();
+        window.sentOtDetailsMap = {};
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
@@ -836,7 +837,7 @@
                     window.sentOtDetailsMap = {};
                     data.forEach(item => {
                         if (item.n_ot) {
-                            const key = item.n_ot.trim().toLowerCase();
+                            const key = String(item.n_ot).trim().toLowerCase();
                             sentOtCache.add(key);
                             window.sentOtDetailsMap[key] = item.created_at;
                         }
@@ -861,7 +862,7 @@
 
         // COMPROBACIÓN INSTANTÁNEA USANDO LA CACHÉ LOCAL
         function checkOtBlockedAndSentInstant(otVal) {
-            const cleanOt = otVal ? otVal.trim().toLowerCase() : '';
+            const cleanOt = otVal ? String(otVal).trim().toLowerCase() : '';
             const duplicateAlert = document.getElementById('duplicate-ot-alert');
             const blockedAlert = document.getElementById('blocked-ot-alert');
             const dateSpan = document.getElementById('duplicate-date');
@@ -893,7 +894,7 @@
             const contrataActiva = document.getElementById('contrataPrincipal').value;
             if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
                 const encontrada = pendingOTsFromJSON[contrataActiva].find(item => {
-                    const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
+                    const itemOt = String(item.nOt || item.OT || item.ot || '').trim().toLowerCase();
                     return itemOt === cleanOt;
                 });
 
@@ -976,7 +977,7 @@
 
                 let countInPeriod = 0;
                 pendingOTsFromJSON[contrataActiva].forEach(item => {
-                    const nOt = item.nOt || item.OT || item.ot || '';
+                    const nOt = String(item.nOt || item.OT || item.ot || '');
                     if (sentOtCache.has(nOt.trim().toLowerCase())) return;
 
                     const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
@@ -1015,7 +1016,7 @@
             }
 
             otsToShow = otsToShow.filter(item => {
-                const nOt = item.nOt || item.OT || item.ot || '';
+                const nOt = String(item.nOt || item.OT || item.ot || '');
                 return !sentOtCache.has(nOt.trim().toLowerCase());
             });
 
@@ -1029,7 +1030,7 @@
 
             let html = '';
             otsToShow.forEach(item => {
-                const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
+                const nOt = String(item.nOt || item.OT || item.ot || 'Desconocida');
                 const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
                 if (!fechaStr) return;
 
@@ -1450,7 +1451,7 @@
         }
 
         function handleOtInput(val) {
-            const cleanVal = val ? val.trim().toLowerCase() : '';
+            const cleanVal = val ? String(val).trim().toLowerCase() : '';
             checkOtBlockedAndSentInstant(val);
 
             const fechaHoraInput = document.getElementById('fechaHora');
@@ -2008,7 +2009,7 @@
                 }]);
                 if (error) throw error;
 
-                sentOtCache.add(nOt.trim().toLowerCase());
+                sentOtCache.add(String(nOt).trim().toLowerCase());
                 return true;
             } catch (err) {
                 console.error("Error guardando en Supabase:", err);
@@ -2134,7 +2135,8 @@
             e.preventDefault();
             const nOt = document.getElementById('nOt').value || 'Sin_OT';
 
-            if (sentOtCache.has(nOt.trim().toLowerCase())) {
+            // Comprobación de seguridad robusta al enviar
+            if (sentOtCache.has(String(nOt).trim().toLowerCase())) {
                 alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
                 goToStep(1);
                 return;
@@ -2176,6 +2178,7 @@
                 await guardarParteEnSupabase(nOt, payloadFormData);
 
                 localStorage.removeItem('pole_form_draft');
+                await initSentOtCache(); // Refrescar caché de enviados
                 await updateSentPartsBadge();
                 updatePendientesCounterButton();
 
