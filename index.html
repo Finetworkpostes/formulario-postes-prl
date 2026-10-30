@@ -1814,15 +1814,27 @@
             const stepContainer = document.getElementById(`step-${step}`);
             if (!stepContainer) return true;
             let valid = true;
+            let missingFields = [];
+
             stepContainer.querySelectorAll('[required]').forEach(input => {
+                let isFieldValid = true;
                 if (input.type === 'radio') {
-                    if (!stepContainer.querySelector(`input[name="${input.name}"]:checked`)) valid = false;
+                    if (!stepContainer.querySelector(`input[name="${input.name}"]:checked`)) isFieldValid = false;
                 } else if (input.type === 'file') {
-                    if (!uploadedFiles[input.id] && input.files.length === 0) valid = false;
+                    if (!uploadedFiles[input.id] && input.files.length === 0) isFieldValid = false;
                 } else {
-                    if (!input.value || !input.value.trim()) valid = false;
+                    if (!input.value || !input.value.trim()) isFieldValid = false;
+                }
+
+                if (!isFieldValid) {
+                    valid = false;
+                    input.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/30');
+                    missingFields.push(input.name || input.id || 'Campo requerido');
+                } else {
+                    input.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500/30');
                 }
             });
+
             if (step === 1) {
                 const otInputVal = document.getElementById('nOt').value;
                 if (otInputVal) {
@@ -1833,10 +1845,16 @@
                     }
                 }
             }
+
             if (step === 5 && !uploadedFiles['file-croquis']) {
-                alert('⚠️ Debe capturar la foto del mapa.');
-                return false;
+                valid = false;
+                missingFields.push('Croquis de Mapa');
             }
+
+            if (!valid) {
+                alert(`⚠️ FALTAN DATOS OBLIGATORIOS\n\nPor favor, rellene todos los campos marcados con asterisco (*) antes de continuar al siguiente paso.`);
+            }
+
             return valid;
         }
 
@@ -2135,13 +2153,6 @@
             e.preventDefault();
             const nOt = document.getElementById('nOt').value || 'Sin_OT';
 
-            // Comprobación de seguridad robusta al enviar
-            if (sentOtCache.has(String(nOt).trim().toLowerCase())) {
-                alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
-                goToStep(1);
-                return;
-            }
-
             const step1Valid = await validateCurrentStep(1);
             if (!step1Valid) return;
             const step6Valid = await validateCurrentStep(6);
@@ -2178,7 +2189,7 @@
                 await guardarParteEnSupabase(nOt, payloadFormData);
 
                 localStorage.removeItem('pole_form_draft');
-                await initSentOtCache(); // Refrescar caché de enviados
+                await initSentOtCache();
                 await updateSentPartsBadge();
                 updatePendientesCounterButton();
 
