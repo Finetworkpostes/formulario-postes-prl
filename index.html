@@ -809,7 +809,6 @@
         let recognition = null;
         let isRecordingVoice = false;
 
-        // FUNCIÓN AUXILIAR DE COMPRESIÓN DE IMÁGENES (Para evitar superar los 50KB de EmailJS)
         async function compressImage(dataUrl, maxWidth = 500, quality = 0.5) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -1364,7 +1363,12 @@
                             if (id === 'file-croquis') {
                                 document.getElementById('preview-croquis').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa recuperado</div>`;
                             } else if (id === 'file-escalera') {
-                                document.getElementById('preview-escalera').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada</div>`;
+                                const geoTextSaved = document.getElementById('escaleraGeoInfo').value || 'Foto recuperada';
+                                document.getElementById('preview-escalera').innerHTML = `
+                                    <img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
+                                    <div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada</div>
+                                    <div class="text-[10px] text-purple-300 mt-1 font-mono bg-slate-900/80 p-1.5 rounded border border-purple-900/50"><i class="fa-solid fa-location-dot text-rose-400"></i> ${geoTextSaved}</div>
+                                `;
                             }
                         }
                     }
@@ -1610,7 +1614,7 @@
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
                         const geoData = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-                        escaleraGeoTextoGlobal = `Fotografía realizada en: ${geoData.address} el ${fechaHoraStr}`;
+                        escaleraGeoTextoGlobal = `Ubicación: ${geoData.address} (${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}) - ${fechaHoraStr}`;
                         document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
                         await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
                     },
@@ -1633,16 +1637,18 @@
                 reader.readAsDataURL(file);
             });
 
-            // COMPRESIÓN AGRESIVA PARA EVITAR SUPERAR LOS 50KB DE EMAILJS
             const compressedDataUrl = await compressImage(rawDataUrl, 450, 0.45);
 
             uploadedFiles[inputId] = compressedDataUrl;
             saveFormDraft();
 
             previewContainer.innerHTML = `
-                <div class="relative group">
+                <div class="space-y-2">
                     <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                    <div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto adjuntada y optimizada</div>
+                    <div class="text-[10px] text-emerald-400 font-semibold">✓ Foto adjuntada y optimizada</div>
+                    <div class="text-[10px] text-purple-300 font-mono bg-slate-900/90 p-2 rounded-lg border border-purple-900/50 text-left">
+                        <i class="fa-solid fa-location-dot text-rose-400 mr-1"></i> ${geoText}
+                    </div>
                 </div>`;
         }
 
@@ -1776,11 +1782,8 @@
             await new Promise(r => setTimeout(r, 600));
 
             try {
-                // Escala reducida a 0.7 para asegurar que el canvas no sea gigantesco
                 const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: true, scale: 0.7 });
                 const rawImgData = canvas.toDataURL('image/jpeg', 0.45);
-                
-                // Comprimir aún más la miniatura del mapa
                 const imgData = await compressImage(rawImgData, 450, 0.4);
 
                 uploadedFiles['file-croquis'] = imgData;
@@ -1830,20 +1833,58 @@
             return valid;
         }
 
+        // DESGLOSE COMPLETO EN LA SECCIÓN 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
 
+            const formElement = document.getElementById('pole-form');
+            const tipoAct = formElement.querySelector('input[name="tipo"]:checked')?.value || '-';
+            const estadoInfra = formElement.querySelector('input[name="estado"]:checked')?.value || '-';
+            const tipoPoste = formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-';
+            const aptoEscalera = formElement.querySelector('input[name="sePuede"]:checked')?.value || '-';
+
+            const ladderChecks = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
+            const epis = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
+            const medidasMadera = Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'N/A';
+
+            let puntosTextoBreve = [];
+            if (croquisPoints.length > 0) {
+                croquisPoints.forEach((p, idx) => {
+                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    puntosTextoBreve.push(`${label}: ${p.address}`);
+                });
+            }
+            const trazadoTexto = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' → ') : 'Sin puntos en el croquis';
+            const geoEscaleraTexto = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización de escalera';
+
             container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white">${document.getElementById('nOt').value}</span></div>
-                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${document.getElementById('contrataPrincipal').value}</span></div>
-                        <div><strong class="text-slate-400">Técnico TEC1:</strong> <span class="text-slate-200">${document.getElementById('nombreTec1').value}</span></div>
-                        <div><strong class="text-slate-400">Recurso Preventivo:</strong> <span class="text-slate-200">${document.getElementById('nombreRecursoPreventivo').value}</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">1. Datos OT y Personal</div>
+                        <div><strong class="text-slate-400">Nº OT:</strong> <span class="text-white font-mono">${document.getElementById('nOt').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Contrata:</strong> <span class="text-slate-200">${document.getElementById('contrataPrincipal').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Fecha/Hora:</strong> <span class="text-slate-200">${document.getElementById('fechaHora').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Tipo:</strong> <span class="text-emerald-400 font-bold">${tipoAct}</span> | <strong class="text-slate-400">Infraestructura:</strong> <span class="text-slate-200">${estadoInfra}</span></div>
+                        <div><strong class="text-slate-400">Técnico TEC1:</strong> <span class="text-slate-200">${document.getElementById('nombreTec1').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Recurso Preventivo:</strong> <span class="text-slate-200">${document.getElementById('nombreRecursoPreventivo').value || '-'}</span></div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                        <div><strong class="text-slate-400">Postes / Metros:</strong> <span class="text-emerald-400 font-bold">${document.getElementById('cantidadPostes').value} postes (${calculateTotalMeters()}m)</span></div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">2. Evaluación del Poste</div>
+                        <div><strong class="text-slate-400">Material Poste:</strong> <span class="text-white">${tipoPoste}</span></div>
+                        <div><strong class="text-slate-400">Estado Global:</strong> <span class="text-slate-200">${document.getElementById('estadoPoste').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">Método Subir:</strong> <span class="text-slate-200">${document.getElementById('paraSubir').value || '-'}</span></div>
+                        <div><strong class="text-slate-400">¿Apto Escalera?:</strong> <span class="text-emerald-400 font-bold">${aptoEscalera}</span></div>
+                        ${tipoPoste === 'POSTE DE MADERA' ? `<div><strong class="text-slate-400">Medidas Madera:</strong> <span class="text-slate-300">${medidasMadera}</span></div>` : ''}
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1.5 md:col-span-2">
+                        <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">3. Checklists, EPIs y Ubicaciones</div>
+                        <div><strong class="text-slate-400">Check Escalera:</strong> <span class="text-slate-300">${ladderChecks}</span></div>
+                        <div><strong class="text-slate-400">EPIs Utilizados:</strong> <span class="text-slate-300">${epis}</span></div>
+                        <div><strong class="text-slate-400">Trazado FTTH:</strong> <span class="text-brand-300">${trazadoTexto} (${calculateTotalMeters()}m, ${document.getElementById('cantidadPostes').value} postes)</span></div>
+                        <div><strong class="text-slate-400">Geolocalización Escalera:</strong> <span class="text-amber-300 font-mono">${geoEscaleraTexto}</span></div>
                         <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300">${document.getElementById('observaciones').value || 'Ninguna'}</span></div>
                     </div>
                 </div>`;
@@ -1939,7 +1980,6 @@
         function stopSigning() {
             if (isSigning) {
                 isSigning = false;
-                // Comprimir también la firma para que no ocupe espacio innecesario
                 const rawSign = signatureCanvas.toDataURL('image/png');
                 compressImage(rawSign, 300, 0.5).then(compressedSign => {
                     document.getElementById('firmaData').value = compressedSign;
@@ -1981,10 +2021,7 @@
 
             try {
                 const contrataActiva = document.getElementById('contrataPrincipal').value;
-                
-                const { data: partes, error } = await supabaseClient
-                    .from('partes_actuacion')
-                    .select('*');
+                const { data: partes, error } = await supabaseClient.from('partes_actuacion').select('*');
 
                 if (error) throw error;
 
@@ -2077,6 +2114,7 @@
 
             const formElement = document.getElementById('pole-form');
             const contrataReal = document.getElementById('contrataPrincipal').value || item.formData.contrataPrincipal || '-';
+            const geoEscaleraEmail = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización';
             
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
@@ -2099,6 +2137,7 @@
                 checks_escalera: Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna',
                 epis_utilizados: Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno',
                 desgllose_ubicaciones: trazadoEmail,
+                geolocalizacion_escalera: geoEscaleraEmail,
                 observaciones: observacionesEmail,
                 foto_croquis_miniatura: croquisMiniatura,
                 foto_escalera_miniatura: escaleraMiniatura
@@ -2132,6 +2171,7 @@
 
                 payloadFormData['croquisPoints'] = croquisPoints;
                 payloadFormData['observaciones'] = document.getElementById('observaciones').value;
+                payloadFormData['geolocalizacion_escalera'] = document.getElementById('escaleraGeoInfo').value;
 
                 const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
