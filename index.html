@@ -890,11 +890,14 @@
             return null;
         }
 
-        async function updateSentPartsBadge() {
+ async function updateSentPartsBadge() {
+            const countSpan = document.getElementById('sent-parts-count');
+            if (!countSpan) return;
+
             try {
                 const contrataActiva = document.getElementById('contrataPrincipal').value;
                 if (!contrataActiva) {
-                    document.getElementById('sent-parts-count').innerText = '0';
+                    countSpan.innerText = '0';
                     return;
                 }
 
@@ -904,12 +907,12 @@
                     .ilike('contrata', contrataActiva.trim());
 
                 if (!error && count !== null) {
-                    document.getElementById('sent-parts-count').innerText = count;
+                    countSpan.innerText = count;
                 } else {
-                    document.getElementById('sent-parts-count').innerText = '0';
+                    countSpan.innerText = '0';
                 }
             } catch (e) {
-                document.getElementById('sent-parts-count').innerText = '0';
+                countSpan.innerText = '0';
             }
         }
 
