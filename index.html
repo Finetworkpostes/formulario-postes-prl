@@ -1907,16 +1907,19 @@
             document.getElementById('firmaData').value = '';
         }
 
-        async function guardarParteEnSupabase(nOt, datosFormulario) {
+       async function guardarParteEnSupabase(nOt, datosFormulario) {
             try {
+                // Obtenemos la contrata activa directamente del selector de la interfaz para evitar desajustes
+                const contrataActivaReal = document.getElementById('contrataPrincipal').value || datosFormulario.contrataPrincipal || '-';
+                
                 const { error } = await supabaseClient.from('partes_actuacion').insert([{
                     n_ot: nOt,
-                    contrata: datosFormulario.contrataPrincipal || '-',
+                    contrata: contrataActivaReal,
                     tipo: datosFormulario.tipo || '-',
                     fecha_hora: datosFormulario.fechaHora || new Date().toISOString(),
                     tecnico: datosFormulario.nombreTec1 || '-',
                     recurso_preventivo: datosFormulario.nombreRecursoPreventivo || '-',
-                    datos_completos: datosFormulario
+                    datos_completos: { ...datosFormulario, contrataPrincipal: contrataActivaReal }
                 }]);
                 if (error) throw error;
                 return true;
@@ -2013,7 +2016,7 @@
                 to_email: DESTINATION_EMAIL,
                 subject: `${item.nOt} - ${document.getElementById('contrataPrincipal').value}`,
                 ot_number: item.nOt,
-                contrata: document.getElementById('contrataPrincipal').value || '-',
+                contrata: document.getElementById('contrataPrincipal').value || item.formData.contrataPrincipal || '-',
                 tipo_actuacion: item.formData.tipo || '-',
                 estado_infra: item.formData.estado || '-',
                 fecha: item.formData.fechaHora || '',
