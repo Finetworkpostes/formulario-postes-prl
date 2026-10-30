@@ -892,11 +892,21 @@
 
         async function updateSentPartsBadge() {
             try {
+                const contrataActiva = document.getElementById('contrataPrincipal').value;
+                if (!contrataActiva) {
+                    document.getElementById('sent-parts-count').innerText = '0';
+                    return;
+                }
+
                 const { count, error } = await supabaseClient
                     .from('partes_actuacion')
-                    .select('*', { count: 'exact', head: true });
+                    .select('*', { count: 'exact', head: true })
+                    .ilike('contrata', contrataActiva.trim());
+
                 if (!error && count !== null) {
                     document.getElementById('sent-parts-count').innerText = count;
+                } else {
+                    document.getElementById('sent-parts-count').innerText = '0';
                 }
             } catch (e) {
                 document.getElementById('sent-parts-count').innerText = '0';
