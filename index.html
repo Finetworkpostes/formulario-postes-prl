@@ -19,6 +19,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="text/javascript">
        (function(){
           emailjs.init({
@@ -764,7 +766,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS con sus datos, el croquis, la foto geolocalizada de la escalera y la firma.</p>
+            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS y guardado de forma centralizada en la nube de Supabase.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -783,13 +785,12 @@
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane text-emerald-400"></i> Historial de Partes Enviados
+                    <i class="fa-solid fa-cloud text-emerald-400"></i> Historial Remoto (Supabase)
                 </h3>
                 <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div id="sent-parts-list" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
-            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                <button type="button" onclick="clearSentHistory()" class="px-3 py-1.5 bg-rose-950/60 text-rose-300 rounded-lg text-xs">Vaciar Historial</button>
+            <div class="pt-2 border-t border-slate-800 flex justify-end">
                 <button type="button" onclick="closeSentPartsModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cerrar</button>
             </div>
         </div>
@@ -822,6 +823,11 @@
         const EMAILJS_SERVICE_ID = 'service_nf3hxml';
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
+        // CONFIGURACIÓN SUPABASE (Reemplaza con tus credenciales reales de tu proyecto Supabase)
+        const SUPABASE_URL = 'https://pmvrywtzmipnsvaeijpi.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_pF5merSM1aDcEHW5dxsnjA_LIWpsbgD';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // CONTRASEÑAS FIJAS E INVARIABLES PARA CADA CONTRATA
         const CONTRATA_PASSWORDS = {
             "CIRCET": "Circet7590",
@@ -831,7 +837,7 @@
         };
 
         let pendingTargetContrata = "";
-        let pendingOTsFromJSON = {}; // Variable global para OTs pendientes
+        let pendingOTsFromJSON = {};
 
         let USUARIOS_DB = {};
         let currentStep = 1;
@@ -860,7 +866,7 @@
         let recognition = null;
         let isRecordingVoice = false;
 
-        /* FUNCIONES: OTs PENDIENTES Y FILTRADO POR ENVIADAS */
+        /* FUNCIONES: OTs PENDIENTES Y VERIFICACIÓN DESDE SUPABASE */
         async function fetchOTsPendientes() {
             try {
                 const res = await fetch('instalaciones.json?v=' + new Date().getTime());
@@ -869,7 +875,7 @@
                     updatePendientesCounterButton();
                     const otInput = document.getElementById('nOt');
                     if (otInput && otInput.value) {
-                        checkOtBlocked(otInput.value);
+                        await checkOtBlockedAndSent(otInput.value);
                     }
                 }
             } catch (e) {
@@ -877,15 +883,26 @@
             }
         }
 
-        function getSentOTsList() {
+        // Comprueba en Supabase si la OT ya ha sido enviada previamente
+        async function checkIfOtAlreadySentInSupabase(nOt) {
             try {
-                return JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+                const { data, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('n_ot, created_at')
+                    .ilike('n_ot', nOt.trim())
+                    .limit(1);
+
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    return data[0];
+                }
             } catch (e) {
-                return [];
+                console.error("Error consultando Supabase para duplicidad:", e);
             }
+            return null;
         }
 
-        function updatePendientesCounterButton() {
+        async function updatePendientesCounterButton() {
             const labelBtn = document.getElementById('label-pendientes-btn');
             if (!labelBtn) return;
 
@@ -895,17 +912,81 @@
                 return;
             }
 
-            const sentList = getSentOTsList();
-            const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
+            try {
+                // Traer OTs enviadas desde Supabase para verificar exclusión
+                const { data: sentParts } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('n_ot');
+                
+                const sentOtSet = new Set((sentParts || []).map(item => (item.n_ot || '').trim().toLowerCase()));
+
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+
+                let countInPeriod = 0;
+                pendingOTsFromJSON[contrataActiva].forEach(item => {
+                    const nOt = item.nOt || item.OT || item.ot || '';
+                    if (sentOtSet.has(nOt.trim().toLowerCase())) return;
+
+                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+                    if (!fechaStr) return;
+
+                    const fechaInst = new Date(fechaStr);
+                    fechaInst.setHours(0,0,0,0);
+
+                    const diffTime = hoy.getTime() - fechaInst.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 5) {
+                        countInPeriod++;
+                    }
+                });
+
+                labelBtn.innerText = `Pendientes (${countInPeriod})`;
+            } catch (e) {
+                labelBtn.innerText = 'Pendientes (-)';
+            }
+        }
+
+        async function openPendientesModal() {
+            const listContainer = document.getElementById('ots-pendientes-list');
+            listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Consultando base de datos en la nube...</div>';
+            document.getElementById('ots-pendientes-modal').classList.remove('hidden');
+
+            await fetchOTsPendientes();
+            if (!pendingOTsFromJSON || Object.keys(pendingOTsFromJSON).length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay OTs pendientes de justificar.</p>';
+                return;
+            }
+
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
+            let otsToShow = [];
+            if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
+                otsToShow = pendingOTsFromJSON[contrataActiva];
+            }
+
+            let sentOtSet = new Set();
+            try {
+                const { data: sentParts } = await supabaseClient.from('partes_actuacion').select('n_ot');
+                sentOtSet = new Set((sentParts || []).map(item => (item.n_ot || '').trim().toLowerCase()));
+            } catch (e) {}
+
+            otsToShow = otsToShow.filter(item => {
+                const nOt = item.nOt || item.OT || item.ot || '';
+                return !sentOtSet.has(nOt.trim().toLowerCase());
+            });
+
+            if (otsToShow.length === 0) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong> (o ya han sido enviadas).</p>`;
+                return;
+            }
 
             const hoy = new Date();
             hoy.setHours(0,0,0,0);
 
-            let countInPeriod = 0;
-            pendingOTsFromJSON[contrataActiva].forEach(item => {
-                const nOt = item.nOt || item.OT || item.ot || '';
-                if (sentOtSet.has(nOt.trim().toLowerCase())) return;
-
+            let html = '';
+            otsToShow.forEach(item => {
+                const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
                 const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
                 if (!fechaStr) return;
 
@@ -914,85 +995,30 @@
 
                 const diffTime = hoy.getTime() - fechaInst.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const fechaFormateada = fechaInst.toLocaleDateString('es-ES');
 
-                if (diffDays <= 5) {
-                    countInPeriod++;
+                if (diffDays > 5) {
+                    html += `
+                    <div class="bg-slate-800/50 border border-rose-900/50 rounded-xl p-3 flex flex-col gap-1 opacity-60">
+                        <div class="font-bold text-slate-400">OT: ${nOt}</div>
+                        <div class="text-[11px] text-rose-400">Instalada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
+                        <div class="text-[10px] text-rose-500 font-bold uppercase mt-1">Bloqueada (Plazo de 5 días excedido)</div>
+                    </div>`;
+                } else {
+                    const diasRealesPasados = diffDays < 0 ? 0 : diffDays; 
+                    const diasRestantes = 5 - diasRealesPasados;
+                    const textoRestante = diasRestantes === 0 ? '¡Último día!' : `Quedan ${diasRestantes} días`;
+                    
+                    html += `
+                    <div class="bg-slate-800 border border-emerald-700/50 hover:border-emerald-500 hover:bg-slate-700/80 rounded-xl p-3 flex flex-col gap-1 cursor-pointer transition shadow-md" onclick="selectOTPendiente('${nOt}')">
+                        <div class="font-bold text-white">OT: ${nOt}</div>
+                        <div class="text-[11px] text-emerald-400">Instalada el ${fechaFormateada} - ${textoRestante}</div>
+                        <div class="text-[10px] text-emerald-300 font-bold uppercase mt-1 flex items-center gap-1"><i class="fa-solid fa-hand-pointer"></i> Haz clic para seleccionar</div>
+                    </div>`;
                 }
             });
 
-            labelBtn.innerText = `Pendientes (${countInPeriod})`;
-        }
-
-        function openPendientesModal() {
-            const listContainer = document.getElementById('ots-pendientes-list');
-            listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs...</div>';
-            document.getElementById('ots-pendientes-modal').classList.remove('hidden');
-
-            fetchOTsPendientes().then(() => {
-                if (!pendingOTsFromJSON || Object.keys(pendingOTsFromJSON).length === 0) {
-                    listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay OTs pendientes de justificar.</p>';
-                    return;
-                }
-
-                const contrataActiva = document.getElementById('contrataPrincipal').value;
-                let otsToShow = [];
-                if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
-                    otsToShow = pendingOTsFromJSON[contrataActiva];
-                }
-
-                const sentList = getSentOTsList();
-                const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
-
-                otsToShow = otsToShow.filter(item => {
-                    const nOt = item.nOt || item.OT || item.ot || '';
-                    return !sentOtSet.has(nOt.trim().toLowerCase());
-                });
-
-                if (otsToShow.length === 0) {
-                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong> (o ya han sido enviadas).</p>`;
-                    return;
-                }
-
-                const hoy = new Date();
-                hoy.setHours(0,0,0,0);
-
-                let html = '';
-                otsToShow.forEach(item => {
-                    const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
-                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
-
-                    if (!fechaStr) return;
-
-                    const fechaInst = new Date(fechaStr);
-                    fechaInst.setHours(0,0,0,0);
-
-                    const diffTime = hoy.getTime() - fechaInst.getTime();
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    const fechaFormateada = fechaInst.toLocaleDateString('es-ES');
-
-                    if (diffDays > 5) {
-                        html += `
-                        <div class="bg-slate-800/50 border border-rose-900/50 rounded-xl p-3 flex flex-col gap-1 opacity-60">
-                            <div class="font-bold text-slate-400">OT: ${nOt}</div>
-                            <div class="text-[11px] text-rose-400">Instalada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
-                            <div class="text-[10px] text-rose-500 font-bold uppercase mt-1">Bloqueada (Plazo de 5 días excedido)</div>
-                        </div>`;
-                    } else {
-                        const diasRealesPasados = diffDays < 0 ? 0 : diffDays; 
-                        const diasRestantes = 5 - diasRealesPasados;
-                        const textoRestante = diasRestantes === 0 ? '¡Último día!' : `Quedan ${diasRestantes} días`;
-                        
-                        html += `
-                        <div class="bg-slate-800 border border-emerald-700/50 hover:border-emerald-500 hover:bg-slate-700/80 rounded-xl p-3 flex flex-col gap-1 cursor-pointer transition shadow-md" onclick="selectOTPendiente('${nOt}')">
-                            <div class="font-bold text-white">OT: ${nOt}</div>
-                            <div class="text-[11px] text-emerald-400">Instalada el ${fechaFormateada} - ${textoRestante}</div>
-                            <div class="text-[10px] text-emerald-300 font-bold uppercase mt-1 flex items-center gap-1"><i class="fa-solid fa-hand-pointer"></i> Haz clic para seleccionar</div>
-                        </div>`;
-                    }
-                });
-
-                listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas con fecha en esta contrata.</p>';
-            });
+            listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas con fecha en esta contrata.</p>';
         }
 
         function selectOTPendiente(nOt) {
@@ -1066,7 +1092,7 @@
             updatePendientesCounterButton();
             const otInput = document.getElementById('nOt');
             if (otInput && otInput.value) {
-                checkOtBlocked(otInput.value);
+                checkOtBlockedAndSent(otInput.value);
             }
         }
 
@@ -1079,7 +1105,6 @@
 
             try {
                 text.innerText = 'Cargando...';
-                
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3500);
 
@@ -1131,12 +1156,8 @@
         function initAutomaticWeather() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude);
-                    },
-                    () => {
-                        fetchWeatherByCoordinates(40.4167, -3.7037);
-                    },
+                    (pos) => fetchWeatherByCoordinates(pos.coords.latitude, pos.coords.longitude),
+                    () => fetchWeatherByCoordinates(40.4167, -3.7037),
                     { timeout: 3000, maximumAge: 60000 }
                 );
             } else {
@@ -1254,7 +1275,7 @@
                     try {
                         const text = await navigator.clipboard.readText();
                         inputOT.value = text.trim();
-                        handleOtInput(inputOT.value);
+                        await handleOtInput(inputOT.value);
                         saveFormDraft();
                         if (inputOT.value.length === 24) {
                             inputOT.style.borderColor = '#10b981';
@@ -1417,8 +1438,7 @@
                     }
 
                     if (draft.data.nOt) {
-                        checkOtDuplication(draft.data.nOt);
-                        checkOtBlocked(draft.data.nOt);
+                        checkOtBlockedAndSent(draft.data.nOt);
                         handleOtInput(draft.data.nOt);
                     }
                 } else {
@@ -1429,29 +1449,15 @@
             }
         }
 
-        function checkOtDuplication(otVal) {
+        async function checkOtBlockedAndSent(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const alertBox = document.getElementById('duplicate-ot-alert');
             const dateSpan = document.getElementById('duplicate-date');
-            if (!cleanOt || !alertBox) return;
-
-            let sentList = getSentOTsList();
-            const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
-
-            if (found) {
-                alertBox.classList.remove('hidden');
-                if (dateSpan) dateSpan.innerText = found.sentAt || 'fecha anterior';
-            } else {
-                alertBox.classList.add('hidden');
-            }
-        }
-
-        function checkOtBlocked(otVal) {
-            const cleanOt = otVal.trim().toLowerCase();
             const blockedAlert = document.getElementById('blocked-ot-alert');
             const btnNext1 = document.getElementById('btn-next-step-1');
             
-            if (!cleanOt || !blockedAlert) {
+            if (!cleanOt) {
+                if (alertBox) alertBox.classList.add('hidden');
                 if (blockedAlert) blockedAlert.classList.add('hidden');
                 if (btnNext1) {
                     btnNext1.disabled = false;
@@ -1460,55 +1466,51 @@
                 return false;
             }
 
-            const contrataActiva = document.getElementById('contrataPrincipal').value;
-            if (!contrataActiva || !pendingOTsFromJSON[contrataActiva]) {
-                blockedAlert.classList.add('hidden');
-                if (btnNext1) {
-                    btnNext1.disabled = false;
-                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-                return false;
+            // 1. Comprobar si ya existe en Supabase
+            const existingPart = await checkIfOtAlreadySentInSupabase(cleanOt);
+            if (existingPart && alertBox) {
+                alertBox.classList.remove('hidden');
+                if (dateSpan) dateSpan.innerText = new Date(existingPart.created_at).toLocaleString();
+            } else if (alertBox) {
+                alertBox.classList.add('hidden');
             }
 
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0);
-
+            // 2. Comprobar si está bloqueada por plazo (> 5 días)
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
             let isBlocked = false;
-            pendingOTsFromJSON[contrataActiva].forEach(item => {
-                const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
-                if (itemOt === cleanOt) {
-                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
-                    if (fechaStr) {
-                        const fechaInst = new Date(fechaStr);
-                        fechaInst.setHours(0,0,0,0);
-                        const diffTime = hoy.getTime() - fechaInst.getTime();
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays > 5) {
-                            isBlocked = true;
+            if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                pendingOTsFromJSON[contrataActiva].forEach(item => {
+                    const itemOt = (item.nOt || item.OT || item.ot || '').trim().toLowerCase();
+                    if (itemOt === cleanOt) {
+                        const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+                        if (fechaStr) {
+                            const fechaInst = new Date(fechaStr);
+                            fechaInst.setHours(0,0,0,0);
+                            const diffTime = hoy.getTime() - fechaInst.getTime();
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            if (diffDays > 5) isBlocked = true;
                         }
                     }
-                }
-            });
+                });
+            }
 
-            if (isBlocked) {
+            if (isBlocked && blockedAlert && btnNext1) {
                 blockedAlert.classList.remove('hidden');
-                if (btnNext1) {
-                    btnNext1.disabled = true;
-                    btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
-                }
+                btnNext1.disabled = true;
+                btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
                 return true;
-            } else {
+            } else if (blockedAlert && btnNext1) {
                 blockedAlert.classList.add('hidden');
-                if (btnNext1) {
-                    btnNext1.disabled = false;
-                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+                btnNext1.disabled = false;
+                btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
                 return false;
             }
+            return false;
         }
 
         function cerrarAlertaBloqueo() {
-            // Oculta la alerta visual pero mantiene el botón siguiente deshabilitado y bloqueado
             document.getElementById('blocked-ot-alert').classList.add('hidden');
             const btnNext1 = document.getElementById('btn-next-step-1');
             if (btnNext1) {
@@ -1517,10 +1519,9 @@
             }
         }
 
-        function handleOtInput(val) {
+        async function handleOtInput(val) {
             const cleanVal = val.trim().toLowerCase();
-            
-            const isBlockedNow = checkOtBlocked(val);
+            const isBlockedNow = await checkOtBlockedAndSent(val);
             if (isBlockedNow && val.length === 24) {
                 alert("⚠️ ATENCIÓN: Esta OT se encuentra en la lista de bloqueadas (excede el plazo de 5 días). No se puede continuar ni enviar.");
             }
@@ -1533,11 +1534,9 @@
             }
 
             const estadoRadios = document.querySelectorAll('input[name="estado"]');
-
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
-                
                 estadoRadios.forEach(r => {
                     r.disabled = false;
                     r.required = true;
@@ -1547,7 +1546,6 @@
             } else if (cleanVal.startsWith('av')) {
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
-                
                 estadoRadios.forEach(r => {
                     r.checked = false;
                     r.disabled = true;
@@ -1566,18 +1564,11 @@
 
             const inputOT = document.getElementById('nOt');
             if (inputOT) {
-                if (isBlockedNow) {
-                    inputOT.style.borderColor = '#f43f5e';
-                } else if (inputOT.value.length === 24) {
-                    inputOT.style.borderColor = '#10b981';
-                } else if (inputOT.value.length > 0) {
-                    inputOT.style.borderColor = '#f59e0b';
-                } else {
-                    inputOT.style.borderColor = '#334155';
-                }
+                if (isBlockedNow) inputOT.style.borderColor = '#f43f5e';
+                else if (inputOT.value.length === 24) inputOT.style.borderColor = '#10b981';
+                else if (inputOT.value.length > 0) inputOT.style.borderColor = '#f59e0b';
+                else inputOT.style.borderColor = '#334155';
             }
-
-            checkOtDuplication(val);
         }
 
         async function cargarListaUsuarios() {
@@ -1822,7 +1813,6 @@
             const geo = await reverseGeocode(lat, lng);
             croquisPoints.push({ lat, lng, address: geo.address, postcode: geo.postcode });
             renderCroquisMarkersAndPath();
-            
             fetchWeatherByCoordinates(lat, lng);
             saveFormDraft();
         }
@@ -1856,14 +1846,7 @@
                 }
 
                 p.type = type;
-
-                const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: '',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
-
+                const customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [30, 30], iconAnchor: [15, 15] });
                 const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(croquisMap);
                 mapMarkers.push(marker);
             });
@@ -1987,15 +1970,7 @@
 
             try {
                 controls.forEach(c => c.style.display = 'none');
-                
-                const canvas = await html2canvas(mapBox, { 
-                    useCORS: true, 
-                    allowTaint: true, 
-                    scale: 1.0, 
-                    logging: false,
-                    backgroundColor: null
-                });
-                
+                const canvas = await html2canvas(mapBox, { useCORS: true, allowTaint: true, scale: 1.0, logging: false, backgroundColor: null });
                 controls.forEach(c => c.style.display = '');
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.5);
@@ -2187,7 +2162,6 @@
 
         function goToStep(step) {
             if (step < 1 || step > 6) return;
-            
             if (step > currentStep) {
                 const blockedAlert = document.getElementById('blocked-ot-alert');
                 const btnNext1 = document.getElementById('btn-next-step-1');
@@ -2306,89 +2280,80 @@
             saveFormDraft();
         }
 
-        function saveToSentHistoryCompletely(nOt) {
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-            const data = {};
-
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) data[key] = [data[key]];
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            });
-            data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
-
-            const checkboxesStates = {};
-            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb.name) {
-                    if (!checkboxesStates[cb.name]) checkboxesStates[cb.name] = [];
-                    if (cb.checked) checkboxesStates[cb.name].push(cb.value);
-                }
-            });
-
-            data['checkboxesStates'] = checkboxesStates;
-            data['firmaData'] = document.getElementById('firmaData').value;
-            data['sentAt'] = new Date().toLocaleString();
-            data['croquisPoints'] = croquisPoints;
-            data['nOt'] = nOt;
-            data['uploadedFiles'] = {}; 
-
-            let sentList = [];
+        // GUARDADO EN SUPABASE (EN LA NUBE)
+        async function guardarParteEnSupabase(nOt, datosFormulario) {
             try {
-                sentList = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-            } catch (e) { sentList = []; }
-            sentList.unshift(data);
-            if (sentList.length > 20) sentList = sentList.slice(0, 20);
-            try {
-                localStorage.setItem('user_sent_pole_parts', JSON.stringify(sentList));
-            } catch (e) {
-                localStorage.removeItem('user_sent_pole_parts');
+                const { data, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .insert([
+                        {
+                            n_ot: nOt,
+                            contrata: datosFormulario.contrataPrincipal || '-',
+                            tipo: datosFormulario.tipo || '-',
+                            fecha_hora: datosFormulario.fechaHora || new Date().toISOString(),
+                            tecnico: datosFormulario.nombreTec1 || '-',
+                            recurso_preventivo: datosFormulario.nombreRecursoPreventivo || '-',
+                            datos_completos: datosFormulario
+                        }
+                    ]);
+
+                if (error) throw error;
+                return true;
+            } catch (err) {
+                console.error('Error al guardar en Supabase:', err.message);
+                return false;
             }
-
-            localStorage.removeItem('pole_form_draft');
-            updateSentPartsBadge();
-            updatePendientesCounterButton();
         }
 
-        function updateSentPartsBadge() {
-            let sentList = getSentOTsList();
-            document.getElementById('sent-parts-count').innerText = sentList.length;
+        async function updateSentPartsBadge() {
+            try {
+                const { count, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('*', { count: 'exact', head: true });
+                if (!error && count !== null) {
+                    document.getElementById('sent-parts-count').innerText = count;
+                }
+            } catch (e) {
+                document.getElementById('sent-parts-count').innerText = '0';
+            }
         }
 
-        function openSentPartsModal() {
-            let sentList = getSentOTsList();
-
+        async function openSentPartsModal() {
             const listContainer = document.getElementById('sent-parts-list');
-            if (sentList.length === 0) {
-                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes enviados todavía.</p>`;
-            } else {
-                listContainer.innerHTML = sentList.map((item) => `
+            listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando historial desde Supabase...</div>';
+            document.getElementById('sent-parts-modal').classList.remove('hidden');
+
+            try {
+                const { data: partes, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                if (error) throw error;
+
+                if (!partes || partes.length === 0) {
+                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No hay partes registrados en la base de datos.</p>`;
+                    return;
+                }
+
+                listContainer.innerHTML = partes.map(item => `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                         <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
-                            <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
+                            <div class="font-bold text-white">OT: ${item.n_ot}</div>
+                            <div class="text-[11px] text-slate-400">Técnico: ${item.tecnico} | ${new Date(item.created_at).toLocaleString()}</div>
                         </div>
-                        <div class="text-emerald-400 font-semibold text-[11px]">Enviado OK</div>
+                        <div class="text-emerald-400 font-semibold text-[11px]">Sincronizado ☁️</div>
                     </div>
                 `).join('');
+
+            } catch (err) {
+                listContainer.innerHTML = `<p class="text-rose-400 text-center py-4">Error al cargar el historial remoto.</p>`;
             }
-            document.getElementById('sent-parts-modal').classList.remove('hidden');
         }
 
         function closeSentPartsModal() {
             document.getElementById('sent-parts-modal').classList.add('hidden');
-        }
-
-        function clearSentHistory() {
-            if (confirm('¿Desea vaciar el historial de enviados?')) {
-                localStorage.removeItem('user_sent_pole_parts');
-                updateSentPartsBadge();
-                updatePendientesCounterButton();
-                openSentPartsModal();
-            }
         }
 
         function confirmResetForm() {
@@ -2470,7 +2435,6 @@
             const contrataPrint = document.getElementById('contrataPrincipal').value || '-';
 
             printArea.innerHTML = `
-                <!-- PÁGINA 1 -->
                 <div class="pdf-page">
                     <div style="border-bottom: 2px solid #6d28d9; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
@@ -2537,7 +2501,6 @@
                     </div>
                 </div>
 
-                <!-- PÁGINA 2 -->
                 <div class="pdf-page pdf-page-last">
                     <div class="print-section">
                         <h3 style="font-size: 9.5px; font-weight: bold; color: #6d28d9; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px;">5. EVIDENCIAS FOTOGRÁFICAS Y CROQUIS FTTH</h3>
@@ -2583,9 +2546,8 @@
 
             queue.push(item);
             localStorage.setItem('pending_pole_submissions', JSON.stringify(queue));
-
             updatePendingBadge();
-            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación se ha guardado temporalmente y se enviará en cuanto recuperes conexión.`);
+            alert(`📡 MODO SIN COBERTURA:\n\nLa actuación se ha guardado temporalmente y se sincronizará con Supabase al recuperar red.`);
 
             document.getElementById('pole-form').reset();
             clearCroquisMap();
@@ -2594,24 +2556,6 @@
             document.getElementById('duplicate-ot-alert').classList.add('hidden');
             document.getElementById('blocked-ot-alert').classList.add('hidden');
             document.getElementById('rp-course-status-box').classList.add('hidden');
-            
-            const estadoRadios = document.querySelectorAll('input[name="estado"]');
-            estadoRadios.forEach(r => {
-                r.disabled = false;
-                r.required = true;
-                r.closest('label').style.opacity = '1';
-                r.closest('label').style.cursor = 'pointer';
-            });
-
-            const savedContrata = localStorage.getItem('user_preferred_contrata');
-            if (savedContrata) {
-                const select = document.getElementById('contrataPrincipal');
-                select.disabled = false;
-                select.value = savedContrata;
-                select.disabled = true;
-                handleContractorChange();
-            }
-
             goToStep(1);
         }
 
@@ -2685,7 +2629,6 @@
             const templateParams = {
                 to_email: DESTINATION_EMAIL,
                 subject: `${item.nOt} - ${contrataEmail}`,
-                
                 ot_number: item.nOt,
                 contrata: contrataEmail,
                 tipo_actuacion: item.formData.tipo || '-',
@@ -2707,9 +2650,7 @@
                 medidas_madera: Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'No aplica',
                 desgllose_ubicaciones: buildData.puntosTextoBreve || 'Sin desglosar',
                 observaciones: item.formData.observaciones || 'Sin observaciones',
-                
                 escalera_geolocalizacion: escaleraGeoInfo,
-
                 foto_croquis_miniatura: croquisMiniatura,
                 foto_escalera_miniatura: escaleraMiniatura
             };
@@ -2725,10 +2666,7 @@
             } catch (e) { queue = []; }
 
             if (queue.length === 0) return;
-            if (!navigator.onLine) {
-                alert("⚠️ Aún estás sin conexión a internet.");
-                return;
-            }
+            if (!navigator.onLine) return;
 
             const btn = document.getElementById('btn-sync-offline');
             if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
@@ -2739,7 +2677,7 @@
             for (let item of queue) {
                 try {
                     await sendPayloadToEmailJS(item);
-                    saveToSentHistoryCompletely(item.nOt);
+                    await guardarParteEnSupabase(item.nOt, item.formData);
                     lastSuccessfulItem = item;
                 } catch (err) {
                     remaining.push(item);
@@ -2748,7 +2686,7 @@
 
             localStorage.setItem('pending_pole_submissions', JSON.stringify(remaining));
             updatePendingBadge();
-
+            updateSentPartsBadge();
             if (btn) btn.innerHTML = '<i class="fa-solid fa-wifi"></i> Sincronizar';
 
             if (lastSuccessfulItem) {
@@ -2760,7 +2698,6 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-
             if (!validateCurrentStep(6)) return;
 
             const firma = document.getElementById('firmaData').value;
@@ -2797,6 +2734,7 @@
                 payloadFormData['CONTRATA_PRINCIPAL'] = contrata;
                 payloadFormData['ALIAS_TECNICO_TEC1'] = document.getElementById('aliasKairosTec1').value;
                 payloadFormData['NOMBRE_TECNICO_TEC1'] = document.getElementById('nombreTec1').value;
+                payloadFormData['croquisPoints'] = croquisPoints;
 
                 const payloadObj = {
                     nOt: nOt,
@@ -2810,15 +2748,23 @@
                     return;
                 }
 
+                // 1. Enviar por EmailJS
                 await sendPayloadToEmailJS(payloadObj);
-                saveToSentHistoryCompletely(nOt);
+                
+                // 2. Guardar permanentemente en la base de datos de Supabase
+                await guardarParteEnSupabase(nOt, payloadFormData);
+
+                localStorage.removeItem('pole_form_draft');
+                updateSentPartsBadge();
+                updatePendientesCounterButton();
+
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (err) {
                 console.error(err);
-                alert('Error al procesar el envío con EmailJS: ' + (err.text || err.message || JSON.stringify(err)));
+                alert('Error al procesar el envío: ' + (err.text || err.message || JSON.stringify(err)));
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar';
