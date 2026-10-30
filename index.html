@@ -80,15 +80,6 @@
             page-break-after: always;
             break-after: page;
         }
-
-        .print-section {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 6px 8px;
-            margin-bottom: 8px;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
     </style>
 </head>
 <body class="text-slate-100 min-h-full flex flex-col bg-slate-950">
@@ -2111,7 +2102,7 @@
                     puntosTextoBreve.push(`${label}: ${p.address}`);
                 });
             }
-            const trazadoEmail = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' → ') + ` (Total: ${calculateTotalMeters()}m, ${Math.max(0, croquisPoints.length - 2)} postes)` : 'Sin trazado registrado';
+            const trazadoEmail = puntosTextoBreve.length > 0 ? puntosTextoBreve.join('\n') + `\n\nDistancia Total: ${calculateTotalMeters()}m | Total Postes: ${Math.max(0, croquisPoints.length - 2)}` : 'Sin trazado registrado';
             const observacionesEmail = document.getElementById('observaciones').value || 'Sin observaciones';
 
             const formElement = document.getElementById('pole-form');
@@ -2159,6 +2150,14 @@
             const step6Valid = await validateCurrentStep(6);
             if (!step6Valid) return;
 
+            const nOt = document.getElementById('nOt').value || 'Sin_OT';
+            const isAlreadySent = await checkIfOtAlreadySentInSupabase(nOt);
+            if (isAlreadySent) {
+                alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
+                goToStep(1);
+                return;
+            }
+
             const firma = document.getElementById('firmaData').value;
             if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
 
@@ -2173,7 +2172,6 @@
             submitText.innerText = 'Enviando parte y guardando...';
 
             try {
-                const nOt = document.getElementById('nOt').value || 'Sin_OT';
                 const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
                 
                 const formElement = document.getElementById('pole-form');
