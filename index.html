@@ -589,20 +589,27 @@
             <!-- SECCIÓN 6: CONFIRMACIÓN Y FIRMA -->
             <div id="step-6" class="step-content hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-6">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <span>Sección 6: Resumen, DNI y Firma Digital</span>
-                    <span class="text-xs font-normal text-slate-400">Verifique los datos antes de enviar</span>
+                    <span>Sección 6: Resumen, Desglose Editable y Firma</span>
+                    <span class="text-xs font-normal text-slate-400">Verifique y edite si es necesario</span>
                 </h2>
 
                 <div class="bg-slate-950 border border-purple-900/50 rounded-2xl p-4 space-y-4 shadow-inner">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-check text-brand-400"></i>
-                            Desglose Completo de la Actuación
+                            Desglose de Ubicaciones (Editable)
                         </h3>
-                        <span class="text-[11px] text-slate-400">Pulse en "Editar" para modificar datos</span>
+                        <span class="text-[11px] text-purple-400 font-semibold">✏️ Puedes modificar los textos directamente abajo</span>
                     </div>
                     
-                    <div id="summary-breakdown-container" class="space-y-4 text-xs"></div>
+                    <!-- CUADRO EDITABLE DEL DESGLOSE -->
+                    <div class="space-y-2">
+                        <label for="desglloseEditableInput" class="block text-xs font-medium text-slate-300">Texto generado para el correo y el resumen:</label>
+                        <textarea id="desglloseEditableInput" name="desglloseEditableInput" rows="4" class="w-full bg-slate-900 border border-purple-500/60 focus:border-purple-400 rounded-xl p-3 text-xs text-white font-mono outline-none shadow-md"></textarea>
+                        <p class="text-[10px] text-slate-400">Este texto se actualizará automáticamente con el mapa, pero puedes editarlo o corregir cualquier dirección libremente antes de enviar.</p>
+                    </div>
+
+                    <div id="summary-breakdown-container" class="space-y-4 text-xs pt-2 border-t border-slate-800"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -1280,6 +1287,7 @@
             formData.forEach((val, key) => { data[key] = val; });
             data['contrataPrincipal'] = document.getElementById('contrataPrincipal').value;
             data['observaciones'] = document.getElementById('observaciones').value;
+            data['desglloseEditableInput'] = document.getElementById('desglloseEditableInput')?.value || '';
 
             const checkboxes = {};
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -1324,6 +1332,10 @@
 
                     if (draft.data.observaciones) {
                         document.getElementById('observaciones').value = draft.data.observaciones;
+                    }
+                    if (draft.data.desglloseEditableInput) {
+                        const desInput = document.getElementById('desglloseEditableInput');
+                        if (desInput) desInput.value = draft.data.desglloseEditableInput;
                     }
 
                     const savedContrata = localStorage.getItem('user_preferred_contrata');
@@ -1705,6 +1717,23 @@
 
         function updateCroquisSummary() {
             document.getElementById('cantidadPostes').value = Math.max(0, croquisPoints.length - 2);
+            
+            // Generar texto editable automático para el textarea de desglose
+            let lineas = [];
+            if (croquisPoints.length > 0) {
+                croquisPoints.forEach((p, idx) => {
+                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
+                    lineas.push(`${label}: ${p.address} (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`);
+                });
+                lineas.push(`📏 Distancia Total: ${calculateTotalMeters()}m | Total Postes: ${Math.max(0, croquisPoints.length - 2)}`);
+            }
+            
+            const desInput = document.getElementById('desglloseEditableInput');
+            if (desInput && (!desInput.value || desInput.dataset.auto === 'true')) {
+                desInput.value = lineas.join('\n');
+                desInput.dataset.auto = 'true';
+            }
+
             const listContainer = document.getElementById('croquis-points-breakdown');
             if (croquisPoints.length === 0) {
                 listContainer.innerHTML = `<em class="text-slate-500">Haga clic en el mapa satelital para ir añadiendo la CTO, postes y vivienda.</em>`;
@@ -1730,6 +1759,8 @@
             mapMarkers = []; croquisPoints = []; croquisPolyline = null;
             document.getElementById('direccion').value = '';
             document.getElementById('codigoPostal').value = '';
+            const desInput = document.getElementById('desglloseEditableInput');
+            if (desInput) desInput.value = '';
             updateCroquisSummary();
             saveFormDraft();
         }
@@ -1814,7 +1845,6 @@
             return valid;
         }
 
-        // DESGLOSE COMPLETO EN LA SECCIÓN 6
         function renderReviewSummary() {
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
@@ -1829,15 +1859,8 @@
             const epis = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
             const medidasMadera = Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'N/A';
 
-            let puntosTextoBreve = [];
-            if (croquisPoints.length > 0) {
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    puntosTextoBreve.push(`${label}: ${p.address}`);
-                });
-            }
-            const trazadoTexto = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' → ') : 'Sin puntos en el croquis';
             const geoEscaleraTexto = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización de escalera';
+            const textoDesgloseActual = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
 
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -1866,7 +1889,7 @@
                         <div class="font-bold text-purple-300 border-b border-slate-800 pb-1">3. Checklists, EPIs y Ubicaciones</div>
                         <div><strong class="text-slate-400">Check Escalera:</strong> <span class="text-slate-300">${ladderChecks}</span></div>
                         <div><strong class="text-slate-400">EPIs Utilizados:</strong> <span class="text-slate-300">${epis}</span></div>
-                        <div><strong class="text-slate-400">Trazado FTTH:</strong> <span class="text-brand-300">${trazadoTexto}</span></div>
+                        <div><strong class="text-slate-400">Desglose a enviar:</strong> <pre class="text-brand-300 font-mono whitespace-pre-wrap mt-1">${textoDesgloseActual}</pre></div>
                         <div><strong class="text-slate-400">Geolocalización Escalera:</strong> <span class="text-amber-300 font-mono">${geoEscaleraTexto}</span></div>
                         <div><strong class="text-slate-400">Observaciones:</strong> <span class="text-slate-300">${document.getElementById('observaciones').value || 'Ninguna'}</span></div>
                     </div>
@@ -2050,32 +2073,15 @@
             }
         }
 
-        function buildPrintHTML() {
+        function generatePrintPreview() {
             const printArea = document.getElementById('print-area');
-            let puntosTextoBreve = [];
-            if (croquisPoints.length > 0) {
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    puntosTextoBreve.push(`${label}: ${p.address}`);
-                });
-            }
-            const trazadoFinalTexto = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' | ') + ` [Total: ${calculateTotalMeters()}m]` : 'Sin puntos en el croquis';
-            const observacionesFinalTexto = document.getElementById('observaciones').value || 'Sin observaciones';
-
+            const desTexto = document.getElementById('desglloseEditableInput').value || 'Sin desglose';
             printArea.innerHTML = `
                 <div class="pdf-page">
                     <h1>INFORME DE ACTUACIÓN</h1>
                     <p>OT: ${document.getElementById('nOt').value}</p>
-                    <p><strong>Trazado:</strong> ${trazadoFinalTexto}</p>
-                    <p><strong>Observaciones:</strong> ${observacionesFinalTexto}</p>
+                    <p><strong>Desglose:</strong> ${desTexto.replace(/\n/g, '<br>')}</p>
                 </div>`;
-
-            return { puntosTextoBreve: trazadoFinalTexto, observacionesFinalTexto: observacionesFinalTexto };
-        }
-
-        function generatePrintPreview() {
-            buildPrintHTML();
-            const printArea = document.getElementById('print-area');
             printArea.classList.remove('hidden');
             window.print();
             printArea.classList.add('hidden');
@@ -2085,14 +2091,10 @@
             let croquisMiniatura = uploadedFiles['file-croquis'] || '';
             let escaleraMiniatura = uploadedFiles['file-escalera'] || '';
 
-            let puntosTextoBreve = [];
-            if (croquisPoints && croquisPoints.length > 0) {
-                croquisPoints.forEach((p, idx) => {
-                    let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    puntosTextoBreve.push(`${label}: ${p.address}`);
-                });
-            }
-            const trazadoEmail = puntosTextoBreve.length > 0 ? puntosTextoBreve.join('\n') + `\n\nDistancia Total: ${calculateTotalMeters()}m | Total Postes: ${Math.max(0, croquisPoints.length - 2)}` : 'Sin trazado registrado';
+            // Convertir saltos de línea del textarea editable a <br> para que EmailJS los pinte en formato HTML perfecto
+            const desgloseCrudo = document.getElementById('desglloseEditableInput').value || 'Sin trazado registrado';
+            const trazadoEmailHTML = desgloseCrudo.replace(/\n/g, '<br>');
+
             const observacionesEmail = document.getElementById('observaciones').value || 'Sin observaciones';
 
             const formElement = document.getElementById('pole-form');
@@ -2122,7 +2124,7 @@
                 medidas_madera: medidasMaderaStr,
                 checks_escalera: Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna',
                 epis_utilizados: Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno',
-                desgllose_ubicaciones: trazadoEmail,
+                desgllose_ubicaciones: trazadoEmailHTML,
                 escalera_geolocalizacion: geoEscaleraEmail,
                 observaciones: observacionesEmail,
                 foto_croquis_miniatura: croquisMiniatura,
@@ -2137,7 +2139,6 @@
             e.preventDefault();
             const nOt = document.getElementById('nOt').value || 'Sin_OT';
 
-            // Comprobación estricta de duplicidad antes de enviar
             const isAlreadySent = await checkIfOtAlreadySentInSupabase(nOt);
             if (isAlreadySent) {
                 alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
@@ -2157,7 +2158,6 @@
             const submitText = document.getElementById('submit-text');
             const submitIcon = document.getElementById('submit-icon');
 
-            // ESTADO DE CARGA / ENVIANDO...
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
             submitIcon.className = 'fa-solid fa-spinner fa-spin';
@@ -2174,6 +2174,7 @@
                 payloadFormData['croquisPoints'] = croquisPoints;
                 payloadFormData['observaciones'] = document.getElementById('observaciones').value;
                 payloadFormData['escalera_geolocalizacion'] = document.getElementById('escaleraGeoInfo').value;
+                payloadFormData['desglloseEditableInput'] = document.getElementById('desglloseEditableInput').value;
 
                 const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
@@ -2191,7 +2192,6 @@
             } catch (err) {
                 alert('Error al procesar el envío: ' + (err.text || err.message));
             } finally {
-                // RESTAURAR BOTÓN EN CASO DE ERROR
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                 submitIcon.className = 'fa-solid fa-paper-plane';
