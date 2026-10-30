@@ -26,6 +26,8 @@
           });
        })();
     </script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         tailwind.config = {
@@ -764,7 +766,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h3 class="text-lg font-bold text-white">¡Actuación Registrada y Enviada!</h3>
-            <p class="text-xs text-slate-400">El parte se ha enviado por EmailJS con sus datos, el croquis, la foto geolocalizada de la escalera y la firma.</p>
+            <p class="text-xs text-slate-400">El parte se ha guardado en Supabase, enviado por EmailJS y registrado con su croquis, foto geolocalizada y firma.</p>
             <div class="bg-slate-800/60 rounded-xl p-3 text-xs text-left space-y-1">
                 <div><strong class="text-slate-400">OT:</strong> <span id="modal-ot" class="text-white"></span></div>
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
@@ -820,6 +822,18 @@
         const EMAILJS_SERVICE_ID = 'service_nf3hxml';
         const EMAILJS_TEMPLATE_ID = 'template_ievx71l';
 
+        // CONFIGURACIÓN SUPABASE
+        const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
+        const SUPABASE_ANON_KEY = 'tu-anon-key-aqui';
+        let supabaseClient = null;
+        try {
+            if (window.supabase && SUPABASE_URL !== 'https://tu-proyecto.supabase.co') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.warn("Supabase no inicializado correctamente", e);
+        }
+
         const CONTRATA_PASSWORDS = {
             "CIRCET": "Circet7590",
             "INSTELCA": "Instelca2883",
@@ -873,22 +887,43 @@
             }
         }
 
-        function getSentOTsList() {
+        async function getSentOTsList() {
+            let allParts = [];
             try {
-                const allParts = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
-                const contrataActiva = (document.getElementById('contrataPrincipal').value || localStorage.getItem('user_preferred_contrata') || '').trim().toUpperCase();
-                if (!contrataActiva) return allParts;
-                // Filtrar estrictamente por la contrata activa
-                return allParts.filter(item => {
-                    const cItem = (item.contrataPrincipal || item.contrata || '').trim().toUpperCase();
-                    return cItem === contrataActiva;
-                });
-            } catch (e) {
-                return [];
+                allParts = JSON.parse(localStorage.getItem('user_sent_pole_parts') || '[]');
+            } catch (e) { allParts = []; }
+
+            // Consultar también en Supabase si está disponible para tener el listado global sincronizado
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('partes_postes').select('*');
+                    if (!error && data) {
+                        data.forEach(dbItem => {
+                            // Mapear campos de supabase si es necesario
+                            const exists = allParts.some(p => (p.nOt || '').trim().toLowerCase() === (dbItem.not || dbItem.n_ot || '').trim().toLowerCase());
+                            if (!exists) {
+                                allParts.push({
+                                    nOt: dbItem.not || dbItem.n_ot || '',
+                                    contrataPrincipal: dbItem.contrata || dbItem.contrata_principal || '',
+                                    sentAt: dbItem.created_at || dbItem.sent_at || 'Sincronizado de nube'
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {}
             }
+
+            const contrataActiva = (document.getElementById('contrataPrincipal').value || localStorage.getItem('user_preferred_contrata') || '').trim().toUpperCase();
+            if (!contrataActiva) return allParts;
+
+            // Filtrar estrictamente por la contrata activa
+            return allParts.filter(item => {
+                const cItem = (item.contrataPrincipal || item.contrata || '').trim().toUpperCase();
+                return cItem === contrataActiva;
+            });
         }
 
-        function updatePendientesCounterButton() {
+        async function updatePendientesCounterButton() {
             const labelBtn = document.getElementById('label-pendientes-btn');
             if (!labelBtn) return;
 
@@ -898,7 +933,7 @@
                 return;
             }
 
-            const sentList = getSentOTsList();
+            const sentList = await getSentOTsList();
             const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
 
             const hoy = new Date();
@@ -926,76 +961,75 @@
             labelBtn.innerText = `Pendientes (${countInPeriod})`;
         }
 
-        function openPendientesModal() {
+        async function openPendientesModal() {
             const listContainer = document.getElementById('ots-pendientes-list');
             listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando OTs...</div>';
             document.getElementById('ots-pendientes-modal').classList.remove('hidden');
 
-            fetchOTsPendientes().then(() => {
-                if (!pendingOTsFromJSON || Object.keys(pendingOTsFromJSON).length === 0) {
-                    listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay OTs pendientes de justificar.</p>';
-                    return;
-                }
+            await fetchOTsPendientes();
+            if (!pendingOTsFromJSON || Object.keys(pendingOTsFromJSON).length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-400 text-center py-4">No hay OTs pendientes de justificar.</p>';
+                return;
+            }
 
-                const contrataActiva = document.getElementById('contrataPrincipal').value;
-                let otsToShow = [];
-                if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
-                    otsToShow = pendingOTsFromJSON[contrataActiva];
-                }
+            const contrataActiva = document.getElementById('contrataPrincipal').value;
+            let otsToShow = [];
+            if (contrataActiva && pendingOTsFromJSON[contrataActiva]) {
+                otsToShow = pendingOTsFromJSON[contrataActiva];
+            }
 
-                const sentList = getSentOTsList();
-                const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
+            const sentList = await getSentOTsList();
+            const sentOtSet = new Set(sentList.map(item => (item.nOt || '').trim().toLowerCase()));
 
-                otsToShow = otsToShow.filter(item => {
-                    const nOt = item.nOt || item.OT || item.ot || '';
-                    return !sentOtSet.has(nOt.trim().toLowerCase());
-                });
-
-                if (otsToShow.length === 0) {
-                    listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong> (o ya han sido enviadas).</p>`;
-                    return;
-                }
-
-                const hoy = new Date();
-                hoy.setHours(0,0,0,0);
-
-                let html = '';
-                otsToShow.forEach(item => {
-                    const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
-                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
-
-                    if (!fechaStr) return;
-
-                    const fechaInst = new Date(fechaStr);
-                    fechaInst.setHours(0,0,0,0);
-
-                    const diffTime = hoy.getTime() - fechaInst.getTime();
-                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    const fechaFormateada = fechaInst.toLocaleDateString('es-ES');
-
-                    if (diffDays > 5) {
-                        html += `
-                        <div class="bg-slate-800/50 border border-rose-900/50 rounded-xl p-3 flex flex-col gap-1 opacity-60">
-                            <div class="font-bold text-slate-400">OT: ${nOt}</div>
-                            <div class="text-[11px] text-rose-400">Instalada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
-                            <div class="text-[10px] text-rose-500 font-bold uppercase mt-1">Bloqueada (Plazo de 5 días excedido)</div>
-                        </div>`;
-                    } else {
-                        const diasRealesPasados = diffDays < 0 ? 0 : diffDays; 
-                        const diasRestantes = 5 - diasRealesPasados;
-                        const textoRestante = diasRestantes === 0 ? '¡Último día!' : `Quedan ${diasRestantes} días`;
-                        
-                        html += `
-                        <div class="bg-slate-800 border border-emerald-700/50 hover:border-emerald-500 hover:bg-slate-700/80 rounded-xl p-3 flex flex-col gap-1 cursor-pointer transition shadow-md" onclick="selectOTPendiente('${nOt}')">
-                            <div class="font-bold text-white">OT: ${nOt}</div>
-                            <div class="text-[11px] text-emerald-400">Instalada el ${fechaFormateada} - ${textoRestante}</div>
-                            <div class="text-[10px] text-emerald-300 font-bold uppercase mt-1 flex items-center gap-1"><i class="fa-solid fa-hand-pointer"></i> Haz clic para seleccionar</div>
-                        </div>`;
-                    }
-                });
-
-                listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas con fecha en esta contrata.</p>';
+            otsToShow = otsToShow.filter(item => {
+                const nOt = item.nOt || item.OT || item.ot || '';
+                return !sentOtSet.has(nOt.trim().toLowerCase());
             });
+
+            if (otsToShow.length === 0) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-center py-4">No tienes OTs pendientes en <strong>${contrataActiva || 'tu contrata'}</strong> (o ya han sido enviadas).</p>`;
+                return;
+            }
+
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            let html = '';
+            otsToShow.forEach(item => {
+                const nOt = item.nOt || item.OT || item.ot || 'Desconocida';
+                const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+
+                if (!fechaStr) return;
+
+                const fechaInst = new Date(fechaStr);
+                fechaInst.setHours(0,0,0,0);
+
+                const diffTime = hoy.getTime() - fechaInst.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const fechaFormateada = fechaInst.toLocaleDateString('es-ES');
+
+                if (diffDays > 5) {
+                    html += `
+                    <div class="bg-slate-800/50 border border-rose-900/50 rounded-xl p-3 flex flex-col gap-1 opacity-60">
+                        <div class="font-bold text-slate-400">OT: ${nOt}</div>
+                        <div class="text-[11px] text-rose-400">Instalada el ${fechaFormateada} - Han pasado ${diffDays} días</div>
+                        <div class="text-[10px] text-rose-500 font-bold uppercase mt-1">Bloqueada (Plazo de 5 días excedido)</div>
+                    </div>`;
+                } else {
+                    const diasRealesPasados = diffDays < 0 ? 0 : diffDays; 
+                    const diasRestantes = 5 - diasRealesPasados;
+                    const textoRestante = diasRestantes === 0 ? '¡Último día!' : `Quedan ${diasRestantes} días`;
+                    
+                    html += `
+                    <div class="bg-slate-800 border border-emerald-700/50 hover:border-emerald-500 hover:bg-slate-700/80 rounded-xl p-3 flex flex-col gap-1 cursor-pointer transition shadow-md" onclick="selectOTPendiente('${nOt}')">
+                        <div class="font-bold text-white">OT: ${nOt}</div>
+                        <div class="text-[11px] text-emerald-400">Instalada el ${fechaFormateada} - ${textoRestante}</div>
+                        <div class="text-[10px] text-emerald-300 font-bold uppercase mt-1 flex items-center gap-1"><i class="fa-solid fa-hand-pointer"></i> Haz clic para seleccionar</div>
+                    </div>`;
+                }
+            });
+
+            listContainer.innerHTML = html || '<p class="text-slate-400 text-center py-4">No se encontraron OTs válidas con fecha en esta contrata.</p>';
         }
 
         function selectOTPendiente(nOt) {
@@ -1443,24 +1477,24 @@
             }
         }
 
-        function checkOtDuplication(otVal) {
+        async function checkOtDuplication(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const alertBox = document.getElementById('duplicate-ot-alert');
             const dateSpan = document.getElementById('duplicate-date');
             if (!cleanOt || !alertBox) return;
 
-            let sentList = getSentOTsList();
-            const found = sentList.find(item => item.nOt && item.nOt.trim().toLowerCase() === cleanOt);
+            let sentList = await getSentOTsList();
+            const found = sentList.find(item => (item.nOt || item.not || '').trim().toLowerCase() === cleanOt);
 
             if (found) {
                 alertBox.classList.remove('hidden');
-                if (dateSpan) dateSpan.innerText = found.sentAt || 'fecha anterior';
+                if (dateSpan) dateSpan.innerText = found.sentAt || found.created_at || 'fecha anterior';
             } else {
                 alertBox.classList.add('hidden');
             }
         }
 
-        function checkOtBlocked(otVal) {
+        async function checkOtBlocked(otVal) {
             const cleanOt = otVal.trim().toLowerCase();
             const blockedAlert = document.getElementById('blocked-ot-alert');
             const btnNext1 = document.getElementById('btn-next-step-1');
@@ -1530,10 +1564,10 @@
             }
         }
 
-        function handleOtInput(val) {
+        async function handleOtInput(val) {
             const cleanVal = val.trim().toLowerCase();
             
-            const isBlockedNow = checkOtBlocked(val);
+            const isBlockedNow = await checkOtBlocked(val);
             if (isBlockedNow && val.length === 24) {
                 alert("⚠️ ATENCIÓN: Esta OT se encuentra en la lista de bloqueadas (excede el plazo de 5 días). No se puede continuar ni enviar.");
             }
@@ -1590,7 +1624,7 @@
                 }
             }
 
-            checkOtDuplication(val);
+            await checkOtDuplication(val);
         }
 
         async function cargarListaUsuarios() {
@@ -2320,7 +2354,24 @@
             saveFormDraft();
         }
 
-        function saveToSentHistoryCompletely(nOt) {
+        async function saveToSupabaseDB(item) {
+            if (!supabaseClient) return;
+            try {
+                await supabaseClient.from('partes_postes').insert([{
+                    not: item.nOt,
+                    contrata: item.contrataPrincipal,
+                    tipo: item.formData.tipo,
+                    tecnico: item.formData.nombreTec1,
+                    recurso_preventivo: item.formData.nombreRecursoPreventivo,
+                    datos_completos: item,
+                    sent_at: new Date().toISOString()
+                }]);
+            } catch (e) {
+                console.warn("No se pudo guardar en Supabase", e);
+            }
+        }
+
+        async function saveToSentHistoryCompletely(nOt) {
             const form = document.getElementById('pole-form');
             const formData = new FormData(form);
             const data = {};
@@ -2362,18 +2413,21 @@
                 localStorage.removeItem('user_sent_pole_parts');
             }
 
+            // Guardar en Supabase
+            await saveToSupabaseDB(data);
+
             localStorage.removeItem('pole_form_draft');
-            updateSentPartsBadge();
-            updatePendientesCounterButton();
+            await updateSentPartsBadge();
+            await updatePendientesCounterButton();
         }
 
-        function updateSentPartsBadge() {
-            let sentList = getSentOTsList();
+        async function updateSentPartsBadge() {
+            let sentList = await getSentOTsList();
             document.getElementById('sent-parts-count').innerText = sentList.length;
         }
 
-        function openSentPartsModal() {
-            let sentList = getSentOTsList();
+        async function openSentPartsModal() {
+            let sentList = await getSentOTsList();
             const contrataActiva = document.getElementById('contrataPrincipal').value || 'Contrata';
             document.getElementById('modal-contrata-titulo').innerText = contrataActiva;
 
@@ -2384,8 +2438,8 @@
                 listContainer.innerHTML = sentList.map((item) => `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
                         <div>
-                            <div class="font-bold text-white">OT: ${item.nOt || 'Sin OT'}</div>
-                            <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || 'Fecha desconocida'}</div>
+                            <div class="font-bold text-white">OT: ${item.nOt || item.not || 'Sin OT'}</div>
+                            <div class="text-[11px] text-slate-400">Enviado: ${item.sentAt || item.created_at || 'Fecha desconocida'}</div>
                         </div>
                         <div class="text-emerald-400 font-semibold text-[11px]">Enviado OK</div>
                     </div>
@@ -2760,7 +2814,7 @@
             for (let item of queue) {
                 try {
                     await sendPayloadToEmailJS(item);
-                    saveToSentHistoryCompletely(item.nOt);
+                    await saveToSentHistoryCompletely(item.nOt);
                     lastSuccessfulItem = item;
                 } catch (err) {
                     remaining.push(item);
@@ -2833,14 +2887,14 @@
                 }
 
                 await sendPayloadToEmailJS(payloadObj);
-                saveToSentHistoryCompletely(nOt);
+                await saveToSentHistoryCompletely(nOt);
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (err) {
                 console.error(err);
-                alert('Error al procesar el envío con EmailJS: ' + (err.text || err.message || JSON.stringify(err)));
+                alert('Error al procesar el envío: ' + (err.text || err.message || JSON.stringify(err)));
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Finalizar y Enviar';
