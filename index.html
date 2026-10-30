@@ -218,12 +218,13 @@
             <div id="step-1" class="step-content bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
                 <h2 class="text-base font-semibold text-white border-b border-slate-800 pb-3">Sección 1: Datos de la Orden de Trabajo (OT)</h2>
                 
-                <div id="duplicate-ot-alert" class="hidden bg-rose-950/80 border-2 border-rose-600 rounded-xl p-3 text-xs text-rose-200 flex items-center justify-between gap-2">
+                <!-- ALERTA DE OT YA ENVIADA -->
+                <div id="duplicate-ot-alert" class="hidden bg-rose-950/90 border-2 border-rose-500 rounded-xl p-3 text-xs text-rose-100 flex items-center justify-between gap-2 shadow-lg">
                     <div>
                         <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm mr-1"></i>
-                        <strong>¡Cuidado!</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>.
+                        <strong>OT YA ENVIADA:</strong> Esta OT ya fue registrada y enviada previamente el <span id="duplicate-date" class="underline font-mono"></span>. No se puede volver a enviar.
                     </div>
-                    <button type="button" onclick="document.getElementById('duplicate-ot-alert').classList.add('hidden')" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold">Entendido</button>
+                    <button type="button" onclick="cerrarAlertaDuplicada()" class="text-rose-300 hover:text-white px-2 py-1 bg-rose-900 rounded font-semibold shrink-0">Cerrar</button>
                 </div>
 
                 <div id="blocked-ot-alert" class="hidden bg-rose-950/90 border-2 border-rose-500 rounded-xl p-3 text-xs text-rose-100 flex items-center justify-between gap-2">
@@ -724,7 +725,7 @@
                 <i class="fa-solid fa-lock"></i>
             </div>
             <h3 class="text-base font-bold text-white">Acceso Privado: <span id="modal-target-contrata" class="text-purple-400 uppercase"></span></h3>
-            <p class="text-xs text-slate-400">Introduce la contraseña exclusiva para acceder los datos de esta contrata.</p>
+            <p class="text-xs text-slate-400">Introduce la contraseña exclusiva para acceder a los datos de esta contrata.</p>
             
             <div class="space-y-3 pt-1">
                 <input type="password" id="input-contrata-pass" placeholder="Contraseña de contrata..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
@@ -835,7 +836,6 @@
 
         let pendingTargetContrata = "";
         let pendingOTsFromJSON = {};
-
         let USUARIOS_DB = {};
         let currentStep = 1;
         let signatureCanvas, signatureCtx;
@@ -859,7 +859,6 @@
         let croquisPoints = [];
         let mapMarkers = [];
         let croquisPolyline = null;
-
         let recognition = null;
         let isRecordingVoice = false;
 
@@ -889,6 +888,19 @@
                 if (data && data.length > 0) return data[0];
             } catch (e) {}
             return null;
+        }
+
+        async function updateSentPartsBadge() {
+            try {
+                const { count, error } = await supabaseClient
+                    .from('partes_actuacion')
+                    .select('*', { count: 'exact', head: true });
+                if (!error && count !== null) {
+                    document.getElementById('sent-parts-count').innerText = count;
+                }
+            } catch (e) {
+                document.getElementById('sent-parts-count').innerText = '0';
+            }
         }
 
         async function updatePendientesCounterButton() {
@@ -1074,7 +1086,7 @@
             try {
                 text.innerText = 'Cargando...';
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3500);
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
 
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation`, {
                     signal: controller.signal
@@ -1083,36 +1095,38 @@
 
                 if (res.ok) {
                     const data = await res.json();
-                    const wind = data.current.wind_speed_10m || 0;
-                    const temp = data.current.temperature_2m || 0;
-                    const precip = data.current.precipitation || 0;
+                    if (data && data.current) {
+                        const wind = data.current.wind_speed_10m || 0;
+                        const temp = data.current.temperature_2m || 0;
+                        const precip = data.current.precipitation || 0;
 
-                    currentWeatherInfo.windSpeed = wind;
+                        currentWeatherInfo.windSpeed = wind;
 
-                    if (wind > 50 || precip > 2) {
-                        badge.style.borderColor = '#f43f5e';
-                        badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
-                        icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
-                        text.innerText = `${wind} km/h (¡ALERTA!)`;
-                        currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm)`;
-                    } else if (wind > 35) {
-                        badge.style.borderColor = '#f59e0b';
-                        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
-                        icon.className = 'fa-solid fa-wind text-amber-400';
-                        text.innerText = `${wind} km/h (Precaución)`;
-                        currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h)`;
-                    } else {
-                        badge.style.borderColor = '#10b981';
-                        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                        icon.className = 'fa-solid fa-wind text-emerald-400';
-                        text.innerText = `${wind} km/h (${temp}°C)`;
-                        currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
+                        if (wind > 50 || precip > 2) {
+                            badge.style.borderColor = '#f43f5e';
+                            badge.style.backgroundColor = 'rgba(244, 63, 94, 0.2)';
+                            icon.className = 'fa-solid fa-wind text-rose-400 animate-bounce';
+                            text.innerText = `${wind} km/h (¡ALERTA!)`;
+                            currentWeatherInfo.status = `CRÍTICO (${wind} km/h, ${precip}mm)`;
+                        } else if (wind > 35) {
+                            badge.style.borderColor = '#f59e0b';
+                            badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+                            icon.className = 'fa-solid fa-wind text-amber-400';
+                            text.innerText = `${wind} km/h (Precaución)`;
+                            currentWeatherInfo.status = `PRECAUCIÓN (${wind} km/h)`;
+                        } else {
+                            badge.style.borderColor = '#10b981';
+                            badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                            icon.className = 'fa-solid fa-wind text-emerald-400';
+                            text.innerText = `${wind} km/h (${temp}°C)`;
+                            currentWeatherInfo.status = `ÓPTIMO (${wind} km/h, ${temp}°C)`;
+                        }
+
+                        if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
+                        return;
                     }
-
-                    if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
-                } else {
-                    throw new Error('API error');
                 }
+                throw new Error('Respuesta inválida');
             } catch (e) {
                 currentWeatherInfo.status = 'ÓPTIMO (12 km/h)';
                 if (hiddenInput) hiddenInput.value = currentWeatherInfo.status;
@@ -1201,9 +1215,9 @@
             initSignatureCanvas();
             await cargarListaUsuarios();
             await fetchOTsPendientes();
+            await updateSentPartsBadge();
             updateProgressBar();
             updatePendingBadge();
-            updateSentPartsBadge();
             updateNetworkSignalUI();
             initAutomaticWeather();
             
@@ -1360,7 +1374,6 @@
                             if (id === 'file-croquis') {
                                 document.getElementById('preview-croquis').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[11px] text-emerald-400 font-semibold mt-1">✓ Mapa recuperado</div>`;
                             } else if (id === 'file-escalera') {
-                                const geoInfo = document.getElementById('escaleraGeoInfo').value || '';
                                 document.getElementById('preview-escalera').innerHTML = `<img src="${draft.uploadedFiles[id]}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md"><div class="text-[10px] text-emerald-400 font-semibold mt-1">✓ Foto recuperada</div>`;
                             }
                         }
@@ -1380,19 +1393,41 @@
             const cleanOt = otVal.trim().toLowerCase();
             const alertBox = document.getElementById('duplicate-ot-alert');
             const dateSpan = document.getElementById('duplicate-date');
-            const blockedAlert = document.getElementById('blocked-ot-alert');
             const btnNext1 = document.getElementById('btn-next-step-1');
             
-            if (!cleanOt) return false;
+            if (!cleanOt) {
+                if (alertBox) alertBox.classList.add('hidden');
+                if (btnNext1) { btnNext1.disabled = false; btnNext1.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                return false;
+            }
 
+            // Comprobar si ya existe en Supabase
             const existingPart = await checkIfOtAlreadySentInSupabase(cleanOt);
             if (existingPart && alertBox) {
                 alertBox.classList.remove('hidden');
                 if (dateSpan) dateSpan.innerText = new Date(existingPart.created_at).toLocaleString();
+                if (btnNext1) {
+                    btnNext1.disabled = true;
+                    btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                return true;
             } else if (alertBox) {
                 alertBox.classList.add('hidden');
+                if (btnNext1) {
+                    btnNext1.disabled = false;
+                    btnNext1.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             }
             return false;
+        }
+
+        function cerrarAlertaDuplicada() {
+            document.getElementById('duplicate-ot-alert').classList.add('hidden');
+            const btnNext1 = document.getElementById('btn-next-step-1');
+            if (btnNext1) {
+                btnNext1.disabled = true;
+                btnNext1.classList.add('opacity-50', 'cursor-not-allowed');
+            }
         }
 
         function cerrarAlertaBloqueo() {
@@ -1737,6 +1772,13 @@
                     if (!input.value || !input.value.trim()) valid = false;
                 }
             });
+            if (step === 1) {
+                const duplicateAlert = document.getElementById('duplicate-ot-alert');
+                if (duplicateAlert && !duplicateAlert.classList.contains('hidden')) {
+                    alert('⚠️ No se puede continuar. Esta OT ya fue enviada previamente.');
+                    return false;
+                }
+            }
             if (step === 5 && !uploadedFiles['file-croquis']) {
                 alert('⚠️ Debe capturar la foto del mapa.');
                 return false;
@@ -1748,7 +1790,6 @@
             const container = document.getElementById('summary-breakdown-container');
             if (!container) return;
 
-            const formData = new FormData(document.getElementById('pole-form'));
             container.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
@@ -1880,13 +1921,6 @@
             }
         }
 
-        async function updateSentPartsBadge() {
-            try {
-                const { count } = await supabaseClient.from('partes_actuacion').select('*', { count: 'exact', head: true });
-                if (count !== null) document.getElementById('sent-parts-count').innerText = count;
-            } catch (e) {}
-        }
-
         async function openSentPartsModal() {
             const listContainer = document.getElementById('sent-parts-list');
             listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando historial...</div>';
@@ -1926,18 +1960,14 @@
 
         function buildPrintHTML() {
             const printArea = document.getElementById('print-area');
-            const form = document.getElementById('pole-form');
-            const formData = new FormData(form);
-
             let puntosTextoBreve = [];
             if (croquisPoints.length > 0) {
                 croquisPoints.forEach((p, idx) => {
                     let label = p.type === 'cto' ? '🔌 CTO' : (p.type === 'casa' ? '🏠 Casa' : `🪵 Poste P${idx}`);
-                    puntosTextoBreve.push(`${label}: ${p.address} (${p.lat.toFixed(4)}, ${p.lng.toFixed(4)})`);
+                    puntosTextoBreve.push(`${label}: ${p.address}`);
                 });
             }
-
-            const trazadoFinalTexto = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' | ') + ` [Total: ${calculateTotalMeters()}m, ${Math.max(0, croquisPoints.length - 2)} postes]` : 'Sin puntos en el croquis';
+            const trazadoFinalTexto = puntosTextoBreve.length > 0 ? puntosTextoBreve.join(' | ') + ` [Total: ${calculateTotalMeters()}m]` : 'Sin puntos en el croquis';
             const observacionesFinalTexto = document.getElementById('observaciones').value || 'Sin observaciones';
 
             printArea.innerHTML = `
@@ -1960,13 +1990,9 @@
         }
 
         async function sendPayloadToEmailJS(item) {
-            let croquisMiniatura = '';
-            let escaleraMiniatura = '';
+            let croquisMiniatura = uploadedFiles['file-croquis'] || '';
+            let escaleraMiniatura = uploadedFiles['file-escalera'] || '';
 
-            if (uploadedFiles['file-croquis']) croquisMiniatura = uploadedFiles['file-croquis'];
-            if (uploadedFiles['file-escalera']) escaleraMiniatura = uploadedFiles['file-escalera'];
-
-            // Generamos explícitamente las cadenas correctas de trazado y observaciones
             let puntosTextoBreve = [];
             if (croquisPoints && croquisPoints.length > 0) {
                 croquisPoints.forEach((p, idx) => {
@@ -1998,11 +2024,8 @@
                 metros_tendido: calculateTotalMeters() + 'm',
                 checks_escalera: Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna',
                 epis_utilizados: Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno',
-                
-                // AQUÍ ESTÁ LA SOLUCIÓN CLAVE PARA QUE LLEGUEN AL CORREO:
                 desgllose_ubicaciones: trazadoEmail,
                 observaciones: observacionesEmail,
-
                 foto_croquis_miniatura: croquisMiniatura,
                 foto_escalera_miniatura: escaleraMiniatura
             };
@@ -2035,14 +2058,12 @@
 
                 const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
-                // 1. Enviar por EmailJS (con el trazado y observaciones corregidos)
                 await sendPayloadToEmailJS(payloadObj);
-                
-                // 2. Guardar en Supabase
                 await guardarParteEnSupabase(nOt, payloadFormData);
 
                 localStorage.removeItem('pole_form_draft');
-                updateSentPartsBadge();
+                await updateSentPartsBadge();
+                updatePendientesCounterButton();
 
                 document.getElementById('modal-ot').innerText = nOt;
                 document.getElementById('modal-tec').innerText = document.getElementById('nombreTec1').value;
@@ -2061,6 +2082,8 @@
             clearCroquisMap();
             clearSignatureCanvas();
             localStorage.removeItem('pole_form_draft');
+            updateSentPartsBadge();
+            updatePendientesCounterButton();
             goToStep(1);
         }
     </script>
