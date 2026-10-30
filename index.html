@@ -1375,7 +1375,7 @@
         }
 
         async function checkOtBlockedAndSent(otVal) {
-            const cleanOt = otVal.trim().toLowerCase();
+            const cleanOt = otVal ? otVal.trim().toLowerCase() : '';
             const duplicateAlert = document.getElementById('duplicate-ot-alert');
             const blockedAlert = document.getElementById('blocked-ot-alert');
             const dateSpan = document.getElementById('duplicate-date');
@@ -1798,16 +1798,6 @@
                 }
             });
             if (step === 1) {
-                const duplicateAlert = document.getElementById('duplicate-ot-alert');
-                const blockedAlert = document.getElementById('blocked-ot-alert');
-                if (duplicateAlert && !duplicateAlert.classList.contains('hidden')) {
-                    alert('⚠️ No se puede continuar. Esta OT ya fue enviada previamente.');
-                    return false;
-                }
-                if (blockedAlert && !blockedAlert.classList.contains('hidden')) {
-                    alert('⚠️ No se puede continuar. Esta OT supera el plazo de 5 días.');
-                    return false;
-                }
                 const otInputVal = document.getElementById('nOt').value;
                 if (otInputVal) {
                     const isBlockedOrSent = await checkOtBlockedAndSent(otInputVal);
@@ -2145,18 +2135,20 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const step1Valid = await validateCurrentStep(1);
-            if (!step1Valid) return;
-            const step6Valid = await validateCurrentStep(6);
-            if (!step6Valid) return;
-
             const nOt = document.getElementById('nOt').value || 'Sin_OT';
+
+            // Comprobación estricta de duplicidad antes de enviar
             const isAlreadySent = await checkIfOtAlreadySentInSupabase(nOt);
             if (isAlreadySent) {
                 alert('⚠️ ACCESO DENEGADO: Esta OT ya ha sido enviada previamente y no se puede duplicar.');
                 goToStep(1);
                 return;
             }
+
+            const step1Valid = await validateCurrentStep(1);
+            if (!step1Valid) return;
+            const step6Valid = await validateCurrentStep(6);
+            if (!step6Valid) return;
 
             const firma = document.getElementById('firmaData').value;
             if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
