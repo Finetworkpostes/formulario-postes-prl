@@ -2665,9 +2665,9 @@ async function openSentPartsModal() {
                                 <a href="${publicUrl}" target="_blank" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1" title="Previsualizar PDF">
                                     <i class="fa-solid fa-eye"></i> Ver
                                 </a>
-                                <a href="${publicUrl}" download="${pdfFileName}" target="_blank" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1" title="Descargar PDF">
+                                <button type="button" onclick="descargarPdfRemoto('${publicUrl}', '${pdfFileName}')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer" title="Descargar PDF">
                                     <i class="fa-solid fa-download"></i> Descargar
-                                </a>
+                                </button>
                             </div>
                         </div>
                     `;
@@ -2676,6 +2676,22 @@ async function openSentPartsModal() {
                 listContainer.innerHTML = `<p class="text-rose-400 text-center py-4">Error al cargar historial remoto.</p>`;
             }
         }
+        async function descargarPdfRemoto(url, filename) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+        window.open(url, '_blank');
+    }
+}
 
         function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
 
