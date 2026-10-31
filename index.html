@@ -2456,7 +2456,116 @@
                 return false;
             }
         }
+        async function generarYSubirPdfSupabase(nOt) {
+    try {
+        const printArea = document.getElementById('print-area');
+        const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
+        
+        printArea.innerHTML = `
+            <div class="pdf-page" style="padding: 20px; font-family: Arial, sans-serif; color: black; background: white;">
+                <h1 style="font-size: 18px; font-bold; border-bottom: 2px solid #7c3aed; padding-bottom: 8px;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
+                <p><strong>Nº OT:</strong> ${nOt}</p>
+                <p><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
+                <p><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
+                <p><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
+                <p><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
+                <hr style="margin: 15px 0;" />
+                <h3>Desglose de Ubicaciones:</h3>
+                <p style="font-family: monospace; font-size: 12px;">${desgloseTexto.replace(/\n/g, '<br>')}</p>
+                <p style="margin-top: 30px; font-size: 10px; color: #666;">Documento generado automáticamente desde la app de campo.</p>
+            </div>
+        `;
 
+        const opt = {
+            margin:       10,
+            filename:     `parte_${nOt}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const pdfWorker = html2pdf().from(printArea).set(opt);
+        const pdfBlob = await pdfWorker.output('blob');
+        printArea.innerHTML = '';
+
+        const fileName = `parte_${nOt}_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('pdf-partes')
+            .upload(fileName, pdfBlob, {
+                contentType: 'application/pdf',
+                upsert: true
+            });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabaseClient.storage
+            .from('pdf-partes')
+            .getPublicUrl(fileName);
+
+        console.log("PDF subido correctamente a la nube:", publicUrl);
+        return publicUrl;
+
+    } catch (err) {
+        console.error("Error al generar o subir el PDF a Supabase:", err);
+        return null;
+    }
+}
+async function generarYSubirPdfSupabase(nOt) {
+    try {
+        const printArea = document.getElementById('print-area');
+        const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
+        
+        printArea.innerHTML = `
+            <div class="pdf-page" style="padding: 20px; font-family: Arial, sans-serif; color: black; background: white;">
+                <h1 style="font-size: 18px; font-bold; border-bottom: 2px solid #7c3aed; padding-bottom: 8px;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
+                <p><strong>Nº OT:</strong> ${nOt}</p>
+                <p><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
+                <p><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
+                <p><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
+                <p><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
+                <hr style="margin: 15px 0;" />
+                <h3>Desglose de Ubicaciones:</h3>
+                <p style="font-family: monospace; font-size: 12px;">${desgloseTexto.replace(/\n/g, '<br>')}</p>
+                <p style="margin-top: 30px; font-size: 10px; color: #666;">Documento generado automáticamente desde la app de campo.</p>
+            </div>
+        `;
+
+        const opt = {
+            margin:       10,
+            filename:     `parte_${nOt}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const pdfWorker = html2pdf().from(printArea).set(opt);
+        const pdfBlob = await pdfWorker.output('blob');
+        printArea.innerHTML = '';
+
+        const fileName = `parte_${nOt}_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('pdf-partes')
+            .upload(fileName, pdfBlob, {
+                contentType: 'application/pdf',
+                upsert: true
+            });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabaseClient.storage
+            .from('pdf-partes')
+            .getPublicUrl(fileName);
+
+        console.log("PDF subido correctamente a la nube:", publicUrl);
+        return publicUrl;
+
+    } catch (err) {
+        console.error("Error al generar o subir el PDF a Supabase:", err);
+        return null;
+    }
+}
         async function openSentPartsModal() {
             const listContainer = document.getElementById('sent-parts-list');
             listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando historial...</div>';
@@ -2608,7 +2717,11 @@
                 const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
                 await sendPayloadToEmailJS(payloadObj);
-                await guardarParteEnSupabase(nOt, payloadFormData);
+await guardarParteEnSupabase(nOt, payloadFormData);
+const pdfUrl = await generarYSubirPdfSupabase(nOt);
+if (pdfUrl) {
+    console.log("PDF subido a Supabase con éxito:", pdfUrl);
+}
 
                 localStorage.removeItem('pole_form_draft');
                 await initSentOtCache();
