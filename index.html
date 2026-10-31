@@ -2622,7 +2622,7 @@
             }
         }
 
-        async function openSentPartsModal() {
+async function openSentPartsModal() {
             const listContainer = document.getElementById('sent-parts-list');
             listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando historial...</div>';
             document.getElementById('sent-parts-modal').classList.remove('hidden');
@@ -2649,10 +2649,10 @@
                     return;
                 }
 
-                // Generar URL pública para cada PDF basado en la contrata y la OT
                 listContainer.innerHTML = partesFiltrados.map(item => {
                     const cleanC = (item.contrata || 'CONTRATA').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
-                    const pdfFileName = `${cleanC}_${item.n_ot}.pdf`;
+                    const cleanOt = String(item.n_ot || '').trim().replace(/[^a-zA-Z0-9\-_]/g, '_');
+                    const pdfFileName = `${cleanC}_${cleanOt}.pdf`;
                     const { data: { publicUrl } } = supabaseClient.storage.from('pdf-partes').getPublicUrl(pdfFileName);
 
                     return `
@@ -2661,11 +2661,13 @@
                                 <div class="font-bold text-white">OT: ${item.n_ot || '-'}</div>
                                 <div class="text-[11px] text-slate-400">Contrata: <span class="text-purple-300 font-semibold">${item.contrata || '-'}</span> | Técnico: ${item.tecnico || '-'} | ${item.fecha_hora || ''}</div>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <a href="${publicUrl}" target="_blank" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1">
-                                    <i class="fa-solid fa-file-pdf"></i> Ver PDF
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <a href="${publicUrl}" target="_blank" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1" title="Previsualizar PDF">
+                                    <i class="fa-solid fa-eye"></i> Ver
                                 </a>
-                                <span class="text-emerald-400 font-semibold text-[11px]">Sincronizado ☁️</span>
+                                <a href="${publicUrl}" download="${pdfFileName}" target="_blank" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1" title="Descargar PDF">
+                                    <i class="fa-solid fa-download"></i> Descargar
+                                </a>
                             </div>
                         </div>
                     `;
