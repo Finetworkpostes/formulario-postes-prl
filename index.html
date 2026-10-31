@@ -1489,17 +1489,41 @@
             document.getElementById('password-modal').classList.remove('hidden');
         }
 
-        function verificarPasswordContrata() {
-            const typedPass = document.getElementById('input-contrata-pass').value.trim();
-            const correctPass = CONTRATA_PASSWORDS[pendingTargetContrata];
+        async function verificarPasswordContrata() {
+    const typedPass = document.getElementById('input-contrata-pass').value.trim();
+    const contrataName = pendingTargetContrata;
+    const errorMsg = document.getElementById('pass-error-msg');
 
-            if (typedPass === correctPass) {
-                document.getElementById('password-modal').classList.add('hidden');
-                aplicarContrataValidada(pendingTargetContrata);
-            } else {
-                document.getElementById('pass-error-msg').classList.remove('hidden');
-            }
+    if (!typedPass) {
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        // Consultar la contraseña correcta en Supabase
+        const { data, error } = await supabaseClient
+            .from('contrata_configs')
+            .select('password_hash')
+            .eq('contrata_name', contrataName)
+            .single();
+
+        if (error || !data) {
+            throw new Error('No se pudo verificar la credencial');
         }
+
+        // Comprobar si coincide
+        if (typedPass === data.password_hash) {
+            errorMsg.classList.add('hidden');
+            document.getElementById('password-modal').classList.add('hidden');
+            aplicarContrataValidada(contrataName);
+        } else {
+            errorMsg.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error("Error al validar contraseña en Supabase:", err);
+        errorMsg.classList.remove('hidden');
+    }
+}
 
         function cancelarPasswordModal() {
             document.getElementById('password-modal').classList.add('hidden');
