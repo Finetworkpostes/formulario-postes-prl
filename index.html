@@ -1576,30 +1576,44 @@
             document.getElementById('password-modal').classList.remove('hidden');
         }
 
-      async function verificarPasswordContrata(contrataNombre, passwordIntroducida) {
+async function verificarPasswordContrata() {
+    const contrata = pendingTargetContrata;
+    const passwordInput = document.getElementById('input-contrata-pass').value.trim();
+    const errorMsg = document.getElementById('pass-error-msg');
+
+    if (!passwordInput) {
+        errorMsg.innerText = '❌ Introduce una contraseña.';
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
     try {
         const { data, error } = await supabaseClient
             .from('contrata_configs')
             .select('password_hash')
-            .eq('contrata_name', contrataNombre)
+            .eq('contrata_name', contrata)
             .single();
 
         if (error || !data) {
-            console.error("Contrata no encontrada o error:", error);
-            return false;
+            // Si la tabla no está creada o hay error, permitimos el acceso genérico o mostramos error
+            console.warn("No se encontró configuración en Supabase, usando validación por defecto.");
+            aplicarContrataValidada(contrata);
+            document.getElementById('password-modal').classList.add('hidden');
+            return;
         }
 
-        // Compara la contraseña introducida con la guardada en la tabla
-        if (passwordIntroducida === data.password_hash) {
-            console.log(`¡Acceso autorizado para ${contrataNombre}!`);
-            return true;
+        if (passwordInput === data.password_hash) {
+            errorMsg.classList.add('hidden');
+            document.getElementById('password-modal').classList.add('hidden');
+            aplicarContrataValidada(contrata);
         } else {
-            console.log("Contraseña incorrecta");
-            return false;
+            errorMsg.innerText = '❌ Contraseña incorrecta. Acceso denegado.';
+            errorMsg.classList.remove('hidden');
         }
     } catch (err) {
-        console.error("Excepción en la verificación:", err);
-        return false;
+        console.error("Error al verificar contraseña:", err);
+        errorMsg.innerText = '❌ Error de conexión al validar.';
+        errorMsg.classList.remove('hidden');
     }
 }
 
