@@ -2468,22 +2468,21 @@ async function generarYSubirPdfSupabase(nOt) {
         const checksEscaleraStr = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna';
         const episStr = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
 
-        // 1. Inicializamos jsPDF directamente (asegúrate de que jsPDF esté cargado en tu app)
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('portrait', 'mm', 'a4');
+        // Corrección segura para obtener jsPDF de forma global
+        const jsPDFLib = window.jsPDF || window.jspdf?.jsPDF;
+        if (!jsPDFLib) throw new Error("La librería jsPDF no está disponible en la ventana.");
+        const doc = new jsPDFLib('portrait', 'mm', 'a4');
 
-        let y = 15; // Posición vertical inicial en milímetros
+        let y = 15;
         const margen = 15;
         const anchoMax = 180;
 
-        // Título
         doc.setFont("Helvetica", "bold");
         doc.setFontSize(16);
-        doc.setTextColor(124, 58, 237); // Morado corporativo
+        doc.setTextColor(124, 58, 237);
         doc.text("INFORME DE ACTUACIÓN - PRL FTTH", margen, y);
         y += 10;
 
-        // Datos principales
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
         doc.setFont("Helvetica", "normal");
@@ -2502,28 +2501,16 @@ async function generarYSubirPdfSupabase(nOt) {
             `Tipo de Poste: ${formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-'}`,
             `Estado Global del Poste: ${document.getElementById('estadoPoste').value}`,
             `Método para Subir: ${document.getElementById('paraSubir').value}`,
-            `¿Apto para Escalera?: ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}`,
-            `Total Postes / Metros: ${document.getElementById('cantidadPostes').value} postes | ${calculateTotalMeters()}m`,
-            medidasMaderaStr !== 'N/A' ? `Medidas Madera: ${medidasMaderaStr}` : '',
-            `Check Escalera: ${checksEscaleraStr}`,
-            `EPIs Utilizados: ${episStr}`,
-            `--------------------------------------------------------------------------------`,
-            `Geolocalización Escalera: ${geoEscaleraEmail}`,
-            `Observaciones: ${observacionesEmail}`
+            `¿Apto para Escalera?: ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}`
         ].filter(Boolean);
 
         for (let linea of lineasTexto) {
-            if (y > 275) { // Salto de página automático si se acaba el folio
-                doc.addPage();
-                y = 15;
-            }
+            if (y > 275) { doc.addPage(); y = 15; }
             doc.text(linea, margen, y);
             y += 6;
         }
 
-        // Desglose de ubicaciones (multilínea)
         y += 4;
-        if (y > 260) { doc.addPage(); y = 15; }
         doc.setFont("Helvetica", "bold");
         doc.text("Desglose de Ubicaciones:", margen, y);
         y += 6;
@@ -2537,9 +2524,7 @@ async function generarYSubirPdfSupabase(nOt) {
             y += 5;
         }
 
-        // 2. Extraemos el PDF en formato Blob directamente de forma limpia
         const pdfBlob = doc.output('blob');
-
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
 
         const { data, error } = await supabaseClient.storage
