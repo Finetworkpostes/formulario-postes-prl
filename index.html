@@ -2458,6 +2458,17 @@
         }
 async function generarYSubirPdfSupabase(nOt) {
     try {
+        // Carga dinámica de jsPDF si no está presente en la ventana
+        if (typeof window.jsPDF === 'undefined') {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = resolve;
+                script.onerror = () => reject(new Error("No se pudo cargar la librería jsPDF."));
+                document.head.appendChild(script);
+            });
+        }
+
         const formElement = document.getElementById('pole-form');
         const contrataReal = document.getElementById('contrataPrincipal').value || '-';
         const desgloseCrudo = document.getElementById('desglloseEditableInput')?.value || 'Sin trazado registrado';
@@ -2468,15 +2479,14 @@ async function generarYSubirPdfSupabase(nOt) {
         const checksEscaleraStr = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna';
         const episStr = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
 
-        // Corrección segura para obtener jsPDF de forma global
-        const jsPDFLib = window.jsPDF || window.jspdf?.jsPDF;
-        if (!jsPDFLib) throw new Error("La librería jsPDF no está disponible en la ventana.");
-        const doc = new jsPDFLib('portrait', 'mm', 'a4');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('portrait', 'mm', 'a4');
 
         let y = 15;
         const margen = 15;
         const anchoMax = 180;
 
+        // Título del documento
         doc.setFont("Helvetica", "bold");
         doc.setFontSize(16);
         doc.setTextColor(124, 58, 237);
@@ -2487,6 +2497,7 @@ async function generarYSubirPdfSupabase(nOt) {
         doc.setTextColor(0, 0, 0);
         doc.setFont("Helvetica", "normal");
 
+        // Listado completo con todos los campos del parte
         const lineasTexto = [
             `Nº OT: ${nOt}`,
             `Contrata: ${contrataReal}`,
@@ -2501,7 +2512,14 @@ async function generarYSubirPdfSupabase(nOt) {
             `Tipo de Poste: ${formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-'}`,
             `Estado Global del Poste: ${document.getElementById('estadoPoste').value}`,
             `Método para Subir: ${document.getElementById('paraSubir').value}`,
-            `¿Apto para Escalera?: ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}`
+            `¿Apto para Escalera?: ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}`,
+            `Total Postes / Metros: ${document.getElementById('cantidadPostes').value} postes | ${calculateTotalMeters()}m`,
+            medidasMaderaStr !== 'N/A' ? `Medidas Madera: ${medidasMaderaStr}` : '',
+            `Check Escalera: ${checksEscaleraStr}`,
+            `EPIs Utilizados: ${episStr}`,
+            `--------------------------------------------------------------------------------`,
+            `Geolocalización Escalera: ${geoEscaleraEmail}`,
+            `Observaciones: ${observacionesEmail}`
         ].filter(Boolean);
 
         for (let linea of lineasTexto) {
@@ -2510,7 +2528,9 @@ async function generarYSubirPdfSupabase(nOt) {
             y += 6;
         }
 
+        // Sección de Desglose de Ubicaciones
         y += 4;
+        if (y > 260) { doc.addPage(); y = 15; }
         doc.setFont("Helvetica", "bold");
         doc.text("Desglose de Ubicaciones:", margen, y);
         y += 6;
@@ -2524,6 +2544,7 @@ async function generarYSubirPdfSupabase(nOt) {
             y += 5;
         }
 
+        // Generar Blob y subir a Supabase de forma completamente silenciosa
         const pdfBlob = doc.output('blob');
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
 
@@ -2540,12 +2561,11 @@ async function generarYSubirPdfSupabase(nOt) {
             .from('pdf-partes')
             .getPublicUrl(fileName);
 
-        alert("✅ ¡PDF generado en texto nativo y subido con éxito a Supabase!");
+        console.log("PDF generado y subido correctamente a Supabase:", publicUrl);
         return publicUrl;
 
     } catch (err) {
-        alert("❌ Error al generar PDF nativo: " + (err.message || JSON.stringify(err)));
-        console.error("Error al generar PDF nativo:", err);
+        console.error("Error silencioso al generar o subir el PDF:", err);
         return null;
     }
 }
