@@ -854,6 +854,42 @@
             });
         }
 
+        // NUEVA FUNCIÓN: Detecta si la imagen es demasiado oscura
+        function isImageTooDark(dataUrl, threshold = 25) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = dataUrl;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    // Reducimos la imagen a 100x100 para un cálculo instantáneo
+                    canvas.width = 100;
+                    canvas.height = 100;
+                    ctx.drawImage(img, 0, 0, 100, 100);
+                    
+                    const imageData = ctx.getImageData(0, 0, 100, 100);
+                    const data = imageData.data;
+                    let sumBrightness = 0;
+                    
+                    // Analizamos los píxeles (R, G, B)
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        // Fórmula estándar de luminancia percibida por el ojo humano
+                        const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+                        sumBrightness += brightness;
+                    }
+                    
+                    // Calculamos la media (0 es negro puro, 255 es blanco puro)
+                    const avgBrightness = sumBrightness / (100 * 100);
+                    // Si la media es menor que nuestro límite (threshold), está demasiado oscura
+                    resolve(avgBrightness < threshold);
+                };
+                img.onerror = () => resolve(false); // Si hay error de lectura, dejamos pasar por precaución
+            });
+        }
+
         async function initSentOtCache() {
             try {
                 const { data, error } = await supabaseClient.from('partes_actuacion').select('n_ot, created_at');
@@ -1663,7 +1699,7 @@
             const previewContainer = document.getElementById(previewId);
             if (!file) return;
 
-            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y comprimiendo...</div>`;
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y procesando...</div>`;
             const now = new Date();
             const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
 
@@ -1693,6 +1729,23 @@
                 reader.onload = (e) => res(e.target.result);
                 reader.readAsDataURL(file);
             });
+
+            // --- NUEVO: DETECTOR DE FOTO OSCURA/TAPADA ---
+            // Usamos un umbral de 25 (sobre 255). Es bastante permisivo para dejar pasar fotos en 
+            // días nublados o de tarde, pero bloqueará dedos en la lente o fotos de noche cerrada.
+            const isDark = await isImageTooDark(rawDataUrl, 25);
+            if (isDark) {
+                alert('⚠️ CÁMARA TAPADA O SIN LUZ:\nLa foto es demasiado oscura. Por favor, asegúrese de no tapar la lente y de que haya luz suficiente.');
+                document.getElementById(inputId).value = ''; // Resetea el input de archivo
+                
+                // Restaura el estado visual de la caja de subida
+                previewContainer.innerHTML = `
+                    <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
+                    <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Geolocalización automática)</div>
+                `;
+                return; // Corta la ejecución para que no se guarde la foto oscura
+            }
+            // ----------------------------------------------
 
             const compressedDataUrl = await compressImage(rawDataUrl, 450, 0.45);
 
@@ -1929,7 +1982,6 @@
             }
 
             if (!valid) {
-                // Alerta genérica sin popups personalizados
                 alert(`⚠️ FALTAN DATOS OBLIGATORIOS\n\nPor favor, rellene todos los campos marcados con asterisco (*) antes de continuar al siguiente paso.`);
             }
 
