@@ -2750,47 +2750,47 @@ async function generarYSubirPdfSupabase(nOt) {
         }
 
         async function handleFormSubmit(e) {
-            e.preventDefault();
-            const nOt = document.getElementById('nOt').value || 'Sin_OT';
+    e.preventDefault();
+    const nOt = document.getElementById('nOt').value || 'Sin_OT';
 
-            const step1Valid = await validateCurrentStep(1);
-            if (!step1Valid) return;
-            const step6Valid = await validateCurrentStep(6);
-            if (!step6Valid) return;
+    const step1Valid = await validateCurrentStep(1);
+    if (!step1Valid) return;
+    const step6Valid = await validateCurrentStep(6);
+    if (!step6Valid) return;
 
-            const firma = document.getElementById('firmaData').value;
-            if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
+    const firma = document.getElementById('firmaData').value;
+    if (!firma) { alert('⚠️ La firma táctil es obligatoria.'); return; }
 
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const submitIcon = document.getElementById('submit-icon');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const submitIcon = document.getElementById('submit-icon');
 
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            submitIcon.className = 'fa-solid fa-spinner fa-spin';
-            submitText.innerText = 'Enviando parte y guardando...';
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    submitIcon.className = 'fa-solid fa-spinner fa-spin';
+    submitText.innerText = 'Enviando parte y guardando...';
 
-            try {
-                const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
-                
-                const formElement = document.getElementById('pole-form');
-                const allFormData = new FormData(formElement);
-                const payloadFormData = {};
-                allFormData.forEach((val, key) => { payloadFormData[key] = val; });
+    try {
+        const contrata = document.getElementById('contrataPrincipal').value || 'Sin_Contrata';
+        const formElement = document.getElementById('pole-form');
+        const allFormData = new FormData(formElement);
+        const payloadFormData = {};
+        allFormData.forEach((val, key) => { payloadFormData[key] = val; });
 
-                payloadFormData['croquisPoints'] = croquisPoints;
-                payloadFormData['observaciones'] = document.getElementById('observaciones').value;
-                payloadFormData['escalera_geolocalizacion'] = document.getElementById('escaleraGeoInfo').value;
-                payloadFormData['desglloseEditableInput'] = document.getElementById('desglloseEditableInput').value;
+        payloadFormData['croquisPoints'] = croquisPoints;
+        payloadFormData['observaciones'] = document.getElementById('observaciones').value;
+        payloadFormData['escalera_geolocalizacion'] = document.getElementById('escaleraGeoInfo').value;
 
-                const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
+        const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
-                await sendPayloadToEmailJS(payloadObj);
-await guardarParteEnSupabase(nOt, payloadFormData);
-const pdfUrl = await generarYSubirPdfSupabase(nOt);
-if (pdfUrl) {
-    console.log("PDF subido a Supabase con éxito:", pdfUrl);
-}
+        // 1. Envío ligero por correo vía EmailJS (sin datos pesados)
+        await sendPayloadToEmailJS(payloadObj);
+
+        // 2. Guardar datos principales en la base de datos de Supabase
+        await guardarParteEnSupabase(nOt, payloadFormData);
+
+        // 3. Generar y subir el PDF profesional con diseño moderno y fotos a Supabase Storage
+        await generarYSubirPdfSupabase(nOt);
 
                 localStorage.removeItem('pole_form_draft');
                 await initSentOtCache();
