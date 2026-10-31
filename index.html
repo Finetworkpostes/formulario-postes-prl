@@ -64,7 +64,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal, #ot-verify-modal, #admin-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal, #ot-verify-modal, #admin-modal, #gps-error-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -568,11 +568,11 @@
                             <i class="fa-solid fa-image"></i> 🖼️ Ver ejemplo de foto correcta
                         </button>
                         
-                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="triggerFileInput('file-escalera')">
-                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelectWithGeolocation(this, 'preview-escalera')">
+                        <div class="file-dropzone border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-900/50" onclick="intentarSubirEscalera()">
+                            <input type="file" id="file-escalera" required accept="image/*" capture="environment" class="hidden" onchange="handleFileSelectWithMandatoryGPS(this, 'preview-escalera')">
                             <div id="preview-escalera" class="space-y-2">
                                 <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Geolocalización automática)</div>
+                                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Requiere GPS activo)</div>
                             </div>
                         </div>
                     </div>
@@ -647,6 +647,26 @@
 
         </form>
     </main>
+
+    <!-- MODAL DE ERROR GPS OBLIGATORIO -->
+    <div id="gps-error-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border-2 border-rose-500 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl animate-bounce-short">
+            <div class="w-14 h-14 bg-rose-950 border-2 border-rose-500/50 rounded-full flex items-center justify-center mx-auto text-rose-400 text-2xl">
+                <i class="fa-solid fa-location-slash"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">¡GPS OBLIGATORIO DESACTIVADO!</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Para adjuntar la foto de la escalera y continuar con el parte PRL, es estrictamente obligatorio tener la ubicación GPS activa.
+            </p>
+            <div class="bg-rose-950/60 border border-rose-800/60 rounded-xl p-3 text-[11px] text-rose-200">
+                Por favor, active el GPS en los ajustes de su dispositivo móvil y pulse reintentar.
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="cerrarGpsErrorModal()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs transition">Cancelar</button>
+                <button type="button" onclick="reintentarGpsEscalera()" class="py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition">Reintentar GPS</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL CONTRASEÑA ADMIN -->
     <div id="admin-password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 no-print">
@@ -752,7 +772,7 @@
             <div class="bg-slate-950 border border-purple-900 rounded-xl p-3 font-mono text-sm text-brand-300 tracking-wider" id="verify-ot-display">
                 -
             </div>
-            <p class="text-[10px] text-slate-400">Condiciones: Exactamente 24 caracteres sin espacios.</p>
+            <p class="text-[10px] text-slate-400">Condiciones: Exactly 24 caracteres sin espacios.</p>
 
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <button type="button" onclick="cerrarOtVerifyModal()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs transition">Editar OT</button>
@@ -904,7 +924,7 @@
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
         let escaleraGeoTextoGlobal = "Sin geolocalización registrada";
 
-        // CACHÉ LOCAL OCULTA DE OTs ENVIADAS (para validación instantánea sin llamadas lentas)
+        // CACHÉ LOCAL OCULTA DE OTs ENVIADAS
         let sentOtCache = new Set();
         window.sentOtDetailsMap = {};
         window.allSupabaseRecords = [];
@@ -1013,7 +1033,7 @@
             } catch (e) {}
         }
 
-        // FUNCIONES DE PANEL ADMIN
+        // PANEL ADMIN
         function abrirAdminModalPrompt() {
             document.getElementById('input-admin-pass').value = '';
             document.getElementById('admin-pass-error').classList.add('hidden');
@@ -1096,7 +1116,6 @@
                 });
             });
 
-            // Añadir también partes enviados que no estén en el JSON por si acaso
             window.allSupabaseRecords.forEach(rec => {
                 const cDB = (rec.contrata || '').trim().toUpperCase();
                 if (contrataFiltro !== 'TODAS' && cDB !== contrataFiltro) return;
@@ -1113,12 +1132,10 @@
                 }
             });
 
-            // Actualizar contadores visuales
             document.getElementById('admin-stat-enviados').innerText = totalEnviados;
             document.getElementById('admin-stat-pendientes').innerText = totalPendientes;
             document.getElementById('admin-stat-caducados').innerText = totalCaducados;
 
-            // Filtrar y renderizar listado
             const filteredRows = allRows.filter(row => {
                 if (estadoFiltro !== 'TODOS' && row.estado !== estadoFiltro) return false;
                 return true;
@@ -1157,6 +1174,104 @@
             });
 
             container.innerHTML = htmlList;
+        }
+
+        // VALIDACIÓN ESTRICTA DE GPS OBLIGATORIO PARA ESCALERA
+        function intentarSubirEscalera() {
+            const previewContainer = document.getElementById('preview-escalera');
+            previewContainer.innerHTML = `<div class="text-xs text-brand-300 font-medium py-2"><i class="fa-solid fa-satellite-dish fa-bounce"></i> Verificando GPS activo...</div>`;
+
+            if (!navigator.geolocation) {
+                mostrarGpsErrorModal();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // GPS ACTIVO Y VÁLIDO: Abrimos selector de archivo / cámara
+                    document.getElementById('file-escalera').click();
+                },
+                (error) => {
+                    // GPS DESACTIVADO O DENEGADO: Bloqueamos y mostramos modal obligatorio
+                    mostrarGpsErrorModal();
+                },
+                { timeout: 8000, maximumAge: 0, enableHighAccuracy: true }
+            );
+        }
+
+        function mostrarGpsErrorModal() {
+            const previewContainer = document.getElementById('preview-escalera');
+            previewContainer.innerHTML = `
+                <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
+                <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Requiere GPS activo)</div>
+            `;
+            document.getElementById('gps-error-modal').classList.remove('hidden');
+        }
+
+        function cerrarGpsErrorModal() {
+            document.getElementById('gps-error-modal').classList.add('hidden');
+        }
+
+        function reintentarGpsEscalera() {
+            cerrarGpsErrorModal();
+            intentarSubirEscalera();
+        }
+
+        async function handleFileSelectWithMandatoryGPS(input, previewId) {
+            const file = input.files[0];
+            const previewContainer = document.getElementById(previewId);
+            if (!file) return;
+
+            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Registrando coordenadas GPS exactas...</div>`;
+            const now = new Date();
+            const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const geoData = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+                    escaleraGeoTextoGlobal = `${geoData.address} (${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}) - ${fechaHoraStr}`;
+                    document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
+                    await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
+                },
+                (error) => {
+                    mostrarGpsErrorModal();
+                },
+                { timeout: 8000, maximumAge: 0, enableHighAccuracy: true }
+            );
+        }
+
+        async function processAndStorePhoto(file, inputId, previewContainer, geoText) {
+            const reader = new FileReader();
+            const rawDataUrl = await new Promise((res) => {
+                reader.onload = (e) => res(e.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            // DETECTOR DE FOTO OSCURA/TAPADA
+            const isDark = await isImageTooDark(rawDataUrl, 25);
+            if (isDark) {
+                alert('⚠️ CÁMARA TAPADA O SIN LUZ:\nLa foto es demasiado oscura. Por favor, asegúrese de no tapar la lente y de que haya luz suficiente.');
+                document.getElementById(inputId).value = '';
+                previewContainer.innerHTML = `
+                    <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
+                    <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Requiere GPS activo)</div>
+                `;
+                return;
+            }
+
+            const compressedDataUrl = await compressImage(rawDataUrl, 450, 0.45);
+
+            uploadedFiles[inputId] = compressedDataUrl;
+            saveFormDraft();
+
+            previewContainer.innerHTML = `
+                <div class="space-y-2">
+                    <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
+                    <div class="text-[10px] text-emerald-400 font-semibold">✓ Foto adjuntada con GPS verificado</div>
+                    <div class="text-[10px] text-purple-300 font-mono bg-slate-900/90 p-2 rounded-lg border border-purple-900/50 text-left">
+                        <i class="fa-solid fa-location-dot text-rose-400 mr-1"></i> ${geoText}
+                    </div>
+                </div>`;
         }
 
         function checkOtBlockedAndSentInstant(otVal) {
@@ -1927,71 +2042,6 @@
                 }
             }
             saveFormDraft();
-        }
-
-        function triggerFileInput(id) { document.getElementById(id).click(); }
-
-        async function handleFileSelectWithGeolocation(input, previewId) {
-            const file = input.files[0];
-            const previewContainer = document.getElementById(previewId);
-            if (!file) return;
-
-            previewContainer.innerHTML = `<div class="text-xs text-purple-400 font-medium py-2"><i class="fa-solid fa-spinner fa-spin"></i> Geolocalizando y procesando...</div>`;
-            const now = new Date();
-            const fechaHoraStr = now.toLocaleDateString('es-ES') + ' a las ' + now.toLocaleTimeString('es-ES');
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const geoData = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-                        escaleraGeoTextoGlobal = `${geoData.address} (${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}) - ${fechaHoraStr}`;
-                        document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
-                        await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
-                    },
-                    async () => {
-                        escaleraGeoTextoGlobal = `Fotografía realizada sin GPS el ${fechaHoraStr}`;
-                        document.getElementById('escaleraGeoInfo').value = escaleraGeoTextoGlobal;
-                        await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
-                    },
-                    { timeout: 5000 }
-                );
-            } else {
-                await processAndStorePhoto(file, input.id, previewContainer, escaleraGeoTextoGlobal);
-            }
-        }
-
-        async function processAndStorePhoto(file, inputId, previewContainer, geoText) {
-            const reader = new FileReader();
-            const rawDataUrl = await new Promise((res) => {
-                reader.onload = (e) => res(e.target.result);
-                reader.readAsDataURL(file);
-            });
-
-            // DETECTOR DE FOTO OSCURA/TAPADA
-            const isDark = await isImageTooDark(rawDataUrl, 25);
-            if (isDark) {
-                alert('⚠️ CÁMARA TAPADA O SIN LUZ:\nLa foto es demasiado oscura. Por favor, asegúrese de no tapar la lente y de que haya luz suficiente.');
-                document.getElementById(inputId).value = '';
-                previewContainer.innerHTML = `
-                    <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
-                    <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Geolocalización automática)</div>
-                `;
-                return;
-            }
-
-            const compressedDataUrl = await compressImage(rawDataUrl, 450, 0.45);
-
-            uploadedFiles[inputId] = compressedDataUrl;
-            saveFormDraft();
-
-            previewContainer.innerHTML = `
-                <div class="space-y-2">
-                    <img src="${compressedDataUrl}" class="h-28 mx-auto rounded-lg object-cover border border-slate-600 shadow-md">
-                    <div class="text-[10px] text-emerald-400 font-semibold">✓ Foto adjuntada y optimizada</div>
-                    <div class="text-[10px] text-purple-300 font-mono bg-slate-900/90 p-2 rounded-lg border border-purple-900/50 text-left">
-                        <i class="fa-solid fa-location-dot text-rose-400 mr-1"></i> ${geoText}
-                    </div>
-                </div>`;
         }
 
         function initCroquisMap() {
