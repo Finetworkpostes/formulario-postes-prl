@@ -590,7 +590,7 @@
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
                     <button type="button" onclick="prevStep(4)" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm text-center"><i class="fa-solid fa-arrow-left text-xs"></i> Anterior</button>
-                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Confirmación & Firma <i class="fa-solid fa-arrow-right text-xs"></i></button>
+                    <button type="button" onclick="nextStep(6)" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm text-center">Siguiente: Croquis & Fotos <i class="fa-solid fa-arrow-right text-xs"></i></button>
                 </div>
             </div>
 
@@ -821,7 +821,7 @@
         </div>
     </div>
 
-    <!-- Modal Éxito (Sin botón de descargar PDF) -->
+    <!-- Modal Éxito -->
     <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4">
             <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
@@ -839,7 +839,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE PARTES ENVIADOS -->
+    <!-- MODAL DE PARTES ENVIADOS (Con Acceso Directo al PDF) -->
     <div id="sent-parts-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -980,7 +980,10 @@
                         if (item.n_ot) {
                             const key = String(item.n_ot).trim().toLowerCase();
                             sentOtCache.add(key);
-                            window.sentOtDetailsMap[key] = item.created_at;
+                            window.sentOtDetailsMap[key] = {
+                                created_at: item.created_at,
+                                pdf_url: item.pdf_url
+                            };
                         }
                     });
                 }
@@ -1241,7 +1244,8 @@
             if (sentOtCache.has(cleanOt)) {
                 if (duplicateAlert) {
                     duplicateAlert.classList.remove('hidden');
-                    const createdAt = window.sentOtDetailsMap && window.sentOtDetailsMap[cleanOt];
+                    const details = window.sentOtDetailsMap && window.sentOtDetailsMap[cleanOt];
+                    const createdAt = details ? details.created_at : null;
                     if (dateSpan) dateSpan.innerText = createdAt ? new Date(createdAt).toLocaleString() : 'Fecha anterior';
                 }
                 if (blockedAlert) blockedAlert.classList.add('hidden');
@@ -2421,30 +2425,8 @@
             document.getElementById('firmaData').value = '';
         }
 
-        async function guardarParteEnSupabase(nOt, datosFormulario) {
-            try {
-                const contrataActivaReal = document.getElementById('contrataPrincipal').value || datosFormulario.contrataPrincipal || '-';
-                
-                const { error } = await supabaseClient.from('partes_actuacion').insert([{
-                    n_ot: nOt,
-                    contrata: contrataActivaReal,
-                    tipo: datosFormulario.tipo || '-',
-                    fecha_hora: datosFormulario.fechaHora || new Date().toISOString(),
-                    tecnico: datosFormulario.nombreTec1 || '-',
-                    recurso_preventivo: datosFormulario.nombreRecursoPreventivo || '-',
-                    datos_completos: { ...datosFormulario, contrataPrincipal: contrataActivaReal }
-                }]);
-                if (error) throw error;
-
-                sentOtCache.add(String(nOt).trim().toLowerCase());
-                return true;
-            } catch (err) {
-                console.error("Error guardando en Supabase:", err);
-                return false;
-            }
-        }
-
-        async function generarYSubirPdfSupabase(nOt) {
+        // GENERACIÓN Y SUBIDA DE PDF CON NOMBRE DE CONTRATA Y OT
+        async function generarYSubirPdfSupabase(nOt, contrataReal) {
             try {
                 if (typeof window.jsPDF === 'undefined') {
                     await new Promise((resolve, reject) => {
@@ -2457,7 +2439,6 @@
                 }
 
                 const formElement = document.getElementById('pole-form');
-                const contrataReal = document.getElementById('contrataPrincipal').value || '-';
                 const desgloseCrudo = document.getElementById('desglloseEditableInput')?.value || 'Sin trazado registrado';
                 const observacionesEmail = document.getElementById('observaciones').value || 'Sin observaciones';
                 const geoEscaleraEmail = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización';
@@ -2587,7 +2568,11 @@
                 }
 
                 const pdfBlob = doc.output('blob');
-                const fileName = `parte_${nOt}_${Date.now()}.pdf`;
+                
+                // Formato de nombre solicitado: CONTRATA_OT.pdf
+                const cleanContrata = String(contrataReal).replace(/[^a-zA-Z0-9]/g, '_');
+                const cleanOt = String(nOt).replace(/[^a-zA-Z0-9_-]/g, '_');
+                const fileName = `${cleanContrata}_${cleanOt}.pdf`;
 
                 const { data, error } = await supabaseClient.storage
                     .from('pdf-partes')
@@ -2605,8 +2590,32 @@
                 return publicUrl;
 
             } catch (err) {
-                console.error("Error silencioso al generar el PDF profesional:", err);
+                console.error("Error al generar el PDF profesional:", err);
                 return null;
+            }
+        }
+
+        async function guardarParteEnSupabase(nOt, datosFormulario, pdfUrl) {
+            try {
+                const contrataActivaReal = document.getElementById('contrataPrincipal').value || datosFormulario.contrataPrincipal || '-';
+                
+                const { error } = await supabaseClient.from('partes_actuacion').insert([{
+                    n_ot: nOt,
+                    contrata: contrataActivaReal,
+                    tipo: datosFormulario.tipo || '-',
+                    fecha_hora: datosFormulario.fechaHora || new Date().toISOString(),
+                    tecnico: datosFormulario.nombreTec1 || '-',
+                    recurso_preventivo: datosFormulario.nombreRecursoPreventivo || '-',
+                    pdf_url: pdfUrl || '',
+                    datos_completos: { ...datosFormulario, contrataPrincipal: contrataActivaReal }
+                }]);
+                if (error) throw error;
+
+                sentOtCache.add(String(nOt).trim().toLowerCase());
+                return true;
+            } catch (err) {
+                console.error("Error guardando en Supabase:", err);
+                return false;
             }
         }
 
@@ -2637,15 +2646,24 @@
                     return;
                 }
 
-                listContainer.innerHTML = partesFiltrados.map(item => `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
-                        <div>
-                            <div class="font-bold text-white">OT: ${item.n_ot || '-'}</div>
-                            <div class="text-[11px] text-slate-400">Contrata: <span class="text-purple-300 font-semibold">${item.contrata || '-'}</span> | Técnico: ${item.tecnico || '-'} | ${item.fecha_hora || ''}</div>
+                listContainer.innerHTML = partesFiltrados.map(item => {
+                    const pdfLinkBtn = item.pdf_url ? `
+                        <a href="${item.pdf_url}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold text-[11px] flex items-center gap-1 transition shadow-sm" title="Ver o descargar PDF">
+                            <i class="fa-solid fa-file-pdf"></i> Ver PDF
+                        </a>` : `<span class="text-[10px] text-slate-500">Sin PDF</span>`;
+
+                    return `
+                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-white">OT: ${item.n_ot || '-'}</div>
+                                <div class="text-[11px] text-slate-400">Contrata: <span class="text-purple-300 font-semibold">${item.contrata || '-'}</span> | Técnico: ${item.tecnico || '-'} | ${item.fecha_hora || ''}</div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                ${pdfLinkBtn}
+                            </div>
                         </div>
-                        <div class="text-emerald-400 font-semibold text-[11px]">Sincronizado ☁️</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
                 listContainer.innerHTML = `<p class="text-rose-400 text-center py-4">Error al cargar historial remoto.</p>`;
             }
@@ -2745,8 +2763,8 @@
                 const payloadObj = { nOt: nOt, contrata: contrata, formData: payloadFormData };
 
                 await sendPayloadToEmailJS(payloadObj);
-                await guardarParteEnSupabase(nOt, payloadFormData);
-                await generarYSubirPdfSupabase(nOt);
+                const pdfPublicUrl = await generarYSubirPdfSupabase(nOt, contrata);
+                await guardarParteEnSupabase(nOt, payloadFormData, pdfPublicUrl);
 
                 localStorage.removeItem('pole_form_draft');
                 await initSentOtCache();
