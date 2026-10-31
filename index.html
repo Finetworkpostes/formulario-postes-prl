@@ -2456,92 +2456,48 @@
                 return false;
             }
         }
-        async function generarYSubirPdfSupabase(nOt) {
-    try {
-        const printArea = document.getElementById('print-area');
-        const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
-        
-        printArea.innerHTML = `
-            <div class="pdf-page" style="padding: 20px; font-family: Arial, sans-serif; color: black; background: white;">
-                <h1 style="font-size: 18px; font-bold; border-bottom: 2px solid #7c3aed; padding-bottom: 8px;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
-                <p><strong>Nº OT:</strong> ${nOt}</p>
-                <p><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
-                <p><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
-                <p><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
-                <p><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
-                <hr style="margin: 15px 0;" />
-                <h3>Desglose de Ubicaciones:</h3>
-                <p style="font-family: monospace; font-size: 12px;">${desgloseTexto.replace(/\n/g, '<br>')}</p>
-                <p style="margin-top: 30px; font-size: 10px; color: #666;">Documento generado automáticamente desde la app de campo.</p>
-            </div>
-        `;
-
-        const opt = {
-            margin:       10,
-            filename:     `parte_${nOt}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        const pdfWorker = html2pdf().from(printArea).set(opt);
-        const pdfBlob = await pdfWorker.output('blob');
-        printArea.innerHTML = '';
-
-        const fileName = `parte_${nOt}_${Date.now()}.pdf`;
-
-        const { data, error } = await supabaseClient.storage
-            .from('pdf-partes')
-            .upload(fileName, pdfBlob, {
-                contentType: 'application/pdf',
-                upsert: true
-            });
-
-        if (error) throw error;
-
-        const { data: { publicUrl } } = supabaseClient.storage
-            .from('pdf-partes')
-            .getPublicUrl(fileName);
-
-        console.log("PDF subido correctamente a la nube:", publicUrl);
-        return publicUrl;
-
-    } catch (err) {
-        console.error("Error al generar o subir el PDF a Supabase:", err);
-        return null;
-    }
-}
 async function generarYSubirPdfSupabase(nOt) {
     try {
         const printArea = document.getElementById('print-area');
         const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
         
+        // 1. Rellenamos el HTML con estilos en línea muy claros y fondo blanco opaco
         printArea.innerHTML = `
-            <div class="pdf-page" style="padding: 20px; font-family: Arial, sans-serif; color: black; background: white;">
-                <h1 style="font-size: 18px; font-bold; border-bottom: 2px solid #7c3aed; padding-bottom: 8px;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
-                <p><strong>Nº OT:</strong> ${nOt}</p>
-                <p><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
-                <p><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
-                <p><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
-                <p><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
-                <hr style="margin: 15px 0;" />
-                <h3>Desglose de Ubicaciones:</h3>
-                <p style="font-family: monospace; font-size: 12px;">${desgloseTexto.replace(/\n/g, '<br>')}</p>
-                <p style="margin-top: 30px; font-size: 10px; color: #666;">Documento generado automáticamente desde la app de campo.</p>
+            <div style="width: 700px; padding: 30px; font-family: Arial, sans-serif; color: #000000; background-color: #ffffff !important;">
+                <h1 style="font-size: 20px; font-weight: bold; border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 15px; color: #000000;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
+                <p style="margin: 6px 0; color: #000000;"><strong>Nº OT:</strong> ${nOt}</p>
+                <p style="margin: 6px 0; color: #000000;"><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
+                <p style="margin: 6px 0; color: #000000;"><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
+                <p style="margin: 6px 0; color: #000000;"><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
+                <p style="margin: 6px 0; color: #000000;"><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ccc;" />
+                <h3 style="font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 8px;">Desglose de Ubicaciones:</h3>
+                <p style="font-family: monospace; font-size: 11px; white-space: pre-wrap; color: #000000; background: #f9f9f9; padding: 10px; border: 1px solid #ddd;">${desgloseTexto}</p>
+                <p style="margin-top: 40px; font-size: 10px; color: #555;">Documento generado automáticamente desde la aplicación de campo.</p>
             </div>
         `;
+
+        // 2. Hacemos visible temporalmente el área para que el canvas de html2pdf pueda leerla en el móvil
+        printArea.style.display = 'block';
+        printArea.style.position = 'absolute';
+        printArea.style.left = '-9999px';
+
+        // Pequeña pausa para asegurar que el navegador renderiza el contenido
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const opt = {
             margin:       10,
             filename:     `parte_${nOt}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        const pdfWorker = html2pdf().from(printArea).set(opt);
-        const pdfBlob = await pdfWorker.output('blob');
+        const pdfBlob = await html2pdf().from(printArea).set(opt).output('blob');
+        
+        // Limpiamos y ocultamos de nuevo el área de impresión
         printArea.innerHTML = '';
+        printArea.style.display = 'none';
 
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
 
@@ -2558,11 +2514,13 @@ async function generarYSubirPdfSupabase(nOt) {
             .from('pdf-partes')
             .getPublicUrl(fileName);
 
-        console.log("PDF subido correctamente a la nube:", publicUrl);
+        alert("✅ ¡PDF generado y subido con éxito!");
         return publicUrl;
 
     } catch (err) {
-        console.error("Error al generar o subir el PDF a Supabase:", err);
+        alert("❌ Error al generar PDF: " + (err.message || JSON.stringify(err)));
+        const printArea = document.getElementById('print-area');
+        if (printArea) printArea.innerHTML = '';
         return null;
     }
 }
