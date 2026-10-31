@@ -677,12 +677,44 @@
         <div class="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950">
                 <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high text-brand-400"></i> Panel de Control de Contratas
+                    <i class="fa-solid fa-gauge-high text-brand-400"></i> Panel de Control y Gestión de OTs
                 </h3>
                 <button type="button" onclick="cerrarAdminDashboard()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
-            <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-grow">
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6 flex-grow">
+                
+                <!-- FORMULARIO PARA AÑADIR OT PENDIENTE AL VUELO -->
+                <div class="bg-purple-950/30 border border-purple-500/40 rounded-2xl p-4 space-y-3">
+                    <h4 class="text-xs font-bold uppercase text-purple-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-plus"></i> Añadir Nueva OT Pendiente
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-300 mb-1">Contrata</label>
+                            <select id="new-ot-contrata" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                                <option value="CIRCET">CIRCET</option>
+                                <option value="INSTELCA">INSTELCA</option>
+                                <option value="OBREMO">OBREMO</option>
+                                <option value="ZENER">ZENER</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-300 mb-1">Nº OT (24 caracteres)</label>
+                            <input type="text" id="new-ot-number" placeholder="ej. in-4776939..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-300 mb-1">Fecha de Instalación</label>
+                            <input type="date" id="new-ot-date" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-1">
+                        <button type="button" onclick="agregarNuevaOtPendienteAdmin()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Registrar OT en la Nube
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Filtros -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
@@ -730,14 +762,14 @@
                 <!-- Lista detallada -->
                 <div class="space-y-2">
                     <h4 class="text-xs font-bold uppercase text-purple-300">Listado de Registros</h4>
-                    <div id="admin-list-container" class="space-y-2 max-h-72 overflow-y-auto">
+                    <div id="admin-list-container" class="space-y-2 max-h-60 overflow-y-auto">
                         <div class="text-center text-slate-500 py-4">Cargando registros...</div>
                     </div>
                 </div>
             </div>
 
             <div class="border-t border-slate-800 px-6 py-3 bg-slate-950 flex justify-between items-center">
-                <span class="text-[11px] text-slate-400">Modo local activo (Seguridad por contraseña)</span>
+                <span class="text-[11px] text-slate-400">Panel de Control Activo - Supabase Cloud</span>
                 <button type="button" onclick="cerrarAdminDashboard()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs">Cerrar</button>
             </div>
         </div>
@@ -847,7 +879,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-cloud text-emerald-400"></i> Historial Enviados
+                    <i class="fa-solid fa-cloud text-emerald-400"></i> Historial Remoto (Supabase)
                 </h3>
                 <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
@@ -886,7 +918,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_pF5merSM1aDcEHW5dxsnjA_LIWpsbgD';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        
         const ADMIN_PASSWORD = "1234567899";
 
         let pendingTargetContrata = "";
@@ -995,16 +1026,71 @@
 
         async function fetchOTsPendientes() {
             try {
-                const res = await fetch('instalaciones.json?v=' + new Date().getTime());
-                if (res.ok) {
-                    pendingOTsFromJSON = await res.json();
-                    updatePendientesCounterButton();
-                    const otInput = document.getElementById('nOt');
-                    if (otInput && otInput.value) {
-                        checkOtBlockedAndSentInstant(otInput.value);
-                    }
+                const { data, error } = await supabaseClient
+                    .from('ots_pendientes')
+                    .select('*');
+
+                if (error) throw error;
+
+                pendingOTsFromJSON = {};
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        const contrata = (item.contrata || 'DESCONOCIDA').trim().toUpperCase();
+                        if (!pendingOTsFromJSON[contrata]) {
+                            pendingOTsFromJSON[contrata] = [];
+                        }
+                        pendingOTsFromJSON[contrata].push({
+                            nOt: item.n_ot,
+                            fechaInstalacion: item.fecha_instalacion
+                        });
+                    });
                 }
-            } catch (e) {}
+                updatePendientesCounterButton();
+                const otInput = document.getElementById('nOt');
+                if (otInput && otInput.value) {
+                    checkOtBlockedAndSentInstant(otInput.value);
+                }
+            } catch (e) {
+                console.error("Error al cargar OTs pendientes desde Supabase:", e);
+            }
+        }
+
+        async function agregarNuevaOtPendienteAdmin() {
+            const contrata = document.getElementById('new-ot-contrata').value;
+            const nOt = document.getElementById('new-ot-number').value.trim();
+            const fechaInst = document.getElementById('new-ot-date').value;
+
+            if (!nOt || !fechaInst) {
+                alert('⚠️ Por favor, introduce el número de OT y selecciona la fecha de instalación.');
+                return;
+            }
+
+            if (nOt.length !== 24) {
+                alert('⚠️ El número de OT debe tener exactamente 24 caracteres.');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('ots_pendientes')
+                    .insert([{
+                        contrata: contrata,
+                        n_ot: nOt,
+                        fecha_instalacion: new Date(fechaInst).toISOString(),
+                        estado: 'PENDIENTE'
+                    }]);
+
+                if (error) throw error;
+
+                alert('✅ ¡OT pendiente registrada correctamente en la nube!');
+                document.getElementById('new-ot-number').value = '';
+                document.getElementById('new-ot-date').value = '';
+                
+                await fetchOTsPendientes();
+                renderAdminDashboard();
+            } catch (err) {
+                alert('Error al registrar la OT (puede que ya exista): ' + err.message);
+            }
         }
 
         // PANEL ADMIN
@@ -1038,7 +1124,7 @@
             const estadoFiltro = document.getElementById('admin-filter-estado').value;
             const container = document.getElementById('admin-list-container');
             
-            container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando datos de administración...</div>';
+            container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando registros y resúmenes...</div>';
 
             await initSentOtCache();
             await fetchOTsPendientes();
@@ -1123,12 +1209,19 @@
             filteredRows.forEach(r => {
                 let badgeColor = 'bg-amber-950/60 border-amber-700 text-amber-300';
                 let icon = 'fa-clock';
+                let textoPlazo = `Instalada el ${r.fecha} (${r.dias} días transcurridos)`;
+
                 if (r.estado === 'ENVIADO') {
                     badgeColor = 'bg-emerald-950/60 border-emerald-700 text-emerald-300';
                     icon = 'fa-circle-check';
+                    textoPlazo = `Registrado y enviado a la nube el ${r.fecha}`;
                 } else if (r.estado === 'CADUCADO') {
                     badgeColor = 'bg-rose-950/60 border-rose-700 text-rose-300';
                     icon = 'fa-ban';
+                    textoPlazo = `Instalada el ${r.fecha} - Excedido plazo de 5 días (${r.dias} días)`;
+                } else {
+                    const diasRestantes = 5 - r.dias;
+                    textoPlazo = `Instalada el ${r.fecha} - Quedan ${diasRestantes >= 0 ? diasRestantes : 0} días para justificar`;
                 }
 
                 htmlList += `
@@ -1138,7 +1231,7 @@
                                 <span class="bg-purple-900/60 px-1.5 py-0.5 rounded text-[10px] text-purple-300 border border-purple-700/40">${r.contrata}</span>
                                 OT: ${r.nOt}
                             </div>
-                            <div class="text-[11px] text-slate-400 mt-1">Fecha instalación: ${r.fecha} (${r.dias} días transcurridos)</div>
+                            <div class="text-[11px] text-slate-400 mt-1">${textoPlazo}</div>
                         </div>
                         <div class="px-2.5 py-1 rounded-lg border font-semibold text-[10px] uppercase flex items-center gap-1 shrink-0 ${badgeColor}">
                             <i class="fa-solid ${icon}"></i> ${r.estado}
@@ -2597,9 +2690,9 @@
                 }
 
                 const pdfBlob = doc.output('blob');
-                // Nombre del archivo estructurado con la contrata y la OT
                 const cleanContrata = contrataReal.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
-                const fileName = `${cleanContrata}_${nOt}.pdf`;
+                const cleanOt = String(nOt).trim().replace(/[^a-zA-Z0-9\-_]/g, '_');
+                const fileName = `${cleanContrata}_${cleanOt}.pdf`;
 
                 const { data, error } = await supabaseClient.storage
                     .from('pdf-partes')
@@ -2622,7 +2715,7 @@
             }
         }
 
-async function openSentPartsModal() {
+        async function openSentPartsModal() {
             const listContainer = document.getElementById('sent-parts-list');
             listContainer.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando historial...</div>';
             document.getElementById('sent-parts-modal').classList.remove('hidden');
@@ -2676,22 +2769,23 @@ async function openSentPartsModal() {
                 listContainer.innerHTML = `<p class="text-rose-400 text-center py-4">Error al cargar historial remoto.</p>`;
             }
         }
+
         async function descargarPdfRemoto(url, filename) {
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-    } catch (e) {
-        window.open(url, '_blank');
-    }
-}
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                window.open(url, '_blank');
+            }
+        }
 
         function closeSentPartsModal() { document.getElementById('sent-parts-modal').classList.add('hidden'); }
 
