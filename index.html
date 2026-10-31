@@ -2458,32 +2458,37 @@
         }
 async function generarYSubirPdfSupabase(nOt) {
     try {
-        const printArea = document.getElementById('print-area');
         const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
         
-        // 1. Rellenamos el HTML con estilos en línea muy claros y fondo blanco opaco
-        printArea.innerHTML = `
-            <div style="width: 700px; padding: 30px; font-family: Arial, sans-serif; color: #000000; background-color: #ffffff !important;">
-                <h1 style="font-size: 20px; font-weight: bold; border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 15px; color: #000000;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
-                <p style="margin: 6px 0; color: #000000;"><strong>Nº OT:</strong> ${nOt}</p>
-                <p style="margin: 6px 0; color: #000000;"><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
-                <p style="margin: 6px 0; color: #000000;"><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
-                <p style="margin: 6px 0; color: #000000;"><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
-                <p style="margin: 6px 0; color: #000000;"><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ccc;" />
-                <h3 style="font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 8px;">Desglose de Ubicaciones:</h3>
-                <p style="font-family: monospace; font-size: 11px; white-space: pre-wrap; color: #000000; background: #f9f9f9; padding: 10px; border: 1px solid #ddd;">${desgloseTexto}</p>
-                <p style="margin-top: 40px; font-size: 10px; color: #555;">Documento generado automáticamente desde la aplicación de campo.</p>
-            </div>
+        // 1. Creamos un elemento temporal único directamente en el body
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.top = '0';
+        tempDiv.style.left = '0';
+        tempDiv.style.zIndex = '99999';
+        tempDiv.style.background = '#ffffff';
+        tempDiv.style.width = '700px';
+        tempDiv.style.padding = '40px';
+        tempDiv.style.color = '#000000';
+        tempDiv.style.fontFamily = 'Arial, sans-serif';
+
+        tempDiv.innerHTML = `
+            <h1 style="font-size: 22px; font-weight: bold; border-bottom: 3px solid #7c3aed; padding-bottom: 10px; margin-bottom: 20px; color: #000000;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
+            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Nº OT:</strong> ${nOt}</p>
+            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
+            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
+            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
+            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #cccccc;" />
+            <h3 style="font-size: 16px; font-weight: bold; color: #000000; margin-bottom: 10px;">Desglose de Ubicaciones:</h3>
+            <div style="font-family: monospace; font-size: 12px; white-space: pre-wrap; color: #000000; background: #f4f4f4; padding: 15px; border: 1px solid #dddddd; line-height: 1.4;">${desgloseTexto}</div>
+            <p style="margin-top: 40px; font-size: 11px; color: #666666;">Documento generado automáticamente desde la aplicación de campo - PRL FTTH.</p>
         `;
 
-        // 2. Hacemos visible temporalmente el área para que el canvas de html2pdf pueda leerla en el móvil
-        printArea.style.display = 'block';
-        printArea.style.position = 'absolute';
-        printArea.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
 
-        // Pequeña pausa para asegurar que el navegador renderiza el contenido
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Pequeña pausa para que el DOM pinte los elementos
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         const opt = {
             margin:       10,
@@ -2493,11 +2498,10 @@ async function generarYSubirPdfSupabase(nOt) {
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        const pdfBlob = await html2pdf().from(printArea).set(opt).output('blob');
+        const pdfBlob = await html2pdf().from(tempDiv).set(opt).output('blob');
         
-        // Limpiamos y ocultamos de nuevo el área de impresión
-        printArea.innerHTML = '';
-        printArea.style.display = 'none';
+        // Eliminamos el elemento temporal del body
+        document.body.removeChild(tempDiv);
 
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
 
@@ -2514,13 +2518,13 @@ async function generarYSubirPdfSupabase(nOt) {
             .from('pdf-partes')
             .getPublicUrl(fileName);
 
-        alert("✅ ¡PDF generado y subido con éxito!");
+        alert("✅ ¡PDF generado con texto y subido correctamente!");
         return publicUrl;
 
     } catch (err) {
         alert("❌ Error al generar PDF: " + (err.message || JSON.stringify(err)));
-        const printArea = document.getElementById('print-area');
-        if (printArea) printArea.innerHTML = '';
+        const oldTemp = document.getElementById('temp-pdf-container');
+        if (oldTemp) oldTemp.remove();
         return null;
     }
 }
