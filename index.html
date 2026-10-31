@@ -2921,5 +2921,46 @@ async function verificarPasswordContrata() {
             goToStep(1);
         }
     </script>
+    <script>
+async function verificarAdminPassword() {
+    const passwordInput = document.getElementById('input-admin-pass').value.trim();
+    const errorMsg = document.getElementById('admin-pass-error');
+
+    if (!passwordInput) {
+        errorMsg.innerText = '❌ Introduce la contraseña.';
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('contrata_configs')
+            .select('password_hash')
+            .eq('contrata_name', 'ADMINISTRADOR')
+            .single();
+
+        if (error || !data) {
+            console.error("No se pudo verificar la contraseña", error);
+            errorMsg.innerText = '❌ Error al verificar con la base de datos.';
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
+        if (passwordInput === data.password_hash) {
+            errorMsg.classList.add('hidden');
+            document.getElementById('admin-password-modal').classList.add('hidden');
+            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+            document.getElementById('input-admin-pass').value = '';
+        } else {
+            errorMsg.innerText = '❌ Contraseña incorrecta.';
+            errorMsg.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error("Error de conexión:", err);
+        errorMsg.innerText = '❌ Error de conexión.';
+        errorMsg.classList.remove('hidden');
+    }
+}
+</script>
 </body>
 </html>
