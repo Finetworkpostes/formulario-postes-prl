@@ -1576,39 +1576,32 @@
             document.getElementById('password-modal').classList.remove('hidden');
         }
 
-        async function verificarPasswordContrata() {
-            const typedPass = document.getElementById('input-contrata-pass').value.trim();
-            const contrataName = pendingTargetContrata;
-            const errorMsg = document.getElementById('pass-error-msg');
+      async function verificarPasswordContrata(contrataNombre, passwordIntroducida) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('contrata_configs')
+            .select('password_hash')
+            .eq('contrata_name', contrataNombre)
+            .single();
 
-            if (!typedPass) {
-                errorMsg.classList.remove('hidden');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('contrata_configs')
-                    .select('password_hash')
-                    .eq('contrata_name', contrataName)
-                    .single();
-
-                if (error || !data) {
-                    throw new Error('No se pudo verificar la credencial');
-                }
-
-                if (typedPass === data.password_hash) {
-                    errorMsg.classList.add('hidden');
-                    document.getElementById('password-modal').classList.add('hidden');
-                    aplicarContrataValidada(contrataName);
-                } else {
-                    errorMsg.classList.remove('hidden');
-                }
-            } catch (err) {
-                console.error("Error al validar contraseña en Supabase:", err);
-                errorMsg.classList.remove('hidden');
-            }
+        if (error || !data) {
+            console.error("Contrata no encontrada o error:", error);
+            return false;
         }
+
+        // Compara la contraseña introducida con la guardada en la tabla
+        if (passwordIntroducida === data.password_hash) {
+            console.log(`¡Acceso autorizado para ${contrataNombre}!`);
+            return true;
+        } else {
+            console.log("Contraseña incorrecta");
+            return false;
+        }
+    } catch (err) {
+        console.error("Excepción en la verificación:", err);
+        return false;
+    }
+}
 
         function cancelarPasswordModal() {
             document.getElementById('password-modal').classList.add('hidden');
