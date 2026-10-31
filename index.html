@@ -821,7 +821,7 @@
         </div>
     </div>
 
-    <!-- Modal Éxito -->
+    <!-- Modal Éxito (Sin botón de descargar PDF) -->
     <div id="success-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4">
             <div class="w-14 h-14 bg-emerald-950 border-2 border-emerald-500 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
@@ -834,10 +834,7 @@
                 <div><strong class="text-slate-400">Técnico:</strong> <span id="modal-tec" class="text-white"></span></div>
             </div>
             <div class="space-y-2 pt-2">
-                <button type="button" onclick="generatePrintPreview()" class="w-full py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-print"></i> 👁️ Descargar PDF Ahora
-                </button>
-                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition">Nuevo Formulario</button>
+                <button type="button" onclick="resetFormAndCloseModal()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-sm transition">Nuevo Formulario</button>
             </div>
         </div>
     </div>
@@ -886,7 +883,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_pF5merSM1aDcEHW5dxsnjA_LIWpsbgD';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        
         const ADMIN_PASSWORD = "1234567899";
 
         let pendingTargetContrata = "";
@@ -898,7 +894,6 @@
         const uploadedFiles = {};
         let currentWeatherInfo = { windSpeed: 0, status: 'Desconocido' };
 
-        // CACHÉ LOCAL OCULTA DE OTs ENVIADAS
         let sentOtCache = new Set();
         window.sentOtDetailsMap = {};
         window.allSupabaseRecords = [];
@@ -943,8 +938,7 @@
             });
         }
 
-        // DETECTOR DE FOTO OSCURA/TAPADA
-        function isImageTooDark(dataUrl, threshold = 25) {
+        async function isImageTooDark(dataUrl, threshold = 25) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.src = dataUrl;
@@ -1007,7 +1001,6 @@
             } catch (e) {}
         }
 
-        // PANEL ADMIN
         function abrirAdminModalPrompt() {
             document.getElementById('input-admin-pass').value = '';
             document.getElementById('admin-pass-error').classList.add('hidden');
@@ -1150,7 +1143,6 @@
             container.innerHTML = htmlList;
         }
 
-        // CONTROL DE TIPO DE ACTUACIÓN (HABILITA/DESHABILITA INFRAESTRUCTURA)
         function handleTipoActuacionChange(tipoVal) {
             const radiosEstado = document.querySelectorAll('input[name="estado"]');
             const labelReutilizada = document.getElementById('label-estado-reutilizada');
@@ -1177,7 +1169,6 @@
             }
         }
 
-        // SUBIDA DE FOTO DE ESCALERA DIRECTA (SIN GPS OBLIGATORIO)
         async function handleFileSelectDirect(input, previewId) {
             const file = input.files[0];
             const previewContainer = document.getElementById(previewId);
@@ -1207,7 +1198,6 @@
                 reader.readAsDataURL(file);
             });
 
-            // DETECTOR DE FOTO OSCURA/TAPADA
             const isDark = await isImageTooDark(rawDataUrl, 25);
             if (isDark) {
                 alert('⚠️ CÁMARA TAPADA O SIN LUZ:\nLa foto es demasiado oscura. Por favor, asegúrese de no tapar la lente y de que haya luz suficiente.');
@@ -2476,7 +2466,6 @@
                 const checksEscaleraStr = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna';
                 const episStr = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
 
-                // CORREGIDO: Se obtienen las imágenes desde el objeto global uploadedFiles en lugar de IDs inexistentes
                 const croquisImgSrc = uploadedFiles['file-croquis'] || '';
                 const escaleraImgSrc = uploadedFiles['file-escalera'] || '';
 
@@ -2672,20 +2661,6 @@
                 localStorage.removeItem('pole_form_draft');
                 goToStep(1);
             }
-        }
-
-        function generatePrintPreview() {
-            const printArea = document.getElementById('print-area');
-            const desTexto = document.getElementById('desglloseEditableInput').value || 'Sin desglose';
-            printArea.innerHTML = `
-                <div class="pdf-page">
-                    <h1>INFORME DE ACTUACIÓN</h1>
-                    <p>OT: ${document.getElementById('nOt').value}</p>
-                    <p><strong>Desglose:</strong> ${desTexto.replace(/\n/g, '<br>')}</p>
-                </div>`;
-            printArea.classList.remove('hidden');
-            window.print();
-            printArea.classList.add('hidden');
         }
 
         async function sendPayloadToEmailJS(item) {
