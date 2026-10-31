@@ -230,23 +230,23 @@
                         <label class="block text-xs font-medium text-slate-300">Tipo de Actuación <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
                             <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="INSTALACIÓN" required class="accent-purple-600">
+                                <input type="radio" name="tipo" value="INSTALACIÓN" required onchange="handleTipoActuacionChange(this.value)" class="accent-purple-600">
                                 <span class="text-xs text-slate-200">INSTALACIÓN</span>
                             </label>
                             <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipo" value="AVERÍA" required class="accent-purple-600">
+                                <input type="radio" name="tipo" value="AVERÍA" required onchange="handleTipoActuacionChange(this.value)" class="accent-purple-600">
                                 <span class="text-xs text-slate-200">AVERÍA</span>
                             </label>
                         </div>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-medium text-slate-300">Estado Infraestructura <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-medium text-slate-300">Estado Infraestructura <span id="infra-asterisk" class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                            <label id="label-estado-reutilizada" class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
                                 <input type="radio" name="estado" value="REUTILIZADA" required class="accent-purple-600">
                                 <span class="text-xs text-slate-200">REUTILIZADA</span>
                             </label>
-                            <label class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
+                            <label id="label-estado-nueva" class="border border-slate-700 bg-slate-800/80 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer">
                                 <input type="radio" name="estado" value="NUEVA" required class="accent-purple-600">
                                 <span class="text-xs text-slate-200">NUEVA</span>
                             </label>
@@ -847,7 +847,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-cloud text-emerald-400"></i> Historial Enviados
+                    <i class="fa-solid fa-cloud text-emerald-400"></i> Historial Remoto (Supabase)
                 </h3>
                 <button type="button" onclick="closeSentPartsModal()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
@@ -1153,6 +1153,33 @@
             });
 
             container.innerHTML = htmlList;
+        }
+
+        // CONTROL DE TIPO DE ACTUACIÓN (HABILITA/DESHABILITA INFRAESTRUCTURA)
+        function handleTipoActuacionChange(tipoVal) {
+            const radiosEstado = document.querySelectorAll('input[name="estado"]');
+            const labelReutilizada = document.getElementById('label-estado-reutilizada');
+            const labelNueva = document.getElementById('label-estado-nueva');
+            const asterisk = document.getElementById('infra-asterisk');
+
+            if (tipoVal === 'AVERÍA') {
+                radiosEstado.forEach(r => {
+                    r.checked = false;
+                    r.disabled = true;
+                    r.required = false;
+                });
+                if (labelReutilizada) labelReutilizada.style.opacity = '0.4';
+                if (labelNueva) labelNueva.style.opacity = '0.4';
+                if (asterisk) asterisk.style.display = 'none';
+            } else {
+                radiosEstado.forEach(r => {
+                    r.disabled = false;
+                    r.required = true;
+                });
+                if (labelReutilizada) labelReutilizada.style.opacity = '1';
+                if (labelNueva) labelNueva.style.opacity = '1';
+                if (asterisk) asterisk.style.display = 'inline';
+            }
         }
 
         // SUBIDA DE FOTO DE ESCALERA DIRECTA (SIN GPS OBLIGATORIO)
@@ -1814,6 +1841,11 @@
                         checkOtBlockedAndSentInstant(draft.data.nOt);
                         handleOtInput(document.getElementById('nOt'));
                     }
+
+                    const tipoSeleccionado = form.querySelector('input[name="tipo"]:checked');
+                    if (tipoSeleccionado) {
+                        handleTipoActuacionChange(tipoSeleccionado.value);
+                    }
                 } else {
                     localStorage.removeItem('pole_form_draft');
                 }
@@ -1835,15 +1867,25 @@
                 fechaHoraInput.value = now.toISOString().slice(0, 16);
             }
 
-            const estadoRadios = document.querySelectorAll('input[name="estado"]');
+            const radiosEstado = document.querySelectorAll('input[name="estado"]');
+            const labelReutilizada = document.getElementById('label-estado-reutilizada');
+            const labelNueva = document.getElementById('label-estado-nueva');
+            const asterisk = document.getElementById('infra-asterisk');
+
             if (cleanVal.startsWith('in')) {
                 const radioInst = document.querySelector('input[name="tipo"][value="INSTALACIÓN"]');
                 if (radioInst) radioInst.checked = true;
-                estadoRadios.forEach(r => { r.disabled = false; r.required = true; r.closest('label').style.opacity = '1'; });
+                radiosEstado.forEach(r => { r.disabled = false; r.required = true; });
+                if (labelReutilizada) labelReutilizada.style.opacity = '1';
+                if (labelNueva) labelNueva.style.opacity = '1';
+                if (asterisk) asterisk.style.display = 'inline';
             } else if (cleanVal.startsWith('av')) {
                 const radioAv = document.querySelector('input[name="tipo"][value="AVERÍA"]');
                 if (radioAv) radioAv.checked = true;
-                estadoRadios.forEach(r => { r.checked = false; r.disabled = true; r.required = false; r.closest('label').style.opacity = '0.4'; });
+                radiosEstado.forEach(r => { r.checked = false; r.disabled = true; r.required = false; });
+                if (labelReutilizada) labelReutilizada.style.opacity = '0.4';
+                if (labelNueva) labelNueva.style.opacity = '0.4';
+                if (asterisk) asterisk.style.display = 'none';
             }
         }
 
@@ -2232,7 +2274,7 @@
 
             const formElement = document.getElementById('pole-form');
             const tipoAct = formElement.querySelector('input[name="tipo"]:checked')?.value || '-';
-            const estadoInfra = formElement.querySelector('input[name="estado"]:checked')?.value || '-';
+            const estadoInfra = tipoAct === 'AVERÍA' ? 'N/A (Avería)' : (formElement.querySelector('input[name="estado"]:checked')?.value || '-');
             const tipoPoste = formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-';
             const aptoEscalera = formElement.querySelector('input[name="sePuede"]:checked')?.value || '-';
 
@@ -2429,7 +2471,7 @@
                             <div class="font-bold text-white">OT: ${item.n_ot || '-'}</div>
                             <div class="text-[11px] text-slate-400">Contrata: <span class="text-purple-300 font-semibold">${item.contrata || '-'}</span> | Técnico: ${item.tecnico || '-'} | ${item.fecha_hora || ''}</div>
                         </div>
-                        <div class="text-emerald-400 font-semibold text-[11px]">Enviado ☁️</div>
+                        <div class="text-emerald-400 font-semibold text-[11px]">Sincronizado ☁️</div>
                     </div>
                 `).join('');
             } catch (err) {
@@ -2484,7 +2526,7 @@
                 ot_number: item.nOt,
                 contrata: contrataReal,
                 tipo_actuacion: item.formData.tipo || '-',
-                estado_infra: item.formData.estado || '-',
+                estado_infra: item.formData.tipo === 'AVERÍA' ? 'N/A (Avería)' : (item.formData.estado || '-'),
                 fecha: item.formData.fechaHora || '',
                 direccion: item.formData.direccion || 'Sin dirección',
                 tecnico_tec1: `${item.formData.aliasKairosTec1 || ''} - ${item.formData.nombreTec1 || ''}`,
