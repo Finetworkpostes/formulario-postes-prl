@@ -2458,37 +2458,95 @@
         }
 async function generarYSubirPdfSupabase(nOt) {
     try {
-        const desgloseTexto = document.getElementById('desglloseEditableInput')?.value || 'Sin desglose';
+        const formElement = document.getElementById('pole-form');
+        const contrataReal = document.getElementById('contrataPrincipal').value || '-';
+        const desgloseCrudo = document.getElementById('desglloseEditableInput')?.value || 'Sin trazado registrado';
+        const trazadoEmailHTML = desgloseCrudo.replace(/\n/g, '<br>');
+        const observacionesEmail = document.getElementById('observaciones').value || 'Sin observaciones';
+        const geoEscaleraEmail = document.getElementById('escaleraGeoInfo').value || 'Sin geolocalización';
         
-        // 1. Creamos un elemento temporal único directamente en el body
+        const medidasMaderaStr = Array.from(formElement.querySelectorAll('input[name="medidasMadera"]:checked')).map(cb => cb.value).join(', ') || 'N/A';
+        const checksEscaleraStr = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna';
+        const episStr = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
+
+        // Capturar las imágenes en base64 si existen en la interfaz
+        const croquisImgSrc = document.getElementById('croquisPreview')?.src || document.getElementById('croquisCanvas')?.toDataURL() || '';
+        const escaleraImgSrc = document.getElementById('escaleraPreview')?.src || '';
+
+        // 1. Creamos el contenedor temporal con el diseño completo incluyendo las fotos
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
         tempDiv.style.top = '0';
         tempDiv.style.left = '0';
         tempDiv.style.zIndex = '99999';
         tempDiv.style.background = '#ffffff';
-        tempDiv.style.width = '700px';
-        tempDiv.style.padding = '40px';
+        tempDiv.style.width = '750px';
+        tempDiv.style.padding = '30px';
         tempDiv.style.color = '#000000';
         tempDiv.style.fontFamily = 'Arial, sans-serif';
+        tempDiv.style.fontSize = '12px';
 
         tempDiv.innerHTML = `
-            <h1 style="font-size: 22px; font-weight: bold; border-bottom: 3px solid #7c3aed; padding-bottom: 10px; margin-bottom: 20px; color: #000000;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
-            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Nº OT:</strong> ${nOt}</p>
-            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Contrata:</strong> ${document.getElementById('contrataPrincipal').value}</p>
-            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
-            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Técnico:</strong> ${document.getElementById('nombreTec1').value}</p>
-            <p style="margin: 8px 0; font-size: 14px; color: #000000;"><strong>Recurso Preventivo:</strong> ${document.getElementById('nombreRecursoPreventivo').value}</p>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #cccccc;" />
-            <h3 style="font-size: 16px; font-weight: bold; color: #000000; margin-bottom: 10px;">Desglose de Ubicaciones:</h3>
-            <div style="font-family: monospace; font-size: 12px; white-space: pre-wrap; color: #000000; background: #f4f4f4; padding: 15px; border: 1px solid #dddddd; line-height: 1.4;">${desgloseTexto}</div>
-            <p style="margin-top: 40px; font-size: 11px; color: #666666;">Documento generado automáticamente desde la aplicación de campo - PRL FTTH.</p>
+            <h1 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #7c3aed; padding-bottom: 8px; margin-bottom: 15px; color: #000000;">INFORME DE ACTUACIÓN - PRL FTTH</h1>
+            
+            <p style="margin: 4px 0;"><strong>Nº OT:</strong> ${nOt}</p>
+            <p style="margin: 4px 0;"><strong>Contrata:</strong> ${contrataReal}</p>
+            <p style="margin: 4px 0;"><strong>Tipo de Actuación:</strong> ${formElement.querySelector('input[name="tipo"]:checked')?.value || '-'}</p>
+            <p style="margin: 4px 0;"><strong>Estado Infraestructura:</strong> ${formElement.querySelector('input[name="estado"]:checked')?.value || 'N/A'}</p>
+            <p style="margin: 4px 0;"><strong>Fecha y Hora:</strong> ${document.getElementById('fechaHora').value}</p>
+            
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #ccc;" />
+            
+            <p style="margin: 4px 0;"><strong>Técnico TEC1:</strong> ${document.getElementById('aliasKairosTec1').value} - ${document.getElementById('nombreTec1').value}</p>
+            <p style="margin: 4px 0;"><strong>Recurso Preventivo:</strong> ${document.getElementById('aliasRecursoPreventivo').value} - ${document.getElementById('nombreRecursoPreventivo').value}</p>
+            <p style="margin: 4px 0;"><strong>DNI Recurso:</strong> ${document.getElementById('dniRecurso').value}</p>
+            
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #ccc;" />
+            
+            <p style="margin: 4px 0;"><strong>Tipo de Poste:</strong> ${formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-'}</p>
+            <p style="margin: 4px 0;"><strong>Estado Global del Poste:</strong> ${document.getElementById('estadoPoste').value}</p>
+            <p style="margin: 4px 0;"><strong>Método para Subir:</strong> ${document.getElementById('paraSubir').value}</p>
+            <p style="margin: 4px 0;"><strong>¿Apto para Escalera?:</strong> ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}</p>
+            <p style="margin: 4px 0;"><strong>Total Postes / Metros:</strong> ${document.getElementById('cantidadPostes').value} postes | ${calculateTotalMeters()}m</p>
+            ${medidasMaderaStr !== 'N/A' ? `<p style="margin: 4px 0;"><strong>Medidas Madera:</strong> ${medidasMaderaStr}</p>` : ''}
+            
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #ccc;" />
+            
+            <p style="margin: 4px 0;"><strong>Check Escalera:</strong> ${checksEscaleraStr}</p>
+            <p style="margin: 4px 0;"><strong>EPIs Utilizados:</strong> ${episStr}</p>
+            
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #ccc;" />
+            
+            <p style="margin: 4px 0; font-weight: bold;">Desglose de Ubicaciones:</p>
+            <div style="font-family: monospace; font-size: 10px; background: #f4f4f4; padding: 8px; border: 1px solid #ddd; margin-top: 4px;">${trazadoEmailHTML}</div>
+            
+            <p style="margin: 6px 0;"><strong>Geolocalización Escalera:</strong> ${geoEscaleraEmail}</p>
+            <p style="margin: 6px 0;"><strong>Observaciones:</strong> ${observacionesEmail}</p>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 2px solid #7c3aed;" />
+            
+            <!-- SECCIÓN DE FOTOS -->
+            <h3 style="font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 10px;">Registro Fotográfico:</h3>
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                ${croquisImgSrc && !croquisImgSrc.startsWith('data:,') ? `
+                    <div style="width: 48%; text-align: center;">
+                        <p style="font-weight: bold; margin-bottom: 5px;">Croquis / Trazado:</p>
+                        <img src="${croquisImgSrc}" style="max-width: 100%; height: 180px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px;" />
+                    </div>
+                ` : ''}
+                ${escaleraImgSrc && !escaleraImgSrc.startsWith('data:,') ? `
+                    <div style="width: 48%; text-align: center;">
+                        <p style="font-weight: bold; margin-bottom: 5px;">Foto Escalera / Apoyo:</p>
+                        <img src="${escaleraImgSrc}" style="max-width: 100%; height: 180px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px;" />
+                    </div>
+                ` : ''}
+            </div>
+            
+            <p style="margin-top: 25px; font-size: 9px; color: #555; text-align: center;">Documento oficial generado automáticamente desde la aplicación de campo - PRL FTTH.</p>
         `;
 
         document.body.appendChild(tempDiv);
-
-        // Pequeña pausa para que el DOM pinte los elementos
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Un poco más de margen para que carguen las imágenes
 
         const opt = {
             margin:       10,
@@ -2499,8 +2557,6 @@ async function generarYSubirPdfSupabase(nOt) {
         };
 
         const pdfBlob = await html2pdf().from(tempDiv).set(opt).output('blob');
-        
-        // Eliminamos el elemento temporal del body
         document.body.removeChild(tempDiv);
 
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
@@ -2518,12 +2574,12 @@ async function generarYSubirPdfSupabase(nOt) {
             .from('pdf-partes')
             .getPublicUrl(fileName);
 
-        alert("✅ ¡PDF generado con texto y subido correctamente!");
+        alert("✅ ¡PDF completo con textos y fotos subido correctamente a Supabase!");
         return publicUrl;
 
     } catch (err) {
-        alert("❌ Error al generar PDF: " + (err.message || JSON.stringify(err)));
-        const oldTemp = document.getElementById('temp-pdf-container');
+        alert("❌ Error al generar PDF con fotos: " + (err.message || JSON.stringify(err)));
+        const oldTemp = document.querySelector('div[style*="zIndex: 99999"]');
         if (oldTemp) oldTemp.remove();
         return null;
     }
