@@ -64,7 +64,7 @@
         body.sun-mode label.border span { color: #0f172a !important; }
 
         @media print {
-            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal, #ot-verify-modal { display: none !important; }
+            header, footer, nav, .no-print, main, #success-modal, #sent-parts-modal, #ots-pendientes-modal, #contrata-modal, #password-modal, #ot-verify-modal, #admin-modal { display: none !important; }
             body { background: white !important; color: black !important; }
             .print-only { display: block !important; }
             #print-area { display: block !important; background: white !important; color: black !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -90,9 +90,10 @@
             
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0">
-                    <h1 class="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 truncate">
+                    <h1 class="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 truncate flex-wrap">
                         <span class="truncate">Actuación en Poste</span> 
-                        <span class="text-[10px] sm:text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30 shrink-0">PRL FTTH</span>
+                        <!-- ACCESO OCULTO AL ADMIN CLICANDO EN EL BADGE VIOLETA -->
+                        <button type="button" onclick="abrirAdminModalPrompt()" class="text-[10px] sm:text-xs bg-brand-800 text-brand-100 px-2 py-0.5 rounded-full border border-purple-500/30 shrink-0 hover:bg-brand-700 transition cursor-pointer" title="Panel de Administración">PRL FTTH</button>
                     </h1>
                     <div class="mt-0.5">
                         <button type="button" onclick="abrirContrataModal()" class="text-[11px] text-purple-300 hover:text-purple-200 underline flex items-center gap-1 transition" title="Pulsa para cambiar de contrata">
@@ -647,6 +648,98 @@
         </form>
     </main>
 
+    <!-- MODAL CONTRASEÑA ADMIN -->
+    <div id="admin-password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-12 h-12 bg-purple-950 border border-purple-500/40 rounded-full flex items-center justify-center mx-auto text-purple-300 text-lg">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">Panel de Administración</h3>
+            <p class="text-xs text-slate-400">Introduce la contraseña de administrador para acceder:</p>
+            
+            <div class="space-y-3 pt-1">
+                <input type="password" id="input-admin-pass" placeholder="Contraseña de admin..." class="w-full bg-slate-800 border border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white text-center outline-none">
+                <div id="admin-pass-error" class="hidden text-[11px] text-rose-400 font-semibold">❌ Contraseña incorrecta.</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="cerrarAdminPrompt()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs transition">Cancelar</button>
+                <button type="button" onclick="verificarAdminPassword()" class="py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div id="admin-dashboard-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 no-print">
+        <div class="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950">
+                <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high text-brand-400"></i> Panel de Control de Contratas
+                </h3>
+                <button type="button" onclick="cerrarAdminDashboard()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-grow">
+                <!-- Filtros -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Filtrar por Contrata</label>
+                        <select id="admin-filter-contrata" onchange="renderAdminDashboard()" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                            <option value="TODAS">TODAS LAS CONTRATAS</option>
+                            <option value="CIRCET">CIRCET</option>
+                            <option value="INSTELCA">INSTELCA</option>
+                            <option value="OBREMO">OBREMO</option>
+                            <option value="ZENER">ZENER</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Estado de OTs</label>
+                        <select id="admin-filter-estado" onchange="renderAdminDashboard()" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                            <option value="TODOS">TODOS LOS ESTADOS</option>
+                            <option value="ENVIADOS">🟢 ENVIADOS A LA NUBE</option>
+                            <option value="PENDIENTES">🟡 PENDIENTES DE REALIZAR</option>
+                            <option value="CADUCADOS">🔴 CADUCADOS (>5 DÍAS)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="renderAdminDashboard()" class="w-full py-2 bg-brand-700 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold transition">
+                            <i class="fa-solid fa-rotate"></i> Actualizar Datos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Métricas Resumen -->
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Enviados</div>
+                        <div id="admin-stat-enviados" class="text-lg font-bold text-emerald-400">0</div>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Pendientes</div>
+                        <div id="admin-stat-pendientes" class="text-lg font-bold text-amber-400">0</div>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Caducados (>5d)</div>
+                        <div id="admin-stat-caducados" class="text-lg font-bold text-rose-400">0</div>
+                    </div>
+                </div>
+
+                <!-- Lista detallada -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase text-purple-300">Listado de Registros</h4>
+                    <div id="admin-list-container" class="space-y-2 max-h-72 overflow-y-auto">
+                        <div class="text-center text-slate-500 py-4">Cargando registros...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 px-6 py-3 bg-slate-950 flex justify-between items-center">
+                <span class="text-[11px] text-slate-400">Modo local activo (Seguridad por contraseña)</span>
+                <button type="button" onclick="cerrarAdminDashboard()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE VERIFICACIÓN DE OT -->
     <div id="ot-verify-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 no-print">
         <div class="bg-slate-900 border border-purple-500/50 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
@@ -799,6 +892,7 @@
             "OBREMO": "Obremo4714",
             "ZENER": "Zener4327"
         };
+        const ADMIN_PASSWORD = "1234567899";
 
         let pendingTargetContrata = "";
         let pendingOTsFromJSON = {};
@@ -813,6 +907,7 @@
         // CACHÉ LOCAL OCULTA DE OTs ENVIADAS (para validación instantánea sin llamadas lentas)
         let sentOtCache = new Set();
         window.sentOtDetailsMap = {};
+        window.allSupabaseRecords = [];
 
         const DEFAULT_USUARIOS = [
             { "Contrata": "CIRCET", "Alias": "C001", "NombreCompleto": "Carlos Rodríguez López", "60HPRL": "NO CADUCA" },
@@ -854,7 +949,7 @@
             });
         }
 
-        // NUEVA FUNCIÓN: Detecta si la imagen es demasiado oscura
+        // DETECTOR DE FOTO OSCURA/TAPADA
         function isImageTooDark(dataUrl, threshold = 25) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -862,7 +957,6 @@
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    // Reducimos la imagen a 100x100 para un cálculo instantáneo
                     canvas.width = 100;
                     canvas.height = 100;
                     ctx.drawImage(img, 0, 0, 100, 100);
@@ -871,32 +965,29 @@
                     const data = imageData.data;
                     let sumBrightness = 0;
                     
-                    // Analizamos los píxeles (R, G, B)
                     for (let i = 0; i < data.length; i += 4) {
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
-                        // Fórmula estándar de luminancia percibida por el ojo humano
                         const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
                         sumBrightness += brightness;
                     }
                     
-                    // Calculamos la media (0 es negro puro, 255 es blanco puro)
                     const avgBrightness = sumBrightness / (100 * 100);
-                    // Si la media es menor que nuestro límite (threshold), está demasiado oscura
                     resolve(avgBrightness < threshold);
                 };
-                img.onerror = () => resolve(false); // Si hay error de lectura, dejamos pasar por precaución
+                img.onerror = () => resolve(false);
             });
         }
 
         async function initSentOtCache() {
             try {
-                const { data, error } = await supabaseClient.from('partes_actuacion').select('n_ot, created_at');
+                const { data, error } = await supabaseClient.from('partes_actuacion').select('*');
                 if (error) throw error;
                 if (data) {
                     sentOtCache.clear();
                     window.sentOtDetailsMap = {};
+                    window.allSupabaseRecords = data;
                     data.forEach(item => {
                         if (item.n_ot) {
                             const key = String(item.n_ot).trim().toLowerCase();
@@ -920,6 +1011,152 @@
                     }
                 }
             } catch (e) {}
+        }
+
+        // FUNCIONES DE PANEL ADMIN
+        function abrirAdminModalPrompt() {
+            document.getElementById('input-admin-pass').value = '';
+            document.getElementById('admin-pass-error').classList.add('hidden');
+            document.getElementById('admin-password-modal').classList.remove('hidden');
+        }
+
+        function cerrarAdminPrompt() {
+            document.getElementById('admin-password-modal').classList.add('hidden');
+        }
+
+        function verificarAdminPassword() {
+            const pass = document.getElementById('input-admin-pass').value.trim();
+            if (pass === ADMIN_PASSWORD) {
+                cerrarAdminPrompt();
+                document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+                renderAdminDashboard();
+            } else {
+                document.getElementById('admin-pass-error').classList.remove('hidden');
+            }
+        }
+
+        function cerrarAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.add('hidden');
+        }
+
+        async function renderAdminDashboard() {
+            const contrataFiltro = document.getElementById('admin-filter-contrata').value;
+            const estadoFiltro = document.getElementById('admin-filter-estado').value;
+            const container = document.getElementById('admin-list-container');
+            
+            container.innerHTML = '<div class="text-center text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin"></i> Cargando datos de administración...</div>';
+
+            await initSentOtCache();
+            await fetchOTsPendientes();
+
+            let totalEnviados = 0;
+            let totalPendientes = 0;
+            let totalCaducados = 0;
+            let htmlList = '';
+
+            const contratasAProcesar = contrataFiltro === 'TODAS' ? ['CIRCET', 'INSTELCA', 'OBREMO', 'ZENER'] : [contrataFiltro];
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            let allRows = [];
+
+            contratasAProcesar.forEach(cName => {
+                const otsJsonList = pendingOTsFromJSON[cName] || [];
+                otsJsonList.forEach(item => {
+                    const nOt = String(item.nOt || item.OT || item.ot || '').trim();
+                    const cleanOt = nOt.toLowerCase();
+                    const fechaStr = item.fechaInstalacion || item.fecha || item.Fecha || '';
+                    if (!fechaStr) return;
+
+                    const fechaInst = new Date(fechaStr);
+                    fechaInst.setHours(0,0,0,0);
+                    const diffTime = hoy.getTime() - fechaInst.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                    const isEnviado = sentOtCache.has(cleanOt);
+                    let estado = 'PENDIENTE';
+                    if (isEnviado) {
+                        estado = 'ENVIADO';
+                        totalEnviados++;
+                    } else if (diffDays > 5) {
+                        estado = 'CADUCADO';
+                        totalCaducados++;
+                    } else {
+                        estado = 'PENDIENTE';
+                        totalPendientes++;
+                    }
+
+                    allRows.push({
+                        contrata: cName,
+                        nOt: nOt,
+                        fecha: fechaInst.toLocaleDateString('es-ES'),
+                        estado: estado,
+                        dias: diffDays
+                    });
+                });
+            });
+
+            // Añadir también partes enviados que no estén en el JSON por si acaso
+            window.allSupabaseRecords.forEach(rec => {
+                const cDB = (rec.contrata || '').trim().toUpperCase();
+                if (contrataFiltro !== 'TODAS' && cDB !== contrataFiltro) return;
+                const nOt = String(rec.n_ot || '');
+                if (!allRows.some(r => r.nOt.toLowerCase() === nOt.toLowerCase())) {
+                    totalEnviados++;
+                    allRows.push({
+                        contrata: rec.contrata || 'DESCONOCIDA',
+                        nOt: nOt,
+                        fecha: new Date(rec.created_at || Date.now()).toLocaleDateString('es-ES'),
+                        estado: 'ENVIADO',
+                        dias: 0
+                    });
+                }
+            });
+
+            // Actualizar contadores visuales
+            document.getElementById('admin-stat-enviados').innerText = totalEnviados;
+            document.getElementById('admin-stat-pendientes').innerText = totalPendientes;
+            document.getElementById('admin-stat-caducados').innerText = totalCaducados;
+
+            // Filtrar y renderizar listado
+            const filteredRows = allRows.filter(row => {
+                if (estadoFiltro !== 'TODOS' && row.estado !== estadoFiltro) return false;
+                return true;
+            });
+
+            if (filteredRows.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-4">No se encontraron registros con los filtros seleccionados.</p>`;
+                return;
+            }
+
+            filteredRows.forEach(r => {
+                let badgeColor = 'bg-amber-950/60 border-amber-700 text-amber-300';
+                let icon = 'fa-clock';
+                if (r.estado === 'ENVIADO') {
+                    badgeColor = 'bg-emerald-950/60 border-emerald-700 text-emerald-300';
+                    icon = 'fa-circle-check';
+                } else if (r.estado === 'CADUCADO') {
+                    badgeColor = 'bg-rose-950/60 border-rose-700 text-rose-300';
+                    icon = 'fa-ban';
+                }
+
+                htmlList += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                        <div>
+                            <div class="font-bold text-white flex items-center gap-1.5">
+                                <span class="bg-purple-900/60 px-1.5 py-0.5 rounded text-[10px] text-purple-300 border border-purple-700/40">${r.contrata}</span>
+                                OT: ${r.nOt}
+                            </div>
+                            <div class="text-[11px] text-slate-400 mt-1">Fecha instalación: ${r.fecha} (${r.dias} días transcurridos)</div>
+                        </div>
+                        <div class="px-2.5 py-1 rounded-lg border font-semibold text-[10px] uppercase flex items-center gap-1 shrink-0 ${badgeColor}">
+                            <i class="fa-solid ${icon}"></i> ${r.estado}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = htmlList;
         }
 
         function checkOtBlockedAndSentInstant(otVal) {
@@ -1730,22 +1967,17 @@
                 reader.readAsDataURL(file);
             });
 
-            // --- NUEVO: DETECTOR DE FOTO OSCURA/TAPADA ---
-            // Usamos un umbral de 25 (sobre 255). Es bastante permisivo para dejar pasar fotos en 
-            // días nublados o de tarde, pero bloqueará dedos en la lente o fotos de noche cerrada.
+            // DETECTOR DE FOTO OSCURA/TAPADA
             const isDark = await isImageTooDark(rawDataUrl, 25);
             if (isDark) {
                 alert('⚠️ CÁMARA TAPADA O SIN LUZ:\nLa foto es demasiado oscura. Por favor, asegúrese de no tapar la lente y de que haya luz suficiente.');
-                document.getElementById(inputId).value = ''; // Resetea el input de archivo
-                
-                // Restaura el estado visual de la caja de subida
+                document.getElementById(inputId).value = '';
                 previewContainer.innerHTML = `
                     <i class="fa-solid fa-camera-retro text-3xl text-slate-500"></i>
                     <div class="text-xs text-slate-300 font-medium">Hacer foto o elegir archivo (Geolocalización automática)</div>
                 `;
-                return; // Corta la ejecución para que no se guarde la foto oscura
+                return;
             }
-            // ----------------------------------------------
 
             const compressedDataUrl = await compressImage(rawDataUrl, 450, 0.45);
 
