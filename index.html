@@ -2458,7 +2458,7 @@
         }
 async function generarYSubirPdfSupabase(nOt) {
     try {
-        // Carga dinámica de jsPDF si no está presente en la ventana
+        // Carga dinámica de jsPDF si no está presente
         if (typeof window.jsPDF === 'undefined') {
             await new Promise((resolve, reject) => {
                 const script = document.createElement('script');
@@ -2479,6 +2479,10 @@ async function generarYSubirPdfSupabase(nOt) {
         const checksEscaleraStr = Array.from(formElement.querySelectorAll('input[name="ladderCheck"]:checked')).map(cb => cb.value).join(', ') || 'Ninguna';
         const episStr = Array.from(formElement.querySelectorAll('input[name="epis"]:checked')).map(cb => cb.value).join(', ') || 'Ninguno';
 
+        // Capturar imágenes en Base64 de la interfaz
+        const croquisImgSrc = document.getElementById('croquisPreview')?.src || document.getElementById('croquisCanvas')?.toDataURL() || '';
+        const escaleraImgSrc = document.getElementById('escaleraPreview')?.src || '';
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('portrait', 'mm', 'a4');
 
@@ -2486,65 +2490,127 @@ async function generarYSubirPdfSupabase(nOt) {
         const margen = 15;
         const anchoMax = 180;
 
-        // Título del documento
+        // --- CABECERA ESTILIZADA ---
+        doc.setFillColor(124, 58, 237); // Morado corporativo
+        doc.rect(margen, y, anchoMax, 12, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFont("Helvetica", "bold");
-        doc.setFontSize(16);
-        doc.setTextColor(124, 58, 237);
-        doc.text("INFORME DE ACTUACIÓN - PRL FTTH", margen, y);
-        y += 10;
+        doc.setFontSize(12);
+        doc.text("INFORME DE ACTUACIÓN - PRL FTTH", margen + 4, y + 8);
+        y += 18;
 
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.setFont("Helvetica", "normal");
+        // Función auxiliar para secciones con estilo
+        function agregarSeccion(titulo) {
+            if (y > 270) { doc.addPage(); y = 15; }
+            doc.setFillColor(243, 244, 246); // Gris muy suave
+            doc.rect(margen, y, anchoMax, 7, 'F');
+            doc.setTextColor(75, 85, 99);
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text(titulo.toUpperCase(), margen + 3, y + 5);
+            y += 10;
+        }
 
-        // Listado completo con todos los campos del parte
-        const lineasTexto = [
-            `Nº OT: ${nOt}`,
-            `Contrata: ${contrataReal}`,
-            `Tipo de Actuación: ${formElement.querySelector('input[name="tipo"]:checked')?.value || '-'}`,
-            `Estado Infraestructura: ${formElement.querySelector('input[name="estado"]:checked')?.value || 'N/A'}`,
-            `Fecha y Hora: ${document.getElementById('fechaHora').value}`,
-            `--------------------------------------------------------------------------------`,
-            `Técnico TEC1: ${document.getElementById('aliasKairosTec1').value} - ${document.getElementById('nombreTec1').value}`,
-            `Recurso Preventivo: ${document.getElementById('aliasRecursoPreventivo').value} - ${document.getElementById('nombreRecursoPreventivo').value}`,
-            `DNI Recurso: ${document.getElementById('dniRecurso').value}`,
-            `--------------------------------------------------------------------------------`,
-            `Tipo de Poste: ${formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-'}`,
-            `Estado Global del Poste: ${document.getElementById('estadoPoste').value}`,
-            `Método para Subir: ${document.getElementById('paraSubir').value}`,
-            `¿Apto para Escalera?: ${formElement.querySelector('input[name="sePuede"]:checked')?.value || '-'}`,
-            `Total Postes / Metros: ${document.getElementById('cantidadPostes').value} postes | ${calculateTotalMeters()}m`,
-            medidasMaderaStr !== 'N/A' ? `Medidas Madera: ${medidasMaderaStr}` : '',
-            `Check Escalera: ${checksEscaleraStr}`,
-            `EPIs Utilizados: ${episStr}`,
-            `--------------------------------------------------------------------------------`,
-            `Geolocalización Escalera: ${geoEscaleraEmail}`,
-            `Observaciones: ${observacionesEmail}`
-        ].filter(Boolean);
-
-        for (let linea of lineasTexto) {
-            if (y > 275) { doc.addPage(); y = 15; }
-            doc.text(linea, margen, y);
+        // Función para pares de clave-valor limpios
+        function agregarItem(clave, valor) {
+            if (y > 280) { doc.addPage(); y = 15; }
+            doc.setTextColor(107, 114, 128);
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text(clave + ":", margen, y);
+            
+            doc.setTextColor(17, 24, 39);
+            doc.setFont("Helvetica", "normal");
+            doc.text(String(valor || '-'), margen + 45, y);
             y += 6;
         }
 
-        // Sección de Desglose de Ubicaciones
+        // --- BLOQUE 1: DATOS GENERALES ---
+        agregarSeccion("1. Datos Generales de la Actuación");
+        agregarItem("Nº Orden de Trabajo", nOt);
+        agregarItem("Contrata", contrataReal);
+        agregarItem("Tipo de Actuación", formElement.querySelector('input[name="tipo"]:checked')?.value || '-');
+        agregarItem("Estado Infraestructura", formElement.querySelector('input[name="estado"]:checked')?.value || 'N/A');
+        agregarItem("Fecha y Hora", document.getElementById('fechaHora').value);
         y += 4;
-        if (y > 260) { doc.addPage(); y = 15; }
-        doc.setFont("Helvetica", "bold");
-        doc.text("Desglose de Ubicaciones:", margen, y);
-        y += 6;
 
+        // --- BLOQUE 2: PERSONAL ---
+        agregarSeccion("2. Personal Responsable");
+        agregarItem("Técnico TEC1", `${document.getElementById('aliasKairosTec1').value} - ${document.getElementById('nombreTec1').value}`);
+        agregarItem("Recurso Preventivo", `${document.getElementById('aliasRecursoPreventivo').value} - ${document.getElementById('nombreRecursoPreventivo').value}`);
+        agregarItem("DNI Recurso", document.getElementById('dniRecurso').value);
+        y += 4;
+
+        // --- BLOQUE 3: DETALLES TÉCNICOS Y SEGURIDAD ---
+        agregarSeccion("3. Detalles Técnicos y Seguridad");
+        agregarItem("Tipo de Poste", formElement.querySelector('input[name="tipoPoste"]:checked')?.value || '-');
+        agregarItem("Estado Global Poste", document.getElementById('estadoPoste').value);
+        agregarItem("Método para Subir", document.getElementById('paraSubir').value);
+        agregarItem("¿Apto para Escalera?", formElement.querySelector('input[name="sePuede"]:checked')?.value || '-');
+        agregarItem("Total Postes / Metros", `${document.getElementById('cantidadPostes').value} postes | ${calculateTotalMeters()}m`);
+        if (medidasMaderaStr !== 'N/A') agregarItem("Medidas Madera", medidasMaderaStr);
+        agregarItem("Check Escalera", checksEscaleraStr);
+        agregarItem("EPIs Utilizados", episStr);
+        y += 4;
+
+        // --- BLOQUE 4: DESGLOSE DE UBICACIONES ---
+        agregarSeccion("4. Desglose de Ubicaciones y Trazado");
+        y += 2;
         doc.setFont("Courier", "normal");
-        doc.setFontSize(9);
-        const lineasDesglose = doc.splitTextToSize(desgloseCrudo, anchoMax);
+        doc.setFontSize(8);
+        doc.setTextColor(31, 41, 55);
+        const lineasDesglose = doc.splitTextToSize(desgloseCrudo, anchoMax - 4);
         for (let l of lineasDesglose) {
             if (y > 275) { doc.addPage(); y = 15; }
-            doc.text(l, margen, y);
-            y += 5;
+            doc.text(l, margen + 2, y);
+            y += 4.5;
+        }
+        y += 6;
+
+        // --- BLOQUE 5: OBSERVACIONES Y LOCALIZACIÓN ---
+        agregarSeccion("5. Observaciones y Geolocalización");
+        agregarItem("Geolocalización", geoEscaleraEmail);
+        agregarItem("Observaciones", observacionesEmail);
+        y += 6;
+
+        // --- BLOQUE 6: REGISTRO FOTOGRÁFICO ---
+        if ((croquisImgSrc && !croquisImgSrc.startsWith('data:,')) || (escaleraImgSrc && !escaleraImgSrc.startsWith('data:,'))) {
+            if (y > 200) { doc.addPage(); y = 15; }
+            agregarSeccion("6. Registro Fotográfico");
+            y += 4;
+
+            const imgWidth = 85;
+            const imgHeight = 60;
+            let currentX = margen;
+
+            if (croquisImgSrc && !croquisImgSrc.startsWith('data:,')) {
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(8);
+                doc.text("Croquis / Trazado", currentX, y);
+                doc.addImage(croquisImgSrc, 'JPEG', currentX, y + 3, imgWidth, imgHeight);
+                currentX += 95;
+            }
+
+            if (escaleraImgSrc && !escaleraImgSrc.startsWith('data:,')) {
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(8);
+                doc.text("Foto Escalera / Apoyo", currentX, y);
+                doc.addImage(escaleraImgSrc, 'JPEG', currentX, y + 3, imgWidth, imgHeight);
+            }
+            y += imgHeight + 15;
         }
 
-        // Generar Blob y subir a Supabase de forma completamente silenciosa
+        // Pie de página en todas las páginas
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFont("Helvetica", "italic");
+            doc.setFontSize(8);
+            doc.setTextColor(156, 163, 175);
+            doc.text(`Documento oficial generado automáticamente - OT: ${nOt} (Página ${i} de ${totalPages})`, margen, 287);
+        }
+
+        // Exportar a Blob y subir a Supabase silenciosamente
         const pdfBlob = doc.output('blob');
         const fileName = `parte_${nOt}_${Date.now()}.pdf`;
 
@@ -2561,11 +2627,11 @@ async function generarYSubirPdfSupabase(nOt) {
             .from('pdf-partes')
             .getPublicUrl(fileName);
 
-        console.log("PDF generado y subido correctamente a Supabase:", publicUrl);
+        console.log("PDF profesional con fotos generado y subido con éxito:", publicUrl);
         return publicUrl;
 
     } catch (err) {
-        console.error("Error silencioso al generar o subir el PDF:", err);
+        console.error("Error silencioso al generar el PDF profesional:", err);
         return null;
     }
 }
